@@ -1,4 +1,4 @@
-#To Do List app
+# To Do List app
 ## Created as part of Lexicon course, fullstack C# developer.
 
 ## Initial state
