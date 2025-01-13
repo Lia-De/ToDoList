@@ -9,7 +9,20 @@ builder.Services.AddDbContext<TodoContext>(opt => opt.UseSqlite("DataSource=todo
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var sitePolicy = "site-policy";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(sitePolicy, builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyHeader()
+               .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+app.UseCors(sitePolicy);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
