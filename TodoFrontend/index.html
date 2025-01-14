@@ -3,10 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connecting to backend with js</title>
+    <title>Connecting to ToDo List</title>
 </head>
 <body>
-<h1>Connecting to the backend with js</h1>
+    <h1>Connecting to ToDo list</h1>
+    <div class="headClass"></div>
+    <button onclick="showProjects()">Show Projects</button>
+    <button onclick="showTags()">Show Tags</button>
+    <button onclick="showTasks()">Show Tasks</button>
+    <div class="container">
+        <h1 id="nowShowing"></h1>
+        <div id="projects"></div>
+        <div id="tasks"></div>
+        <div id="tags"></div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
