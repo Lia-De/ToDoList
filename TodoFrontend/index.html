@@ -4,19 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connecting to ToDo List</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Connecting to ToDo list</h1>
-    <div class="headClass"></div>
-    <button onclick="showProjects()">Show Projects</button>
-    <button onclick="showTasks()">Show Tasks</button>
-    <button onclick="showTags()">Show Tags</button>
-    
-    <div class="container">
-        <h1 id="nowShowing"></h1>
-        <div id="projects"></div>
-        <div id="tasks"></div>
-        <div id="tags"></div>
+    <h1>To Do</h1>
+    <div id="navigate">
+        <button onclick="showProjects()">Projects</button>
+        <button onclick="showTasks()">Tasks</button>
+        <button onclick="showTags()">Tags</button>
+    </div>
+    <div id="container">
+        <h2 id="nowShowing">Now showing</h1>
+        <div id="contents"></div>
     </div>
     <script src="script.js"></script>
 </body>
