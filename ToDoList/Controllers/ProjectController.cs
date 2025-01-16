@@ -34,18 +34,19 @@ public class ProjectController : ControllerBase
 
     // Update
     [HttpPost("updateProject")]
-    public IActionResult UpdateProject([FromForm] int id, [FromForm] string name)
+    public IActionResult UpdateProject([FromBody] Project updateDto)
     {
-        var project = _context.Projects.Find(id);
+        var project = _context.Projects.Find(updateDto.Id);
         if (project == null)
         {
             return NotFound();
         }
         string oldName = project.Name;
-        project.Name = name;
+        project.Name = updateDto.Name;
         _context.SaveChanges();
-        return Ok($"Project {name} updated from {oldName}");
+        return Ok();
     }
+
 
     // Delete
     [HttpDelete("deleteProject/{id}")]

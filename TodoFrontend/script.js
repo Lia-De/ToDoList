@@ -108,49 +108,97 @@ document.getElementById("contents").addEventListener("click", function(e){
 
     
 function editProject (projectID){
-        let containerTarget = document.getElementById("container")  
+    let containerTarget = document.getElementById("container")  
     let projectName = "blank for now";
+    // Check if we have an edit box already
+    let oldEdit = document.getElementById("edits");
+    if (oldEdit != null) containerTarget.removeChild(oldEdit);
+
     // Create the container div
     const editBox = document.createElement('div');
-    editBox.id = 'edits';
-
-    // Create the form
-    const form = document.createElement('form');
-    form.id ="editForm";
-
-    // Create the label for the name input
-    const label = document.createElement('label');
-    label.setAttribute('for', 'name');
-    label.textContent = 'Name: ';
-
-    // Create the text input for the name
-    const inputText = document.createElement('input');
-    inputText.type = 'text';
-    inputText.id = 'name';
-    inputText.name = 'name';
-    inputText.value = projectName; // Fill the input with data.name
-    
-    // Create the hidden input for the ID
-    const inputHidden = document.createElement('input');
-    inputHidden.type = 'hidden';
-    inputHidden.id = 'id';
-    inputHidden.name = 'id';
-    inputHidden.value = projectID; // Set the hidden input value to data.id
-
-    // Create the submit button
-    const button = document.createElement('button');
-    button.type = 'submit';
-    button.textContent = 'Edit project';
-
-    // Append all elements to the form
-    form.appendChild(label);
-    form.appendChild(inputText);
-    form.appendChild(inputHidden);
-    form.appendChild(button);
-
-    // Append the form to the container div
+    editBox.id = 'edits'; 
+    // Create the form and append it to the box
+    const form = createForm(projectID, projectName);
     editBox.appendChild(form);
-
-    // Append the container div to the body or another desired parent
+    form.id ="editForm";
+    // Append the container div to the context
     containerTarget.appendChild(editBox);
+    // Add event listener
+    document.getElementById('editForm').addEventListener('submit', sendEditRequest);
+};
+
+function createForm(projectID, projectName) {
+  // Create the form
+  const form = document.createElement('form');
+  
+
+  // Create the label for the name input
+  const label = document.createElement('label');
+  label.setAttribute('for', 'name');
+  label.textContent = 'Name: ';
+
+  // Create the text input for the name
+  const inputText = document.createElement('input');
+  inputText.type = 'text';
+  inputText.id = 'name';
+  inputText.name = 'name';
+  inputText.value = projectName; // Fill the input 
+  
+  // Create the hidden input for the ID
+  const inputHidden = document.createElement('input');
+  inputHidden.type = 'hidden';
+  inputHidden.id = 'id';
+  inputHidden.name = 'id';
+  inputHidden.value = projectID; // Set the hidden input value to data.id
+
+  // Create the submit button
+  const button = document.createElement('button');
+  button.type = 'submit';
+  button.textContent = 'Edit';
+
+  // Append all elements to the form
+  form.appendChild(label);
+  form.appendChild(inputText);
+  form.appendChild(inputHidden);
+  form.appendChild(button);
+  return form;
+}
+
+
+async function sendEditRequest(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Get input values
+    const id = parseInt(document.getElementById('id').value);
+    const name = document.getElementById('name').value;
+    
+
+    // Data to send in the request
+    const requestData = {
+        Id: id,
+        Name: name
+    };
+
+    try {
+        // Send the POST request to the updateProject endpoint
+        const response = await fetch('https://localhost:7217/Project/updateProject', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+        });
+
+        if (response.ok) {
+            //const result = await response.json();
+            showProjects();
+
+        } else {
+            const error = await response.json();
+            alert(`Failed to update project: ${error.message}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An unexpected error occurred.');
+    }
 };
