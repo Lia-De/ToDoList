@@ -2,20 +2,26 @@
 showProjects();
 document.getElementById("navigate").addEventListener("click",navigationEventListener);
 
-
-function showProjects(){
-    fetch('https://localhost:7217/Project')
-        .then(response => response.json())
-        .then(function (data){
-            document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Projects`;
-            clearData();
-            let target = document.getElementById("contents");
-            let divTarget = addAllElements("p", data.map(project => project.name), target);
-            divTarget.className="names";            
-            let divTarget2 = addAllElements("p", data.map(project => project.id), target);
-            divTarget2.className="editProject";
-        });
+async function showProjects() {
+    try {
+        const response = await fetch('https://localhost:7217/Project');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Projects`;
+        clearData();
+        let target = document.getElementById("contents");
+        let divTarget = addAllElements("p", data.map(project => project.name), target);
+        divTarget.className = "names";
+        let divTarget2 = addAllElements("p", data.map(project => project.id), target);
+        divTarget2.className = "editProject";
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById("nowShowing").innerHTML =`! Database is unreachable !`;
+    }
 }
+
 function showTasks(){
     fetch('https://localhost:7217/Task')
         .then(response => response.json())
@@ -166,13 +172,28 @@ function createForm(projectID, editableText) {
   return form;
 }
 
+function isValidInput(input) {
+    // Example validation: the input should not be empty and must not contain special characters
+    const regex = /^[a-zA-Z0-9\s]+$/; // Only letters, numbers, and spaces are allowed
+    let onlyLetters = input.trim() !== '' && regex.test(input);
+    let nullValues = input != null || input !="";
+    let lengthMax = input.length <=30;
+
+    return onlyLetters && nullValues && lengthMax;
+}
 
 async function sendEditProjectRequest(event) {
+
     event.preventDefault(); // Prevent the default form submission
 
     // Get input values
     const id = parseInt(document.getElementById('id').value);
     const name = document.getElementById('name').value;
+    
+    if (!isValidInput(name)){
+        alert(`You have to enter (some) text`);
+        document.getElementById("container").removeChild(document.getElementById("edits"));
+    } else {
 
     // Data to send in the request
     const requestData = {
@@ -201,6 +222,7 @@ async function sendEditProjectRequest(event) {
         console.error('Error:', error);
         alert('An unexpected error occurred.');
     }
+}
 };
 
 async function sendEditTagRequest(event) {
@@ -209,6 +231,10 @@ async function sendEditTagRequest(event) {
     // Get input values
     const id = parseInt(document.getElementById('id').value);
     const name = document.getElementById('name').value;
+    if (!isValidInput(name)){
+        alert(`You have to enter (some) text`);
+        document.getElementById("container").removeChild(document.getElementById("edits"));
+    } else {
 
     // Data to send in the request
     const requestData = {
@@ -237,6 +263,7 @@ async function sendEditTagRequest(event) {
         console.error('Error:', error);
         alert('An unexpected error occurred.');
     }
+}
 };
 
 async function sendEditTaskRequest(event) {
@@ -245,6 +272,10 @@ async function sendEditTaskRequest(event) {
     // Get input values
     const id = parseInt(document.getElementById('id').value);
     const name = document.getElementById('name').value;
+    if (!isValidInput(name)){
+        alert(`You have to enter (some) text`);
+        document.getElementById("container").removeChild(document.getElementById("edits"));
+    } else {
 
     // Data to send in the request
     const requestData = {
@@ -273,4 +304,5 @@ async function sendEditTaskRequest(event) {
         console.error('Error:', error);
         alert('An unexpected error occurred.');
     }
+}
 };
