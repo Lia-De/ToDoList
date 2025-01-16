@@ -5,8 +5,15 @@ function showProjects(){
         .then(function (data){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Projects`;
             
+            clearData();
             let target = document.getElementById("contents");
-            addAllElements("p", data.map(project => project.name), target);
+            let divTarget = document.createElement("div");
+            target.appendChild(divTarget);
+            addAllElements("p", data.map(project => project.name), divTarget);
+            let divTarget2 = document.createElement("div");
+            divTarget2.className="editProject"
+            target.appendChild(divTarget2);
+            addAllElements("p", data.map(project => project.id), divTarget2);
         });
 }
 function showTasks(){
@@ -15,7 +22,14 @@ function showTasks(){
         .then(function (data){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tasks`;
             let target = document.getElementById("contents");
-            addAllElements("p", data.map(task => task.description), target);
+            clearData();
+            let divTarget = document.createElement("div");
+            target.appendChild(divTarget);
+            addAllElements("p", data.map(task => task.description), divTarget);
+            let divTarget2 = document.createElement("div");
+            divTarget2.className="editTask";
+            target.appendChild(divTarget2);
+            addAllElements("p", data.map(task => task.id), divTarget2);
         });
 }
 function showTags(){
@@ -25,15 +39,36 @@ function showTags(){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tags`;
             
             let target = document.getElementById("contents");    
-            addAllElements("p", data.map(tag => tag.name), target);
+            clearData();
+            let divTarget = document.createElement("div");
+            target.appendChild(divTarget);
+            addAllElements("p", data.map(tag => tag.name), divTarget);
+            let divTarget2 = document.createElement("div");
+            divTarget2.className="editTag";
+            target.appendChild(divTarget2);
+            addAllElements("p", data.map(tag => tag.id), divTarget2 );
         });
 }
+function addElement(elementType, data, target){
+    let newElement = document.createElement(elementType);
+    newElement.innerHTML = data;
+    target.appendChild(newElement);
+    return newElement;
+}
 
+function addEditLink (id, target) {
+    let editLink = addElement("a", id, target);
+    editLink.src = "img/edit.png";
+    editLink.href=`updateProject?id=${id}`
+
+}
 function addAllElements(elementType, data, target) {
-    clearData();
+    
     data.forEach(dataValue => {
+        
         let newElement = document.createElement(elementType);
         newElement.innerHTML = dataValue;
+        
         target.appendChild(newElement);
     })
 }
@@ -42,7 +77,14 @@ function clearData(){
     document.getElementById("contents").innerHTML = "";
 }
 
-document.getElementById("navigate").addEventListener("click", function(e){
+document.getElementById("navigate").addEventListener("click",eventListener);
+
+function eventListener(e){
+    // remove the edit field
+    if (document.getElementById("edits") != null) { 
+        document.getElementById("container").removeChild(document.getElementById("edits"));
+    }
+    // Find which data to show and display it
     let target = e.target;
     if(target.id === "projectsbtn"){
         showProjects();
@@ -51,5 +93,64 @@ document.getElementById("navigate").addEventListener("click", function(e){
     } else if(target.id === "tagsbtn"){
         showTags();
     }
- });
+ }
 
+document.getElementById("contents").addEventListener("click", function(e){
+    let target = e.target;
+    if (target.id === "contents"){
+        editBox.style.display = "none";
+        }
+    if (target.parentNode.className === "editProject") {
+        editProject(e.target.innerHTML);
+    };
+    });
+
+
+    
+function editProject (projectID){
+        let containerTarget = document.getElementById("container")  
+    let projectName = "blank for now";
+    // Create the container div
+    const editBox = document.createElement('div');
+    editBox.id = 'edits';
+
+    // Create the form
+    const form = document.createElement('form');
+    form.id ="editForm";
+
+    // Create the label for the name input
+    const label = document.createElement('label');
+    label.setAttribute('for', 'name');
+    label.textContent = 'Name: ';
+
+    // Create the text input for the name
+    const inputText = document.createElement('input');
+    inputText.type = 'text';
+    inputText.id = 'name';
+    inputText.name = 'name';
+    inputText.value = projectName; // Fill the input with data.name
+    
+    // Create the hidden input for the ID
+    const inputHidden = document.createElement('input');
+    inputHidden.type = 'hidden';
+    inputHidden.id = 'id';
+    inputHidden.name = 'id';
+    inputHidden.value = projectID; // Set the hidden input value to data.id
+
+    // Create the submit button
+    const button = document.createElement('button');
+    button.type = 'submit';
+    button.textContent = 'Edit project';
+
+    // Append all elements to the form
+    form.appendChild(label);
+    form.appendChild(inputText);
+    form.appendChild(inputHidden);
+    form.appendChild(button);
+
+    // Append the form to the container div
+    editBox.appendChild(form);
+
+    // Append the container div to the body or another desired parent
+    containerTarget.appendChild(editBox);
+};
