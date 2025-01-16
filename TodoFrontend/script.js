@@ -1,7 +1,19 @@
 // Start by showing current projects and set up a listener to change the displayed data
 showProjects();
 document.getElementById("navigate").addEventListener("click",navigationEventListener);
+document.getElementById("contents").addEventListener("click", contentListener);
+printAddingForm();
 
+
+function printAddingForm(){
+    let target = document.getElementById("container");
+    let addingBox = document.createElement("div");
+    addingBox.id = "addNewItem";
+    target.appendChild(addingBox);
+    let form = createAddingForm(addingBox);
+    return form;
+
+}
 async function showProjects() {
     try {
         const response = await fetch('https://localhost:7217/Project');
@@ -16,6 +28,10 @@ async function showProjects() {
         divTarget.className = "names";
         let divTarget2 = addAllElements("p", data.map(project => project.id), target);
         divTarget2.className = "editProject";
+        
+        document.getElementById("addNewItem").className="addProject";
+        document.getElementById('addNewItem').addEventListener('submit', sendAddProjectRequest);
+
     } catch (error) {
         console.error('Error:', error);
         document.getElementById("nowShowing").innerHTML =`! Database is unreachable !`;
@@ -34,6 +50,7 @@ function showTasks(){
             let divTarget2 = addAllElements("p", data.map(task => task.id), target);
             divTarget2.className="editTask";
         });
+        document.getElementById("addNewItem").className="addTask";
 }
 function showTags(){
     fetch('https://localhost:7217/Tag')
@@ -47,6 +64,7 @@ function showTags(){
             let divTarget2 = addAllElements("p", data.map(tag => tag.id), target );
             divTarget2.className="editTag";
         });
+        document.getElementById("addNewItem").className="addTag";
 }
 function addElement(elementType, data, target){
     let newElement = document.createElement(elementType);
@@ -67,12 +85,16 @@ function addAllElements(elementType, data, target) {
 function clearData(){
     document.getElementById("contents").innerHTML = "";
 }
-
+function clearEdit(){
+    let oldEdit = document.getElementById("edits");
+    if (oldEdit != null) 
+        document.getElementById("container").removeChild(oldEdit);
+}
 
 function navigationEventListener(e){
     // remove the edit field
     if (document.getElementById("edits") != null) { 
-        document.getElementById("container").removeChild(document.getElementById("edits"));
+        clearEdit();
     }
     // Find which data to show and display it
     let target = e.target;
@@ -85,9 +107,10 @@ function navigationEventListener(e){
     }
  }
 
-document.getElementById("contents").addEventListener("click", function(e){
-    let target = e.target;
     
+function contentListener(e) {
+    let target = e.target;
+
     let children = Array.from(e.target.parentNode.children); // Get all children of the parent
     let index = children.indexOf(target);   // Find the index of the clicked child
     let itemNames = document.getElementsByClassName("names")[0];
@@ -103,73 +126,93 @@ document.getElementById("contents").addEventListener("click", function(e){
     if (target.parentNode.className ==="editTask") {
         editTask(e.target.innerHTML, clickedItem);
     }
-    });
+}
 
-   
+
 function editProject (projectID, clickedProject){
     // Create the form and append it to the box
-    const form = createForm(projectID, clickedProject);
+    const form = createEditForm(projectID, clickedProject);
     form.id ="editForm";
     // Add event listener
     document.getElementById('editForm').addEventListener('submit', sendEditProjectRequest);
 };
 
 function editTag(tagID, tagName){
-    let form = createForm(tagID, tagName);
+    let form = createEditForm(tagID, tagName);
     form.id = "tagForm";
     document.getElementById('tagForm').addEventListener('submit', sendEditTagRequest);
 }
 function editTask(tagID, tagName){
-    let form = createForm(tagID, tagName);
+    let form = createEditForm(tagID, tagName);
     form.id = "taskForm";
     document.getElementById('taskForm').addEventListener('submit', sendEditTaskRequest);
 }
 
-function createForm(projectID, editableText) {
+function createAddingForm(target){
+    let form = document.createElement("form");
+    form.id ="addForm";
+   // Create the text input for the name
+   let inputText = document.createElement('input');
+   inputText.type = 'text';
+   inputText.id = 'newName';
+   inputText.name = 'newName';
+    // Create the submit button
+    let button = document.createElement('button');
+    button.type = 'submit';
+    button.textContent = 'Add';
+
+    // Append all elements to the form
+    form.appendChild(inputText);
+    form.appendChild(button);
+
+    target.appendChild(form);
+}
+
+function createEditForm(projectID, editableText) {
     let containerTarget = document.getElementById("container")  
-    // Check if we have an edit box already
-    let oldEdit = document.getElementById("edits");
-    if (oldEdit != null) containerTarget.removeChild(oldEdit);
+        // Check if we have an edit box already
+        clearEdit();
 
-    // Create the container div
-    const editBox = document.createElement('div');
+        // Create the container div
+    let editBox = document.createElement('div');
+
     editBox.id = 'edits'; 
-  // Create the form
-  const form = document.createElement('form');
+        // Create the form
+    let form = document.createElement('form');
 
-  // Create the label for the name input
-  const label = document.createElement('label');
-  label.setAttribute('for', 'name');
-  label.textContent = 'Name: ';
+        // Create the label for the name input
+    let label = document.createElement('label');
+    label.setAttribute('for', 'name');
+    label.textContent = 'Name: ';
 
-  // Create the text input for the name
-  const inputText = document.createElement('input');
-  inputText.type = 'text';
-  inputText.id = 'name';
-  inputText.name = 'name';
-  inputText.value = editableText; // Fill the input 
-  
-  // Create the hidden input for the ID
-  const inputHidden = document.createElement('input');
-  inputHidden.type = 'hidden';
-  inputHidden.id = 'id';
-  inputHidden.name = 'id';
-  inputHidden.value = projectID; // Set the hidden input value to data.id
+    // Create the text input for the name
+    let inputText = document.createElement('input');
+    inputText.type = 'text';
+    inputText.id = 'name';
+    inputText.name = 'name';
+    inputText.value = editableText; // Fill the input 
+    
+    // Create the hidden input for the ID
+    let inputHidden = document.createElement('input');
+    inputHidden.type = 'hidden';
+    inputHidden.id = 'id';
+    inputHidden.name = 'id';
+    inputHidden.value = projectID; // Set the hidden input value to data.id
 
-  // Create the submit button
-  const button = document.createElement('button');
-  button.type = 'submit';
-  button.textContent = 'Edit';
+    // Create the submit button
+    let button = document.createElement('button');
+    button.type = 'submit';
+    button.textContent = 'Edit';
 
-  // Append all elements to the form
-  form.appendChild(label);
-  form.appendChild(inputText);
-  form.appendChild(inputHidden);
-  form.appendChild(button);
+    // Append all elements to the form
+    form.appendChild(label);
+    form.appendChild(inputText);
+    form.appendChild(inputHidden);
+    form.appendChild(button);
 
-  editBox.appendChild(form);
-  containerTarget.appendChild(editBox);
-  return form;
+    editBox.appendChild(form);
+    containerTarget.appendChild(editBox);
+    return form;
 }
 
 function isValidInput(input) {
@@ -182,21 +225,50 @@ function isValidInput(input) {
     return onlyLetters && nullValues && lengthMax;
 }
 
+async function sendAddProjectRequest(event) {
+    event.preventDefault(); 
+    let newEntry = document.getElementById('newName').value;
+    
+    if (!isValidInput(newEntry)){
+        alert(`You have to enter (some) text`);
+    } else {
+        // clearEdit();
+    const formData = new FormData();
+    formData.append('name', newEntry );
+    try {
+    const response = await fetch('https://localhost:7217/Project/addProject', {
+        method: 'POST',
+        body: formData, // Automatically sets Content-Type to multipart/form-data
+    });
+
+        if (response.ok) {
+            showProjects();
+
+        } else {
+            const error = await response.json();
+            alert(`Failed to update project: ${error.message}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An unexpected error occurred.');
+    }
+}
+}
+
 async function sendEditProjectRequest(event) {
 
     event.preventDefault(); // Prevent the default form submission
 
     // Get input values
-    const id = parseInt(document.getElementById('id').value);
-    const name = document.getElementById('name').value;
+    let id = parseInt(document.getElementById('id').value);
+    let name = document.getElementById('name').value;
     
     if (!isValidInput(name)){
         alert(`You have to enter (some) text`);
-        document.getElementById("container").removeChild(document.getElementById("edits"));
     } else {
-
-    // Data to send in the request
-    const requestData = {
+        clearEdit();
+            // Data to send in the request
+    let requestData = {
         Id: id,
         Name: name
     };
@@ -233,9 +305,8 @@ async function sendEditTagRequest(event) {
     const name = document.getElementById('name').value;
     if (!isValidInput(name)){
         alert(`You have to enter (some) text`);
-        document.getElementById("container").removeChild(document.getElementById("edits"));
     } else {
-
+        clearEdit();
     // Data to send in the request
     const requestData = {
         Id: id,
@@ -274,8 +345,8 @@ async function sendEditTaskRequest(event) {
     const name = document.getElementById('name').value;
     if (!isValidInput(name)){
         alert(`You have to enter (some) text`);
-        document.getElementById("container").removeChild(document.getElementById("edits"));
     } else {
+        clearEdit();
 
     // Data to send in the request
     const requestData = {

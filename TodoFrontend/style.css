@@ -1,6 +1,9 @@
 h1 {
     text-align: center;
 }
+h2 {
+    margin-left: 1em;
+}
 #navigate {
     text-align: center;
     display: flex;
@@ -11,7 +14,7 @@ h1 {
 #container {
     width: 90%;
     margin: 0 auto;
-    padding: 0 0 0 1em;
+    padding: 0;
     background-color: #f0f0f0;
     border: 1px solid #d0d0d0;
     border-radius: 5px;
@@ -24,6 +27,7 @@ h1 {
 }
 #container>div {
     margin-bottom: 0.8em;
+    margin-left: 1em;
 }
 #contents>div>p {
     width: 90%;
@@ -33,7 +37,9 @@ h1 {
     border-bottom: 1px solid #d0d0d0;
     border-radius: 5px 5px 0 0;
 }
-
+form > input {
+    margin: 0 1em 0 0;
+}
 button {
     padding: 0.5em 1em;
     color: white;
