@@ -34,17 +34,17 @@ public class ProjectController : ControllerBase
 
     // Update
     [HttpPost("updateProject")]
-    public IActionResult UpdateProject([FromBody] Project updateDto)
+    public IActionResult UpdateProject([FromBody] Project frontendProject)
     {
-        var project = _context.Projects.Find(updateDto.Id);
+        var project = _context.Projects.Find(frontendProject.Id);
         if (project == null)
         {
             return NotFound();
         }
         string oldName = project.Name;
-        project.Name = updateDto.Name;
+        project.Name = frontendProject.Name;
         _context.SaveChanges();
-        return Ok();
+        return Ok($"Project ({oldName}) updated to {project.Name}");
     }
 
 

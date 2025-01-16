@@ -1,4 +1,4 @@
-
+showProjects();
 function showProjects(){
     fetch('https://localhost:7217/Project')
         .then(response => response.json())
@@ -7,13 +7,12 @@ function showProjects(){
             
             clearData();
             let target = document.getElementById("contents");
-            let divTarget = document.createElement("div");
-            target.appendChild(divTarget);
-            addAllElements("p", data.map(project => project.name), divTarget);
-            let divTarget2 = document.createElement("div");
-            divTarget2.className="editProject"
-            target.appendChild(divTarget2);
-            addAllElements("p", data.map(project => project.id), divTarget2);
+            let divTarget = addAllElements("p", data.map(project => project.name), target);
+            divTarget.className="names";            
+            let divTarget2 = addAllElements("p", data.map(project => project.id), target);
+            divTarget2.className="editProject";
+        
+            
         });
 }
 function showTasks(){
@@ -23,13 +22,12 @@ function showTasks(){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tasks`;
             let target = document.getElementById("contents");
             clearData();
-            let divTarget = document.createElement("div");
-            target.appendChild(divTarget);
-            addAllElements("p", data.map(task => task.description), divTarget);
-            let divTarget2 = document.createElement("div");
+            let divTarget = addAllElements("p", data.map(task => task.description), target); 
+            divTarget.className="names";
+            let divTarget2 = addAllElements("p", data.map(task => task.id), target);
             divTarget2.className="editTask";
-            target.appendChild(divTarget2);
-            addAllElements("p", data.map(task => task.id), divTarget2);
+            
+            
         });
 }
 function showTags(){
@@ -40,13 +38,12 @@ function showTags(){
             
             let target = document.getElementById("contents");    
             clearData();
-            let divTarget = document.createElement("div");
-            target.appendChild(divTarget);
-            addAllElements("p", data.map(tag => tag.name), divTarget);
-            let divTarget2 = document.createElement("div");
+            let divTarget = addAllElements("p", data.map(tag => tag.name), target);
+            divTarget.className="names";
+            let divTarget2 = addAllElements("p", data.map(tag => tag.id), target );
             divTarget2.className="editTag";
-            target.appendChild(divTarget2);
-            addAllElements("p", data.map(tag => tag.id), divTarget2 );
+            
+            
         });
 }
 function addElement(elementType, data, target){
@@ -56,21 +53,16 @@ function addElement(elementType, data, target){
     return newElement;
 }
 
-function addEditLink (id, target) {
-    let editLink = addElement("a", id, target);
-    editLink.src = "img/edit.png";
-    editLink.href=`updateProject?id=${id}`
-
-}
 function addAllElements(elementType, data, target) {
-    
+    let targetDiv = document.createElement("div");
     data.forEach(dataValue => {
-        
         let newElement = document.createElement(elementType);
         newElement.innerHTML = dataValue;
         
-        target.appendChild(newElement);
+        targetDiv.appendChild(newElement);
+        target.appendChild(targetDiv);
     })
+    return targetDiv;
 }
 
 function clearData(){
@@ -97,19 +89,23 @@ function eventListener(e){
 
 document.getElementById("contents").addEventListener("click", function(e){
     let target = e.target;
-    if (target.id === "contents"){
-        editBox.style.display = "none";
-        }
+    
+    let children = Array.from(e.target.parentNode.children); // Get all children of the parent
+    let index = children.indexOf(target);   // Find the index of the clicked child
+
     if (target.parentNode.className === "editProject") {
-        editProject(e.target.innerHTML);
+        // Create and show an edit form
+        let projectNames = document.getElementsByClassName("names")[0];
+        let clickedProject = projectNames.children[index].innerHTML;
+        editProject(e.target.innerHTML, clickedProject);
     };
     });
 
 
     
-function editProject (projectID){
+function editProject (projectID, clickedProject){
     let containerTarget = document.getElementById("container")  
-    let projectName = "blank for now";
+    let projectName = clickedProject;
     // Check if we have an edit box already
     let oldEdit = document.getElementById("edits");
     if (oldEdit != null) containerTarget.removeChild(oldEdit);
@@ -190,7 +186,6 @@ async function sendEditRequest(event) {
         });
 
         if (response.ok) {
-            //const result = await response.json();
             showProjects();
 
         } else {
