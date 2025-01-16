@@ -1,3 +1,6 @@
+h1 {
+    text-align: center;
+}
 #navigate {
     text-align: center;
     display: flex;
@@ -31,4 +34,25 @@ button {
     border: 1px solid hsl(0, 0%, 82%);
     border-radius: 5px;
     box-shadow: 0 0 5px #d0d0d0;
+}
+
+@media screen and (min-width: 768px) {
+
+    #site-container {
+        display: grid;
+        grid-template-columns: 130px auto;
+    }
+    #site-container > h1 {
+        grid-column: 1 / 3;
+        
+    }
+    #navigate {
+        flex-direction: column;
+        justify-content: unset;
+    }
+    #navigate > button {
+        width: 120px;
+        margin-bottom: 1em;
+    }
+    
 }

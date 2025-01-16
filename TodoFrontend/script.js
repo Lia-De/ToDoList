@@ -13,7 +13,6 @@ function showTasks(){
     fetch('https://localhost:7217/Task')
         .then(response => response.json())
         .then(function (data){
-            
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tasks`;
             let target = document.getElementById("contents");
             addAllElements("p", data.map(task => task.description), target);
@@ -42,3 +41,15 @@ function addAllElements(elementType, data, target) {
 function clearData(){
     document.getElementById("contents").innerHTML = "";
 }
+
+document.getElementById("navigate").addEventListener("click", function(e){
+    let target = e.target;
+    if(target.id === "projectsbtn"){
+        showProjects();
+    } else if(target.id === "tasksbtn"){
+        showTasks();
+    } else if(target.id === "tagsbtn"){
+        showTags();
+    }
+ });
+
