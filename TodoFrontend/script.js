@@ -227,7 +227,7 @@ async function sendEditTagRequest(event) {
         });
 
         if (response.ok) {
-            showProjects();
+            showTags();
 
         } else {
             const error = await response.json();
@@ -263,7 +263,7 @@ async function sendEditTaskRequest(event) {
         });
 
         if (response.ok) {
-            showProjects();
+            showTasks();
 
         } else {
             const error = await response.json();
