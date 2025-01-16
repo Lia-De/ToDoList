@@ -1,18 +1,19 @@
+// Start by showing current projects and set up a listener to change the displayed data
 showProjects();
+document.getElementById("navigate").addEventListener("click",navigationEventListener);
+
+
 function showProjects(){
     fetch('https://localhost:7217/Project')
         .then(response => response.json())
         .then(function (data){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Projects`;
-            
             clearData();
             let target = document.getElementById("contents");
             let divTarget = addAllElements("p", data.map(project => project.name), target);
             divTarget.className="names";            
             let divTarget2 = addAllElements("p", data.map(project => project.id), target);
             divTarget2.className="editProject";
-        
-            
         });
 }
 function showTasks(){
@@ -26,8 +27,6 @@ function showTasks(){
             divTarget.className="names";
             let divTarget2 = addAllElements("p", data.map(task => task.id), target);
             divTarget2.className="editTask";
-            
-            
         });
 }
 function showTags(){
@@ -35,15 +34,12 @@ function showTags(){
         .then(response => response.json())
         .then(function (data){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tags`;
-            
             let target = document.getElementById("contents");    
             clearData();
             let divTarget = addAllElements("p", data.map(tag => tag.name), target);
             divTarget.className="names";
             let divTarget2 = addAllElements("p", data.map(tag => tag.id), target );
             divTarget2.className="editTag";
-            
-            
         });
 }
 function addElement(elementType, data, target){
@@ -56,12 +52,9 @@ function addElement(elementType, data, target){
 function addAllElements(elementType, data, target) {
     let targetDiv = document.createElement("div");
     data.forEach(dataValue => {
-        let newElement = document.createElement(elementType);
-        newElement.innerHTML = dataValue;
-        
-        targetDiv.appendChild(newElement);
-        target.appendChild(targetDiv);
+        addElement(elementType, dataValue, targetDiv);
     })
+    target.appendChild(targetDiv);
     return targetDiv;
 }
 
@@ -69,9 +62,8 @@ function clearData(){
     document.getElementById("contents").innerHTML = "";
 }
 
-document.getElementById("navigate").addEventListener("click",eventListener);
 
-function eventListener(e){
+function navigationEventListener(e){
     // remove the edit field
     if (document.getElementById("edits") != null) { 
         document.getElementById("container").removeChild(document.getElementById("edits"));
@@ -92,20 +84,43 @@ document.getElementById("contents").addEventListener("click", function(e){
     
     let children = Array.from(e.target.parentNode.children); // Get all children of the parent
     let index = children.indexOf(target);   // Find the index of the clicked child
+    let itemNames = document.getElementsByClassName("names")[0];
+    let clickedItem = itemNames.children[index].innerHTML;
 
     if (target.parentNode.className === "editProject") {
         // Create and show an edit form
-        let projectNames = document.getElementsByClassName("names")[0];
-        let clickedProject = projectNames.children[index].innerHTML;
-        editProject(e.target.innerHTML, clickedProject);
-    };
+        editProject(e.target.innerHTML, clickedItem);
+    }
+    if (target.parentNode.className ==="editTag") {
+        editTag(e.target.innerHTML, clickedItem);
+    }
+    if (target.parentNode.className ==="editTask") {
+        editTask(e.target.innerHTML, clickedItem);
+    }
     });
 
-
-    
+   
 function editProject (projectID, clickedProject){
+    // Create the form and append it to the box
+    const form = createForm(projectID, clickedProject);
+    form.id ="editForm";
+    // Add event listener
+    document.getElementById('editForm').addEventListener('submit', sendEditProjectRequest);
+};
+
+function editTag(tagID, tagName){
+    let form = createForm(tagID, tagName);
+    form.id = "tagForm";
+    document.getElementById('tagForm').addEventListener('submit', sendEditTagRequest);
+}
+function editTask(tagID, tagName){
+    let form = createForm(tagID, tagName);
+    form.id = "taskForm";
+    document.getElementById('taskForm').addEventListener('submit', sendEditTaskRequest);
+}
+
+function createForm(projectID, editableText) {
     let containerTarget = document.getElementById("container")  
-    let projectName = clickedProject;
     // Check if we have an edit box already
     let oldEdit = document.getElementById("edits");
     if (oldEdit != null) containerTarget.removeChild(oldEdit);
@@ -113,20 +128,8 @@ function editProject (projectID, clickedProject){
     // Create the container div
     const editBox = document.createElement('div');
     editBox.id = 'edits'; 
-    // Create the form and append it to the box
-    const form = createForm(projectID, projectName);
-    editBox.appendChild(form);
-    form.id ="editForm";
-    // Append the container div to the context
-    containerTarget.appendChild(editBox);
-    // Add event listener
-    document.getElementById('editForm').addEventListener('submit', sendEditRequest);
-};
-
-function createForm(projectID, projectName) {
   // Create the form
   const form = document.createElement('form');
-  
 
   // Create the label for the name input
   const label = document.createElement('label');
@@ -138,7 +141,7 @@ function createForm(projectID, projectName) {
   inputText.type = 'text';
   inputText.id = 'name';
   inputText.name = 'name';
-  inputText.value = projectName; // Fill the input 
+  inputText.value = editableText; // Fill the input 
   
   // Create the hidden input for the ID
   const inputHidden = document.createElement('input');
@@ -157,17 +160,19 @@ function createForm(projectID, projectName) {
   form.appendChild(inputText);
   form.appendChild(inputHidden);
   form.appendChild(button);
+
+  editBox.appendChild(form);
+  containerTarget.appendChild(editBox);
   return form;
 }
 
 
-async function sendEditRequest(event) {
+async function sendEditProjectRequest(event) {
     event.preventDefault(); // Prevent the default form submission
 
     // Get input values
     const id = parseInt(document.getElementById('id').value);
     const name = document.getElementById('name').value;
-    
 
     // Data to send in the request
     const requestData = {
@@ -191,6 +196,78 @@ async function sendEditRequest(event) {
         } else {
             const error = await response.json();
             alert(`Failed to update project: ${error.message}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An unexpected error occurred.');
+    }
+};
+
+async function sendEditTagRequest(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Get input values
+    const id = parseInt(document.getElementById('id').value);
+    const name = document.getElementById('name').value;
+
+    // Data to send in the request
+    const requestData = {
+        Id: id,
+        Name: name
+    };
+
+    try {
+        // Send the POST request to the updateProject endpoint
+        const response = await fetch('https://localhost:7217/Tag/updateTag', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+        });
+
+        if (response.ok) {
+            showProjects();
+
+        } else {
+            const error = await response.json();
+            alert(`Failed to update tag: ${error.message}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An unexpected error occurred.');
+    }
+};
+
+async function sendEditTaskRequest(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Get input values
+    const id = parseInt(document.getElementById('id').value);
+    const name = document.getElementById('name').value;
+
+    // Data to send in the request
+    const requestData = {
+        Id: id,
+        Description: name
+    };
+
+    try {
+        // Send the POST request to the updateProject endpoint
+        const response = await fetch('https://localhost:7217/Task/updateTask', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+        });
+
+        if (response.ok) {
+            showProjects();
+
+        } else {
+            const error = await response.json();
+            alert(`Failed to update task: ${error.message}`);
         }
     } catch (error) {
         console.error('Error:', error);

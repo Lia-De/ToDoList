@@ -30,17 +30,17 @@ public class TaskController : Controller
     }
     // Update
     [HttpPost("updateTask")]
-    public IActionResult UpdateTask([FromForm] int id, [FromForm] string description)
+    public IActionResult UpdateTask([FromBody] ToDoList.Models.Task frontendTask)
     {
-        var task = _context.Tasks.Find(id);
+        var task = _context.Tasks.Find(frontendTask.Id);
         if (task == null)
         {
             return NotFound();
         }
         string oldDesc = task.Description;
-        task.Description = description;
+        task.Description = frontendTask.Description;
         _context.SaveChanges();
-        return Ok($"Task {description} updated from {oldDesc}");
+        return Ok($"Task {frontendTask.Description} updated from {oldDesc}");
     }
     // Delete
     [HttpDelete("deleteTask/{id}")]

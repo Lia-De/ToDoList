@@ -30,17 +30,17 @@ public class TagController : ControllerBase
     }
     // Update
     [HttpPost("updateTag")]
-    public IActionResult UpdateTag([FromForm] int id, [FromForm] string name)
+    public IActionResult UpdateTag([FromBody] Tag frontendTag)
     {
-        var tag = _context.Tags.Find(id);
+        var tag = _context.Tags.Find(frontendTag.Id);
         if (tag == null)
         {
             return NotFound();
         }
         string oldName = tag.Name;
-        tag.Name = name;
+        tag.Name = frontendTag.Name;
         _context.SaveChanges();
-        return Ok($"Tag {name} updated from {oldName}");
+        return Ok($"Tag {frontendTag.Name} updated from {oldName}");
     }
     // Delete
     [HttpDelete("deleteTag/{id}")]
