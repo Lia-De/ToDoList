@@ -23,7 +23,7 @@ async function showProjects() {
         clearData();
         createDataTable(data, "projects");
         let addingForm = printAddingForm("addProject");
-        addingForm.addEventListener('submit', sendAddProjectRequest);
+        addingForm.addEventListener('submit', addProjectRequest);
 
     } catch (error) {
         console.error('Error:', error);
@@ -40,7 +40,7 @@ function showTasks(){
             clearData();
             createDataTable(data, "tasks");
             let addingForm = printAddingForm("addTask");
-            addingForm.addEventListener('submit', sendAddTaskRequest);
+            addingForm.addEventListener('submit', addTaskRequest);
         });
         
 }
@@ -53,7 +53,7 @@ function showTags(){
             clearData();
             createDataTable(data, "tags");
             let addingForm = printAddingForm("addTag");
-            addingForm.addEventListener('submit', sendAddTagRequest);
+            addingForm.addEventListener('submit', addTagRequest);
         });
 }
 function addElement(elementType, data, target){
@@ -100,121 +100,48 @@ function navigationEventListener(e){
         showTags();
     }
  }
-
+// 3 functions to add and populate edit forms and set event listeners
 function editProject (projectID, clickedProject){
-    // Create the form and append it to the box
     const form = createEditForm(projectID, clickedProject);
     form.id ="editForm";
-    // Add event listener
-    form.addEventListener('submit', sendEditProjectRequest);
+    form.addEventListener('submit', editProjectRequest);
 };
 
 function editTag(tagID, tagName){
     let form = createEditForm(tagID, tagName);
     form.id = "tagForm";
-    form.addEventListener('submit', sendEditTagRequest);
+    form.addEventListener('submit', editTagRequest);
 }
 function editTask(tagID, tagName){
     let form = createEditForm(tagID, tagName);
     form.id = "taskForm";
-    form.addEventListener('submit', sendEditTaskRequest);
+    form.addEventListener('submit', editTaskRequest);
 }
 
 function deleteProject(id, name){
-    console.log(`delete project ${id} ${name} here`);
     const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
             
     if (confirmDelete) {
-        deleteData(id, name, "project");
+        sendDeleteData(id, name, "project");
     }
 }
 function deleteTag(id, name){
-    console.log(`delete tag ${id} ${name} here`);
     const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
             
     if (confirmDelete) {
-        deleteData(id, name, "tag");
+        sendDeleteData(id, name, "tag");
     }
 }
 function deleteTask(id, desc){
-    console.log(`delete project ${id} ${desc} here`);
     const confirmDelete = confirm(`Are you sure you want to delete "${desc}"?`);
             
     if (confirmDelete) {
-        deleteData(id, desc, "task");
+        sendDeleteData(id, desc, "task");
     }
 }
 
-
-function createAddingForm(target, dataType){
-    let form = document.createElement("form");
-    form.id = dataType;
-   // Create the text input for the name
-   let inputText = document.createElement('input');
-   inputText.type = 'text';
-   inputText.id = 'newName';
-   inputText.name = 'newName';
-    // Create the submit button
-    let button = document.createElement('button');
-    button.type = 'submit';
-    button.textContent = 'Add';
-    
-    // Append all elements to the form
-    form.appendChild(inputText);
-    form.appendChild(button);
-
-    target.appendChild(form);
-    return form;
-}
-
-function createEditForm(projectID, editableText) {
-    let containerTarget = document.getElementById("container")  
-        // Check if we have an edit box already
-        clearEdit();
-
-        // Create the container div
-    let editBox = document.createElement('div');
-
-    editBox.id = 'edits'; 
-        // Create the form
-    let form = document.createElement('form');
-
-        // Create the label for the name input
-    let label = document.createElement('label');
-    label.setAttribute('for', 'name');
-    label.textContent = 'Name: ';
-
-    // Create the text input for the name
-    let inputText = document.createElement('input');
-    inputText.type = 'text';
-    inputText.id = 'name';
-    inputText.name = 'name';
-    inputText.value = editableText; // Fill the input 
-    
-    // Create the hidden input for the ID
-    let inputHidden = document.createElement('input');
-    inputHidden.type = 'hidden';
-    inputHidden.id = 'id';
-    inputHidden.name = 'id';
-    inputHidden.value = projectID; // Set the hidden input value to data.id
-
-    // Create the submit button
-    let button = document.createElement('button');
-    button.type = 'submit';
-    button.textContent = 'Edit';
-
-    // Append all elements to the form
-    form.appendChild(label);
-    form.appendChild(inputText);
-    form.appendChild(inputHidden);
-    form.appendChild(button);
-
-    editBox.appendChild(form);
-    containerTarget.appendChild(editBox);
-    return form;
-}
-
-async function deleteData(id, data, dataType) {
+// async function to request to delete data from the database
+async function sendDeleteData(id, data, dataType) {
     let fetchUrl;
     let deleteData;
     let reload;
@@ -281,7 +208,7 @@ function isValidInput(input) {
 
     return onlyLetters && nullValues && lengthMax;
 }
-function sendAddProjectRequest(event) {
+function addProjectRequest(event) {
     event.preventDefault(); 
     let newEntry = document.getElementById('newName').value;
     
@@ -291,10 +218,10 @@ function sendAddProjectRequest(event) {
         clearAddingForm();
         const formData = new FormData();
         formData.append('name', newEntry );
-        addRequest(formData,'https://localhost:7217/Project/addProject',"project");
+        sendAddRequest(formData,'https://localhost:7217/Project/addProject',"project");
     }
 }
-function sendAddTaskRequest(event){
+function addTaskRequest(event){
     // console.log("ADD A TASK ");
     event.preventDefault(); 
     let newEntry = document.getElementById('newName').value;
@@ -305,10 +232,10 @@ function sendAddTaskRequest(event){
         clearAddingForm();
         const formData = new FormData();
         formData.append('description', newEntry );
-        addRequest(formData,'https://localhost:7217/Task/addTask',"task");
+        sendAddRequest(formData,'https://localhost:7217/Task/addTask',"task");
     }
 }
-function sendAddTagRequest(event){
+function addTagRequest(event){
     event.preventDefault(); 
     let newEntry = document.getElementById('newName').value;
     
@@ -318,10 +245,10 @@ function sendAddTagRequest(event){
         clearAddingForm();
         const formData = new FormData();
         formData.append('name', newEntry );
-        addRequest(formData,'https://localhost:7217/Tag/addTag',"tag");
+        sendAddRequest(formData,'https://localhost:7217/Tag/addTag',"tag");
     }
 }
-async function addRequest(formData, fetchURL, dataType){
+async function sendAddRequest(formData, fetchURL, dataType){
     try {
         const response = await fetch(fetchURL, {
             method: 'POST',
@@ -346,7 +273,7 @@ async function addRequest(formData, fetchURL, dataType){
         }
 }
 
-function sendEditProjectRequest(event) {
+function editProjectRequest(event) {
 
     event.preventDefault(); // Prevent the default form submission
 
@@ -363,11 +290,11 @@ function sendEditProjectRequest(event) {
         Id: id,
         Name: name
     };
-    editRequest(requestData, 'https://localhost:7217/Project/updateProject', "project");
+    sendEditRequest(requestData, 'https://localhost:7217/Project/updateProject', "project");
 }
 };
 
-function sendEditTagRequest(event) {
+function editTagRequest(event) {
     event.preventDefault(); // Prevent the default form submission
 
     // Get input values
@@ -382,11 +309,11 @@ function sendEditTagRequest(event) {
         Id: id,
         Name: name
     };
-    editRequest(requestData, 'https://localhost:7217/Tag/updateTag', "tag");
+    sendEditRequest(requestData, 'https://localhost:7217/Tag/updateTag', "tag");
 }
 };
 
-function sendEditTaskRequest(event) {
+function editTaskRequest(event) {
     event.preventDefault(); // Prevent the default form submission
 
     // Get input values
@@ -402,11 +329,11 @@ function sendEditTaskRequest(event) {
         Id: id,
         Description: name
     };
-    editRequest(requestData, 'https://localhost:7217/Task/updateTask', "task");
+    sendEditRequest(requestData, 'https://localhost:7217/Task/updateTask', "task");
 }
 };
 
-async function editRequest(requestData, fetchURL, dataType){
+async function sendEditRequest(requestData, fetchURL, dataType){
     try {
         // Send the POST request to the updateProject endpoint
         const response = await fetch(fetchURL, {
@@ -441,6 +368,75 @@ async function editRequest(requestData, fetchURL, dataType){
     }
 }
 
+//function to create an add new data form
+function createAddingForm(target, dataType){
+    let form = document.createElement("form");
+    form.id = dataType;
+   // Create the text input for the name
+   let inputText = document.createElement('input');
+   inputText.type = 'text';
+   inputText.id = 'newName';
+   inputText.name = 'newName';
+    // Create the submit button
+    let button = document.createElement('button');
+    button.type = 'submit';
+    button.textContent = 'Add';
+    
+    // Append all elements to the form
+    form.appendChild(inputText);
+    form.appendChild(button);
+
+    target.appendChild(form);
+    return form;
+}
+
+// function to create and populate an edit form
+function createEditForm(projectID, editableText) {
+    let containerTarget = document.getElementById("container")  
+        // Check if we have an edit box already
+        clearEdit();
+
+        // Create the container div
+    let editBox = document.createElement('div');
+
+    editBox.id = 'edits'; 
+        // Create the form
+    let form = document.createElement('form');
+
+        // Create the label for the name input
+    let label = document.createElement('label');
+    label.setAttribute('for', 'name');
+    label.textContent = 'Name: ';
+
+    // Create the text input for the name
+    let inputText = document.createElement('input');
+    inputText.type = 'text';
+    inputText.id = 'name';
+    inputText.name = 'name';
+    inputText.value = editableText; // Fill the input 
+    
+    // Create the hidden input for the ID
+    let inputHidden = document.createElement('input');
+    inputHidden.type = 'hidden';
+    inputHidden.id = 'id';
+    inputHidden.name = 'id';
+    inputHidden.value = projectID; // Set the hidden input value to data.id
+
+    // Create the submit button
+    let button = document.createElement('button');
+    button.type = 'submit';
+    button.textContent = 'Edit';
+
+    // Append all elements to the form
+    form.appendChild(label);
+    form.appendChild(inputText);
+    form.appendChild(inputHidden);
+    form.appendChild(button);
+
+    editBox.appendChild(form);
+    containerTarget.appendChild(editBox);
+    return form;
+}
 // Function to create and populate the table
 function createDataTable(data, dataType) {
     // Get the table element or create it if it doesn't exist
