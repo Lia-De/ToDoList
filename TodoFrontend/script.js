@@ -77,7 +77,11 @@ function clearEdit(){
     if (oldEdit != null) 
         document.getElementById("container").removeChild(oldEdit);
 }
-
+function clearAddingForm(){
+    let oldAddingForm = document.getElementById("addNewItem");
+    if (oldAddingForm != null)
+        oldAddingForm.parentNode.removeChild(oldAddingForm);
+}
 function navigationEventListener(e){
     // remove the edit field
     if (document.getElementById("edits") != null) { 
@@ -115,12 +119,27 @@ function editTask(tagID, tagName){
 
 function deleteProject(id, name){
     console.log(`delete project ${id} ${name} here`);
+    const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
+            
+    if (confirmDelete) {
+        deleteData(id, name, "project");
+    }
 }
 function deleteTag(id, name){
     console.log(`delete tag ${id} ${name} here`);
+    const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
+            
+    if (confirmDelete) {
+        deleteData(id, name, "tag");
+    }
 }
 function deleteTask(id, desc){
     console.log(`delete project ${id} ${desc} here`);
+    const confirmDelete = confirm(`Are you sure you want to delete "${desc}"?`);
+            
+    if (confirmDelete) {
+        deleteData(id, desc, "task");
+    }
 }
 
 
@@ -191,6 +210,64 @@ function createEditForm(projectID, editableText) {
     return form;
 }
 
+async function deleteData(id, data, dataType) {
+    let fetchUrl;
+    let deleteData;
+    let reload;
+    switch (dataType) {
+        case  "project":
+            // set vars
+            fetchUrl = 'https://localhost:7217/Project/deleteProject';
+            deleteData = {
+                Id: id,
+                Name: data
+            };
+            reload = showProjects;
+            break;
+        case "tag":
+            // set vars
+            fetchUrl = 'https://localhost:7217/Tag/deleteTag';
+            deleteData = {
+                Id: id,
+                Name: data
+            };
+            reload = showTags;
+            break;
+        case "task":
+            // set vars
+            fetchUrl = 'https://localhost:7217/Task/deleteTask';
+            deleteData = {
+                Id: id,
+                Description: data
+            };
+            reload = showTasks;
+            break;
+        default:
+            console.error(`Unknown datatype: ${dataType}`);
+    }
+    try {
+        const response = await fetch(fetchUrl, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(deleteData),
+        });
+    
+            if (response.ok) {
+                reload();
+    
+            } else {
+                const error = await response.json();
+                alert(`Failed to update project: ${error.message}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An unexpected error occurred.');
+        }
+
+}
+
 function isValidInput(input) {
     // Example validation: the input should not be empty and must not contain special characters
     const regex = /^[a-zA-Z0-9\s]+$/; // Only letters, numbers, and spaces are allowed
@@ -208,7 +285,7 @@ async function sendAddProjectRequest(event) {
     if (!isValidInput(newEntry)){
         alert(`You have to enter (some) text`);
     } else {
-        // clearEdit();
+    clearAddingForm();
     const formData = new FormData();
     formData.append('name', newEntry );
     try {
@@ -430,7 +507,20 @@ function createDataTable(data, dataType) {
         deleteButton.className="deleteButton";
         deleteButton.addEventListener('click', () => {
             console.log(`Deleting project: ${dataPoint.name} (ID: ${dataPoint.id})`);
-            deleteProject(dataPoint.id, dataPoint.name);
+            switch (dataType) {
+                case 'projects':
+                    deleteProject(dataPoint.id, dataPoint.name);
+                    break;
+                case 'tasks':
+                    deleteTask(dataPoint.id, dataPoint.description);
+                    break;
+                case 'tags':
+                    deleteTag(dataPoint.id, dataPoint.name);
+                    break;
+                default:
+                    console.error(`Unknown datatype: ${dataType}`);
+            }
+            
         });
         deleteCell.appendChild(deleteButton);
         row.appendChild(deleteCell);
