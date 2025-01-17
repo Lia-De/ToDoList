@@ -43,16 +43,16 @@ public class TaskController : Controller
         return Ok($"Task {frontendTask.Description} updated from {oldDesc}");
     }
     // Delete
-    [HttpDelete("deleteTask/{id}")]
-    public IActionResult DeleteTask(int id)
+    [HttpDelete("deleteTask")]
+    public IActionResult DeleteTask(ToDoList.Models.Task frontendTask)
     {
-        var task = _context.Tasks.Find(id);
+        var task = _context.Tasks.Find(frontendTask.Id);
         if (task == null)
         {
             return NotFound();
         }
         _context.Tasks.Remove(task);
         _context.SaveChanges();
-        return Ok($"Task {id} deleted");
+        return Ok($"Task {frontendTask.Id} deleted");
     }
 }

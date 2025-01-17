@@ -43,16 +43,16 @@ public class TagController : ControllerBase
         return Ok($"Tag {frontendTag.Name} updated from {oldName}");
     }
     // Delete
-    [HttpDelete("deleteTag/{id}")]
-    public IActionResult DeleteTag(int id)
+    [HttpDelete("deleteTag")]
+    public IActionResult DeleteTag(Tag frontendTag)
     {
-        var tag = _context.Tags.Find(id);
+        var tag = _context.Tags.Find(frontendTag.Id);
         if (tag == null)
         {
             return NotFound();
         }
         _context.Tags.Remove(tag);
         _context.SaveChanges();
-        return Ok($"Tag {id} deleted");
+        return Ok($"Tag {frontendTag.Id} deleted");
     }
 }

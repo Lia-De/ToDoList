@@ -49,10 +49,10 @@ public class ProjectController : ControllerBase
 
 
     // Delete
-    [HttpDelete("deleteProject/{id}")]
-    public IActionResult DeleteProject(int id)
+    [HttpDelete("deleteProject")]
+    public IActionResult DeleteProject(Project frontendProject)
     {
-        var project = _context.Projects.Find(id);
+        var project = _context.Projects.Find(frontendProject.Id);
         if (project == null)
         {
             return NotFound();
