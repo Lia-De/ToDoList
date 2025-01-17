@@ -4,14 +4,13 @@ document.getElementById("navigate").addEventListener("click",navigationEventList
 
 
 
-function printAddingForm(){
+function printAddingForm(dataType){
     let target = document.getElementById("contents");
     let addingBox = document.createElement("div");
     addingBox.id = "addNewItem";
     target.appendChild(addingBox);
-    let form = createAddingForm(addingBox);
-    return form;
-
+    let addingForm = createAddingForm(addingBox, dataType);
+    return addingForm;
 }
 async function showProjects() {
     try {
@@ -23,8 +22,8 @@ async function showProjects() {
         document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Projects`;
         clearData();
         createDataTable(data, "projects");
-        printAddingForm();
-        document.getElementById('addNewItem').addEventListener('submit', sendAddProjectRequest);
+        let addingForm = printAddingForm("addProject");
+        addingForm.addEventListener('submit', sendAddProjectRequest);
 
     } catch (error) {
         console.error('Error:', error);
@@ -40,6 +39,8 @@ function showTasks(){
             let target = document.getElementById("contents");
             clearData();
             createDataTable(data, "tasks");
+            let addingForm = printAddingForm("addTask");
+            addingForm.addEventListener('submit', sendAddTaskRequest);
         });
         
 }
@@ -51,6 +52,8 @@ function showTags(){
             let target = document.getElementById("contents");    
             clearData();
             createDataTable(data, "tags");
+            let addingForm = printAddingForm("addTag");
+            addingForm.addEventListener('submit', sendAddTagRequest);
         });
 }
 function addElement(elementType, data, target){
@@ -143,9 +146,9 @@ function deleteTask(id, desc){
 }
 
 
-function createAddingForm(target){
+function createAddingForm(target, dataType){
     let form = document.createElement("form");
-    form.id ="addForm";
+    form.id = dataType;
    // Create the text input for the name
    let inputText = document.createElement('input');
    inputText.type = 'text';
@@ -161,6 +164,7 @@ function createAddingForm(target){
     form.appendChild(button);
 
     target.appendChild(form);
+    return form;
 }
 
 function createEditForm(projectID, editableText) {
@@ -277,38 +281,72 @@ function isValidInput(input) {
 
     return onlyLetters && nullValues && lengthMax;
 }
-
-async function sendAddProjectRequest(event) {
+function sendAddProjectRequest(event) {
     event.preventDefault(); 
     let newEntry = document.getElementById('newName').value;
     
     if (!isValidInput(newEntry)){
         alert(`You have to enter (some) text`);
     } else {
-    clearAddingForm();
-    const formData = new FormData();
-    formData.append('name', newEntry );
-    try {
-    const response = await fetch('https://localhost:7217/Project/addProject', {
-        method: 'POST',
-        body: formData, 
-    });
-
-        if (response.ok) {
-            showProjects();
-
-        } else {
-            const error = await response.json();
-            alert(`Failed to update project: ${error.message}`);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('An unexpected error occurred.');
+        clearAddingForm();
+        const formData = new FormData();
+        formData.append('name', newEntry );
+        addRequest(formData,'https://localhost:7217/Project/addProject',"project");
     }
 }
+function sendAddTaskRequest(event){
+    // console.log("ADD A TASK ");
+    event.preventDefault(); 
+    let newEntry = document.getElementById('newName').value;
+    
+    if (!isValidInput(newEntry)){
+        alert(`You have to enter (some) text`);
+    } else {
+        clearAddingForm();
+        const formData = new FormData();
+        formData.append('description', newEntry );
+        addRequest(formData,'https://localhost:7217/Task/addTask',"task");
+    }
+}
+function sendAddTagRequest(event){
+    event.preventDefault(); 
+    let newEntry = document.getElementById('newName').value;
+    
+    if (!isValidInput(newEntry)){
+        alert(`You have to enter (some) text`);
+    } else {
+        clearAddingForm();
+        const formData = new FormData();
+        formData.append('name', newEntry );
+        addRequest(formData,'https://localhost:7217/Tag/addTag',"tag");
+    }
+}
+async function addRequest(formData, fetchURL, dataType){
+    try {
+        const response = await fetch(fetchURL, {
+            method: 'POST',
+            body: formData, 
+        });
+    
+            if (response.ok) {
+                if (dataType==="project")
+                    showProjects();
+                if (dataType==="task")
+                    showTasks();
+                if (dataType ==="tag")
+                    showTags();
+    
+            } else {
+                const error = await response.json();
+                alert(`Failed to update ${dataType}: ${error.message}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An unexpected error occurred.');
+        }
 }
 
-async function sendEditProjectRequest(event) {
+function sendEditProjectRequest(event) {
 
     event.preventDefault(); // Prevent the default form submission
 
@@ -329,7 +367,7 @@ async function sendEditProjectRequest(event) {
 }
 };
 
-async function sendEditTagRequest(event) {
+function sendEditTagRequest(event) {
     event.preventDefault(); // Prevent the default form submission
 
     // Get input values
@@ -348,7 +386,7 @@ async function sendEditTagRequest(event) {
 }
 };
 
-async function sendEditTaskRequest(event) {
+function sendEditTaskRequest(event) {
     event.preventDefault(); // Prevent the default form submission
 
     // Get input values
