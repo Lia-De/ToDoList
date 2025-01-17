@@ -325,28 +325,7 @@ async function sendEditProjectRequest(event) {
         Id: id,
         Name: name
     };
-
-    try {
-        // Send the POST request to the updateProject endpoint
-        const response = await fetch('https://localhost:7217/Project/updateProject', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData),
-        });
-
-        if (response.ok) {
-            showProjects();
-
-        } else {
-            const error = await response.json();
-            alert(`Failed to update project: ${error.message}`);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('An unexpected error occurred.');
-    }
+    editRequest(requestData, 'https://localhost:7217/Project/updateProject', "project");
 }
 };
 
@@ -365,28 +344,7 @@ async function sendEditTagRequest(event) {
         Id: id,
         Name: name
     };
-
-    try {
-        // Send the POST request to the updateProject endpoint
-        const response = await fetch('https://localhost:7217/Tag/updateTag', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestData),
-        });
-
-        if (response.ok) {
-            showTags();
-
-        } else {
-            const error = await response.json();
-            alert(`Failed to update tag: ${error.message}`);
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('An unexpected error occurred.');
-    }
+    editRequest(requestData, 'https://localhost:7217/Tag/updateTag', "tag");
 }
 };
 
@@ -406,10 +364,14 @@ async function sendEditTaskRequest(event) {
         Id: id,
         Description: name
     };
+    editRequest(requestData, 'https://localhost:7217/Task/updateTask', "task");
+}
+};
 
+async function editRequest(requestData, fetchURL, dataType){
     try {
         // Send the POST request to the updateProject endpoint
-        const response = await fetch('https://localhost:7217/Task/updateTask', {
+        const response = await fetch(fetchURL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -418,18 +380,28 @@ async function sendEditTaskRequest(event) {
         });
 
         if (response.ok) {
-            showTasks();
-
+            switch (dataType) {
+                case  "project":
+                    showProjects();
+                    break;
+                case "task":
+                    showTasks();
+                    break;
+                case "tag":
+                    showTags();
+                    break;
+                default:
+                    console.error(`Unknown datatype: ${dataType}`);
+            }
         } else {
             const error = await response.json();
-            alert(`Failed to update task: ${error.message}`);
+            alert(`Failed to update${dataType}: ${error.message}`);
         }
     } catch (error) {
         console.error('Error:', error);
         alert('An unexpected error occurred.');
     }
 }
-};
 
 // Function to create and populate the table
 function createDataTable(data, dataType) {
