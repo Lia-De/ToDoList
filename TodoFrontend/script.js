@@ -1,12 +1,11 @@
 // Start by showing current projects and set up a listener to change the displayed data
 showProjects();
 document.getElementById("navigate").addEventListener("click",navigationEventListener);
-document.getElementById("contents").addEventListener("click", contentListener);
-printAddingForm();
+
 
 
 function printAddingForm(){
-    let target = document.getElementById("container");
+    let target = document.getElementById("contents");
     let addingBox = document.createElement("div");
     addingBox.id = "addNewItem";
     target.appendChild(addingBox);
@@ -22,17 +21,10 @@ async function showProjects() {
         }
         const data = await response.json();
         document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Projects`;
-        // clearData();
-        createProjectsTable(data);
-
-        let target = document.getElementById("contents");
-        let divTarget = addAllElements("p", data.map(project => project.name), target);
-        divTarget.className = "names";
-        let divTarget2 = addAllElements("p", data.map(project => project.id), target);
-        divTarget2.className = "editProject";
-        
-        document.getElementById("addNewItem").className="addProject";
-        document.getElementsByClassName('addProject')[0].addEventListener('submit', sendAddProjectRequest);
+        clearData();
+        createDataTable(data, "projects");
+        printAddingForm();
+        document.getElementById('addNewItem').addEventListener('submit', sendAddProjectRequest);
 
     } catch (error) {
         console.error('Error:', error);
@@ -47,12 +39,8 @@ function showTasks(){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tasks`;
             let target = document.getElementById("contents");
             clearData();
-            let divTarget = addAllElements("p", data.map(task => task.description), target); 
-            divTarget.className="names";
-            let divTarget2 = addAllElements("p", data.map(task => task.id), target);
-            divTarget2.className="editTask";
+            createDataTable(data, "tasks");
         });
-        document.getElementById("addNewItem").className="addTask";
         
 }
 function showTags(){
@@ -62,12 +50,8 @@ function showTags(){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tags`;
             let target = document.getElementById("contents");    
             clearData();
-            let divTarget = addAllElements("p", data.map(tag => tag.name), target);
-            divTarget.className="names";
-            let divTarget2 = addAllElements("p", data.map(tag => tag.id), target );
-            divTarget2.className="editTag";
+            createDataTable(data, "tags");
         });
-        document.getElementById("addNewItem").className="addTag";
 }
 function addElement(elementType, data, target){
     let newElement = document.createElement(elementType);
@@ -110,28 +94,6 @@ function navigationEventListener(e){
     }
  }
 
-    
-function contentListener(e) {
-    let target = e.target;
-
-    let children = Array.from(e.target.parentNode.children); // Get all children of the parent
-    let index = children.indexOf(target);   // Find the index of the clicked child
-    let itemNames = document.getElementsByClassName("names")[0];
-    let clickedItem = itemNames.children[index].innerHTML;
-
-    if (target.parentNode.className === "editProject") {
-        // Create and show an edit form
-        editProject(e.target.innerHTML, clickedItem);
-    }
-    if (target.parentNode.className ==="editTag") {
-        editTag(e.target.innerHTML, clickedItem);
-    }
-    if (target.parentNode.className ==="editTask") {
-        editTask(e.target.innerHTML, clickedItem);
-    }
-}
-
-
 function editProject (projectID, clickedProject){
     // Create the form and append it to the box
     const form = createEditForm(projectID, clickedProject);
@@ -151,6 +113,17 @@ function editTask(tagID, tagName){
     form.addEventListener('submit', sendEditTaskRequest);
 }
 
+function deleteProject(id, name){
+    console.log(`delete project ${id} ${name} here`);
+}
+function deleteTag(id, name){
+    console.log(`delete tag ${id} ${name} here`);
+}
+function deleteTask(id, desc){
+    console.log(`delete project ${id} ${desc} here`);
+}
+
+
 function createAddingForm(target){
     let form = document.createElement("form");
     form.id ="addForm";
@@ -163,7 +136,7 @@ function createAddingForm(target){
     let button = document.createElement('button');
     button.type = 'submit';
     button.textContent = 'Add';
-
+    
     // Append all elements to the form
     form.appendChild(inputText);
     form.appendChild(button);
@@ -381,27 +354,8 @@ async function sendEditTaskRequest(event) {
 }
 };
 
-/* 
-<table id="projectsList">
-<colgroup>
-<col span="1">
-<col id="editAndDelete" span="2">
-</colgroup>
-<tr>
-    <th>Project</th>
-    <th>Edit</th>
-    <th>Delete</th>
-</tr>
-<tr>
-    <td>project </td>
-    <td class="editable">1</td>
-    <td>del</td>
-</tr>
-</table> 
-*/
-
 // Function to create and populate the table
-function createProjectsTable(data) {
+function createDataTable(data, dataType) {
     // Get the table element or create it if it doesn't exist
     let table = document.getElementById('dataTable');
 
@@ -426,7 +380,7 @@ function createProjectsTable(data) {
     // Create the header row
     const headerRow = document.createElement('tr');
 
-    const headers = ['Project', 'Edit', 'Delete'];
+    const headers = ['Data', 'Edit', 'Delete'];
     headers.forEach(headerText => {
         const th = document.createElement('th');
         th.textContent = headerText;
@@ -437,12 +391,13 @@ function createProjectsTable(data) {
     }
 
     // Add rows for each project in the data array
-    data.forEach(project => {
+    data.forEach(dataPoint => {
         const row = document.createElement('tr');
 
         // Project name column
         const projectCell = document.createElement('td');
-        projectCell.textContent = project.name;
+        projectCell.textContent =(dataType==='tasks') ? dataPoint.description: dataPoint.name;
+        projectCell.className="data";
         row.appendChild(projectCell);
 
         // Edit button column
@@ -451,7 +406,19 @@ function createProjectsTable(data) {
         editButton.textContent = 'Edit';
         editButton.className="editButton";
         editButton.addEventListener('click', () => {
-            console.log(`Editing project: ${project.name} (ID: ${project.id})`);
+            switch (dataType) {
+                case 'projects':
+                    editProject(dataPoint.id, dataPoint.name);
+                    break;
+                case 'tasks':
+                    editTask(dataPoint.id, dataPoint.description);
+                    break;
+                case 'tags':
+                    editTag(dataPoint.id, dataPoint.name);
+                    break;
+                default:
+                    console.error(`Unknown datatype: ${dataType}`);
+            }
         });
         editCell.appendChild(editButton);
         row.appendChild(editCell);
@@ -462,7 +429,8 @@ function createProjectsTable(data) {
         deleteButton.textContent = 'Delete';
         deleteButton.className="deleteButton";
         deleteButton.addEventListener('click', () => {
-            console.log(`Deleting project: ${project.name} (ID: ${project.id})`);
+            console.log(`Deleting project: ${dataPoint.name} (ID: ${dataPoint.id})`);
+            deleteProject(dataPoint.id, dataPoint.name);
         });
         deleteCell.appendChild(deleteButton);
         row.appendChild(deleteCell);
