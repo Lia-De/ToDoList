@@ -34,7 +34,7 @@ public class ProjectController : ControllerBase
 
     // Update
     [HttpPost("updateProject")]
-    public IActionResult UpdateProject([FromBody] Project frontendProject)
+    public IActionResult UpdateProject(Project frontendProject)
     {
         var project = _context.Projects.Find(frontendProject.Id);
         if (project == null)

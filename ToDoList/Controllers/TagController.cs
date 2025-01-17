@@ -30,7 +30,7 @@ public class TagController : ControllerBase
     }
     // Update
     [HttpPost("updateTag")]
-    public IActionResult UpdateTag([FromBody] Tag frontendTag)
+    public IActionResult UpdateTag(Tag frontendTag)
     {
         var tag = _context.Tags.Find(frontendTag.Id);
         if (tag == null)

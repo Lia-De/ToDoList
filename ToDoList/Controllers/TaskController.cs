@@ -30,7 +30,7 @@ public class TaskController : Controller
     }
     // Update
     [HttpPost("updateTask")]
-    public IActionResult UpdateTask([FromBody] ToDoList.Models.Task frontendTask)
+    public IActionResult UpdateTask(ToDoList.Models.Task frontendTask)
     {
         var task = _context.Tasks.Find(frontendTask.Id);
         if (task == null)
