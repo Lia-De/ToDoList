@@ -1,3 +1,31 @@
+/*  messing with tables  */
+
+table {
+    grid-column: 1 / 3;
+    margin-bottom: 200px;
+    
+    border-collapse:collapse;
+}
+table th {
+    display: none;
+}
+td:hover {
+    background-color: hsl(0, 0%, 68%);
+}
+td {
+    background-color: #e0e0e0;
+    padding: 0.5em;
+    border-bottom: 0.5em solid #f0f0f0;
+    border-right: 0.1em solid #f0f0f0;
+    border-radius: 5px;
+}
+
+col#editAndDelete {
+    width: 40px;
+    text-align:center;
+}
+
+/*  messing with tables  */
 h1 {
     text-align: center;
 }
@@ -43,24 +71,32 @@ form > input {
 button {
     padding: 0.5em 1em;
     color: white;
-    background-color: hsl(83, 93%, 11%);
+    background-color: #223602;
     border: 1px solid hsl(0, 0%, 82%);
     border-radius: 5px;
     box-shadow: 0 0 5px #d0d0d0;
 }
 
-
-div.editTask>p, div.editProject>p, div.editTag>p {
+.editButton, .deleteButton {
+    background-color: hsl(0, 0%, 82%);
+}
+div.editTask>p, div.editProject>p, div.editTag>p, .editButton {
     /* adding the img/edit.png as a covering background */
-    background-image: url('./img/edit.png');
+    background-image: url('./img/edit_20dp.png');
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
     color: transparent;
-    text-indent: -9999px;
     overflow: hidden;
 }
-
+.deleteButton {
+    background-image: url('./img/delete_20dp.png');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: transparent;
+    overflow: hidden;
+}
 
 @media screen and (min-width: 768px) {
 

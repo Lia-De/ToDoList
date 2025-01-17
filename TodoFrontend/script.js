@@ -22,7 +22,9 @@ async function showProjects() {
         }
         const data = await response.json();
         document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Projects`;
-        clearData();
+        // clearData();
+        createProjectsTable(data);
+
         let target = document.getElementById("contents");
         let divTarget = addAllElements("p", data.map(project => project.name), target);
         divTarget.className = "names";
@@ -30,7 +32,7 @@ async function showProjects() {
         divTarget2.className = "editProject";
         
         document.getElementById("addNewItem").className="addProject";
-        document.getElementById('addNewItem').addEventListener('submit', sendAddProjectRequest);
+        document.getElementsByClassName('addProject')[0].addEventListener('submit', sendAddProjectRequest);
 
     } catch (error) {
         console.error('Error:', error);
@@ -51,6 +53,7 @@ function showTasks(){
             divTarget2.className="editTask";
         });
         document.getElementById("addNewItem").className="addTask";
+        
 }
 function showTags(){
     fetch('https://localhost:7217/Tag')
@@ -134,18 +137,18 @@ function editProject (projectID, clickedProject){
     const form = createEditForm(projectID, clickedProject);
     form.id ="editForm";
     // Add event listener
-    document.getElementById('editForm').addEventListener('submit', sendEditProjectRequest);
+    form.addEventListener('submit', sendEditProjectRequest);
 };
 
 function editTag(tagID, tagName){
     let form = createEditForm(tagID, tagName);
     form.id = "tagForm";
-    document.getElementById('tagForm').addEventListener('submit', sendEditTagRequest);
+    form.addEventListener('submit', sendEditTagRequest);
 }
 function editTask(tagID, tagName){
     let form = createEditForm(tagID, tagName);
     form.id = "taskForm";
-    document.getElementById('taskForm').addEventListener('submit', sendEditTaskRequest);
+    form.addEventListener('submit', sendEditTaskRequest);
 }
 
 function createAddingForm(target){
@@ -238,7 +241,7 @@ async function sendAddProjectRequest(event) {
     try {
     const response = await fetch('https://localhost:7217/Project/addProject', {
         method: 'POST',
-        body: formData, // Automatically sets Content-Type to multipart/form-data
+        body: formData, 
     });
 
         if (response.ok) {
@@ -377,3 +380,95 @@ async function sendEditTaskRequest(event) {
     }
 }
 };
+
+/* 
+<table id="projectsList">
+<colgroup>
+<col span="1">
+<col id="editAndDelete" span="2">
+</colgroup>
+<tr>
+    <th>Project</th>
+    <th>Edit</th>
+    <th>Delete</th>
+</tr>
+<tr>
+    <td>project </td>
+    <td class="editable">1</td>
+    <td>del</td>
+</tr>
+</table> 
+*/
+
+// Function to create and populate the table
+function createProjectsTable(data) {
+    // Get the table element or create it if it doesn't exist
+    let table = document.getElementById('dataTable');
+
+    if (!table) {
+        table = document.createElement('table');
+        table.id = 'dataTable';
+        document.getElementById('contents').appendChild(table);
+            // Create the colgroup element
+    const colgroup = document.createElement('colgroup');
+    
+    const col1 = document.createElement('col');
+    col1.span = 1;
+    colgroup.appendChild(col1);
+
+    const col2 = document.createElement('col');
+    col2.id = 'editAndDelete';
+    col2.span = 2;
+    colgroup.appendChild(col2);
+
+    table.appendChild(colgroup);
+
+    // Create the header row
+    const headerRow = document.createElement('tr');
+
+    const headers = ['Project', 'Edit', 'Delete'];
+    headers.forEach(headerText => {
+        const th = document.createElement('th');
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+    });
+
+    table.appendChild(headerRow);
+    }
+
+    // Add rows for each project in the data array
+    data.forEach(project => {
+        const row = document.createElement('tr');
+
+        // Project name column
+        const projectCell = document.createElement('td');
+        projectCell.textContent = project.name;
+        row.appendChild(projectCell);
+
+        // Edit button column
+        const editCell = document.createElement('td');
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.className="editButton";
+        editButton.addEventListener('click', () => {
+            console.log(`Editing project: ${project.name} (ID: ${project.id})`);
+        });
+        editCell.appendChild(editButton);
+        row.appendChild(editCell);
+
+        // Delete button column
+        const deleteCell = document.createElement('td');
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.className="deleteButton";
+        deleteButton.addEventListener('click', () => {
+            console.log(`Deleting project: ${project.name} (ID: ${project.id})`);
+        });
+        deleteCell.appendChild(deleteButton);
+        row.appendChild(deleteCell);
+
+        table.appendChild(row);
+    });
+}
+
+
