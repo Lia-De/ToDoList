@@ -2,16 +2,6 @@
 showProjects();
 document.getElementById("navigate").addEventListener("click",navigationEventListener);
 
-
-
-function printAddingForm(dataType){
-    let target = document.getElementById("contents");
-    let addingBox = document.createElement("div");
-    addingBox.id = "addNewItem";
-    target.appendChild(addingBox);
-    let addingForm = createAddingForm(addingBox, dataType);
-    return addingForm;
-}
 async function showProjects() {
     try {
         const response = await fetch('https://localhost:7217/Project');
@@ -27,7 +17,10 @@ async function showProjects() {
 
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById("nowShowing").innerHTML =`! Database is unreachable !`;
+        document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
+        clearData();
+        createDataTable(hardcodedData, "projects");
+        let addingForm = printAddingForm("addProject");
     }
 }
 
@@ -367,7 +360,14 @@ async function sendEditRequest(requestData, fetchURL, dataType){
         alert('An unexpected error occurred.');
     }
 }
-
+function printAddingForm(dataType){
+    let target = document.getElementById("contents");
+    let addingBox = document.createElement("div");
+    addingBox.id = "addNewItem";
+    target.appendChild(addingBox);
+    let addingForm = createAddingForm(addingBox, dataType);
+    return addingForm;
+}
 //function to create an add new data form
 function createAddingForm(target, dataType){
     let form = document.createElement("form");
