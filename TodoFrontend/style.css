@@ -87,12 +87,16 @@ button {
     border-radius: 5px;
     box-shadow: 0 0 5px #d0d0d0;
 }
-
+button.selected {
+    background-color: hsl(83, 93%, 21%);
+}
 .editButton, .deleteButton {
     background-color: hsl(0, 0%, 82%);
 }
-div.editTask>p, div.editProject>p, div.editTag>p, .editButton {
-    /* adding the img/edit.png as a covering background */
+#navigate>button {
+    font-size: 1.2em;
+}
+  .editButton {
     background-image: url('./img/edit_20dp.png');
     background-size: contain;
     background-position: center;

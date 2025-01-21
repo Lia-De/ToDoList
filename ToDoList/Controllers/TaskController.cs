@@ -32,7 +32,7 @@ public class TaskController : Controller
     [HttpPost("updateTask")]
     public IActionResult UpdateTask(ToDoList.Models.Task frontendTask)
     {
-        var task = _context.Tasks.Find(frontendTask.Id);
+        var task = _context.Tasks.Find(frontendTask.TaskId);
         if (task == null)
         {
             return NotFound();
@@ -46,13 +46,13 @@ public class TaskController : Controller
     [HttpDelete("deleteTask")]
     public IActionResult DeleteTask(ToDoList.Models.Task frontendTask)
     {
-        var task = _context.Tasks.Find(frontendTask.Id);
+        var task = _context.Tasks.Find(frontendTask.TaskId);
         if (task == null)
         {
             return NotFound();
         }
         _context.Tasks.Remove(task);
         _context.SaveChanges();
-        return Ok($"Task {frontendTask.Id} deleted");
+        return Ok($"Task {frontendTask.TaskId} deleted");
     }
 }

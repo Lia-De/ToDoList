@@ -32,7 +32,7 @@ public class TagController : ControllerBase
     [HttpPost("updateTag")]
     public IActionResult UpdateTag(Tag frontendTag)
     {
-        var tag = _context.Tags.Find(frontendTag.Id);
+        var tag = _context.Tags.Find(frontendTag.TagId);
         if (tag == null)
         {
             return NotFound();
@@ -46,13 +46,13 @@ public class TagController : ControllerBase
     [HttpDelete("deleteTag")]
     public IActionResult DeleteTag(Tag frontendTag)
     {
-        var tag = _context.Tags.Find(frontendTag.Id);
+        var tag = _context.Tags.Find(frontendTag.TagId);
         if (tag == null)
         {
             return NotFound();
         }
         _context.Tags.Remove(tag);
         _context.SaveChanges();
-        return Ok($"Tag {frontendTag.Id} deleted");
+        return Ok($"Tag {frontendTag.TagId} deleted");
     }
 }

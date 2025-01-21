@@ -14,18 +14,18 @@ async function showProjects() {
         createDataTable(data, "projects");
         let addingForm = printAddingForm("addProject");
         addingForm.addEventListener('submit', addProjectRequest);
-
+        selectedTypeButtons("projects");
     } catch (error) {
         console.error('Error:', error);
         document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
         clearData();
         createDataTable(hardcodedData, "projects");
-        let addingForm = printAddingForm("addProject");
     }
 }
 
-function showTasks(){
-    fetch('https://localhost:7217/Task')
+async function showTasks(){
+    try { 
+        await fetch('https://localhost:7217/Task')
         .then(response => response.json())
         .then(function (data){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tasks`;
@@ -34,11 +34,17 @@ function showTasks(){
             createDataTable(data, "tasks");
             let addingForm = printAddingForm("addTask");
             addingForm.addEventListener('submit', addTaskRequest);
+            selectedTypeButtons("tasks");
         });
-        
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
+        clearData();
+        createDataTable(hardcodedData, "projects");
+    }
 }
-function showTags(){
-    fetch('https://localhost:7217/Tag')
+async function showTags(){
+    try {await fetch('https://localhost:7217/Tag')
         .then(response => response.json())
         .then(function (data){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tags`;
@@ -47,42 +53,50 @@ function showTags(){
             createDataTable(data, "tags");
             let addingForm = printAddingForm("addTag");
             addingForm.addEventListener('submit', addTagRequest);
+            selectedTypeButtons("tags");
         });
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
+        clearData();
+        createDataTable(hardcodedData, "projects");
+    }
 }
-function addElement(elementType, data, target){
-    let newElement = document.createElement(elementType);
-    newElement.innerHTML = data;
-    target.appendChild(newElement);
-    return newElement;
+// Helper function to switch which button is selected in the nav bar
+function selectedTypeButtons(selectedType){
+    let buttons = document.querySelectorAll("#navigate button");
+    buttons.forEach(button => {
+        button.classList.remove("selected");
+    });
+    document.getElementById(selectedType+"btn").classList.add("selected");
 }
 
-function addAllElements(elementType, data, target) {
-    let targetDiv = document.createElement("div");
-    data.forEach(dataValue => {
-        addElement(elementType, dataValue, targetDiv);
-    })
-    target.appendChild(targetDiv);
-    return targetDiv;
-}
+// // Helper function to create single elements, adding them to a target and returning the new element
+// function addElement(elementType, data, target){
+//     let newElement = document.createElement(elementType);
+//     newElement.innerHTML = data;
+//     target.appendChild(newElement);
+//     return newElement;
+// }
 
+// Helper function to clear the data from the contents div ready to be filled anew
 function clearData(){
     document.getElementById("contents").innerHTML = "";
 }
+// Helper function to clear the edit form
 function clearEdit(){
     let oldEdit = document.getElementById("edits");
     if (oldEdit != null) 
         document.getElementById("container").removeChild(oldEdit);
 }
+// Helper function to clear the add form when we have added an item.
 function clearAddingForm(){
     let oldAddingForm = document.getElementById("addNewItem");
     if (oldAddingForm != null)
         oldAddingForm.parentNode.removeChild(oldAddingForm);
 }
+// Event listener to switch between the different data types
 function navigationEventListener(e){
-    // remove the edit field
-    if (document.getElementById("edits") != null) { 
-        clearEdit();
-    }
     // Find which data to show and display it
     let target = e.target;
     if(target.id === "projectsbtn"){
@@ -105,8 +119,8 @@ function editTag(tagID, tagName){
     form.id = "tagForm";
     form.addEventListener('submit', editTagRequest);
 }
-function editTask(tagID, tagName){
-    let form = createEditForm(tagID, tagName);
+function editTask(taskID, taskName){
+    let form = createEditForm(taskID, taskName);
     form.id = "taskForm";
     form.addEventListener('submit', editTaskRequest);
 }
@@ -143,7 +157,7 @@ async function sendDeleteData(id, data, dataType) {
             // set vars
             fetchUrl = 'https://localhost:7217/Project/deleteProject';
             deleteData = {
-                Id: id,
+                projectId: id,
                 Name: data
             };
             reload = showProjects;
@@ -152,7 +166,7 @@ async function sendDeleteData(id, data, dataType) {
             // set vars
             fetchUrl = 'https://localhost:7217/Tag/deleteTag';
             deleteData = {
-                Id: id,
+                tagId: id,
                 Name: data
             };
             reload = showTags;
@@ -161,7 +175,7 @@ async function sendDeleteData(id, data, dataType) {
             // set vars
             fetchUrl = 'https://localhost:7217/Task/deleteTask';
             deleteData = {
-                Id: id,
+                taskId: id,
                 Description: data
             };
             reload = showTasks;
@@ -215,7 +229,6 @@ function addProjectRequest(event) {
     }
 }
 function addTaskRequest(event){
-    // console.log("ADD A TASK ");
     event.preventDefault(); 
     let newEntry = document.getElementById('newName').value;
     
@@ -272,6 +285,7 @@ function editProjectRequest(event) {
 
     // Get input values
     let id = parseInt(document.getElementById('id').value);
+    console.log(`trying to send edit for project ${id}`);
     let name = document.getElementById('name').value;
     
     if (!isValidInput(name)){
@@ -280,7 +294,7 @@ function editProjectRequest(event) {
         clearEdit();
             // Data to send in the request
     let requestData = {
-        Id: id,
+        ProjectId: id,
         Name: name
     };
     sendEditRequest(requestData, 'https://localhost:7217/Project/updateProject', "project");
@@ -299,7 +313,7 @@ function editTagRequest(event) {
         clearEdit();
     // Data to send in the request
     const requestData = {
-        Id: id,
+        TagId: id,
         Name: name
     };
     sendEditRequest(requestData, 'https://localhost:7217/Tag/updateTag', "tag");
@@ -319,7 +333,7 @@ function editTaskRequest(event) {
 
     // Data to send in the request
     const requestData = {
-        Id: id,
+        TaskId: id,
         Description: name
     };
     sendEditRequest(requestData, 'https://localhost:7217/Task/updateTask', "task");
@@ -491,13 +505,13 @@ function createDataTable(data, dataType) {
         editButton.addEventListener('click', () => {
             switch (dataType) {
                 case 'projects':
-                    editProject(dataPoint.id, dataPoint.name);
+                    editProject(dataPoint.projectId, dataPoint.name);
                     break;
                 case 'tasks':
-                    editTask(dataPoint.id, dataPoint.description);
+                    editTask(dataPoint.taskId, dataPoint.description);
                     break;
                 case 'tags':
-                    editTag(dataPoint.id, dataPoint.name);
+                    editTag(dataPoint.tagId, dataPoint.name);
                     break;
                 default:
                     console.error(`Unknown datatype: ${dataType}`);
@@ -512,16 +526,15 @@ function createDataTable(data, dataType) {
         deleteButton.textContent = 'Delete';
         deleteButton.className="deleteButton";
         deleteButton.addEventListener('click', () => {
-            console.log(`Deleting project: ${dataPoint.name} (ID: ${dataPoint.id})`);
             switch (dataType) {
                 case 'projects':
-                    deleteProject(dataPoint.id, dataPoint.name);
+                    deleteProject(dataPoint.projectId, dataPoint.name);
                     break;
                 case 'tasks':
-                    deleteTask(dataPoint.id, dataPoint.description);
+                    deleteTask(dataPoint.taskId, dataPoint.description);
                     break;
                 case 'tags':
-                    deleteTag(dataPoint.id, dataPoint.name);
+                    deleteTag(dataPoint.tagId, dataPoint.name);
                     break;
                 default:
                     console.error(`Unknown datatype: ${dataType}`);

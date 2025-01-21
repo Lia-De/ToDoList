@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ToDoList.Models;
 
 namespace ToDoList.Controllers;
@@ -19,7 +20,11 @@ public class ProjectController : ControllerBase
     [HttpGet]
     public List<Project> Index()
     {
-        return _context.Projects.ToList();
+        return _context
+            .Projects
+            .Include(p => p.Tasks)
+            .Include(p => p.Tags)
+            .ToList();
     }
 
     // Create
@@ -27,16 +32,31 @@ public class ProjectController : ControllerBase
     public IActionResult AddProject([FromForm] string name)
     {
         var project = new Project { Name = name };
+        project.Status = ToDoStatus.Active;
         _context.Projects.Add(project);
         _context.SaveChanges();
         return Ok($"Project {name} added");
+    }
+
+    [HttpPost("addProjectWithTasks")]
+    public IActionResult AddProjectWithTasks(Project projectToEdit)
+    {
+        var project = _context.Projects.Find(projectToEdit.ProjectId);
+        if (project == null)
+        {
+            return NotFound();
+        }
+        project.Tags = projectToEdit.Tags;
+        project.Tasks = projectToEdit.Tasks;
+        _context.SaveChanges();
+        return Ok();
     }
 
     // Update
     [HttpPost("updateProject")]
     public IActionResult UpdateProject(Project frontendProject)
     {
-        var project = _context.Projects.Find(frontendProject.Id);
+        var project = _context.Projects.Find(frontendProject.ProjectId);
         if (project == null)
         {
             return NotFound();
@@ -52,7 +72,7 @@ public class ProjectController : ControllerBase
     [HttpDelete("deleteProject")]
     public IActionResult DeleteProject(Project frontendProject)
     {
-        var project = _context.Projects.Find(frontendProject.Id);
+        var project = _context.Projects.Find(frontendProject.ProjectId);
         if (project == null)
         {
             return NotFound();
