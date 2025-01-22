@@ -13,7 +13,7 @@ async function showProjects() {
         clearData();
         createDataTable(data, "projects");
         let addingForm = printAddingForm("addProject");
-        addingForm.addEventListener('submit', addProjectRequest);
+        addingForm.addEventListener('submit', (event) => addRequest(event, 'project'));
         selectedTypeButtons("projects");
     } catch (error) {
         console.error('Error:', error);
@@ -48,7 +48,7 @@ async function showThisProject(fetchURL, itemId, event){
             addElement('h4', 'Tasks', taskBox);
             let tasklist = addElement('ul','',taskBox);
             data.tasks.forEach(task => {
-                addElement('li', task.description, tasklist);
+                addElement('li', task.name, tasklist);
             });
             
             // display all tags
@@ -66,24 +66,6 @@ async function showThisProject(fetchURL, itemId, event){
     }
 }
 
-function clearItemCard() {
-    //clear the decks for new card
-    clearEdit();
-    let addProjectBox = document.getElementById('addNewItem')
-    if (addProjectBox != null)
-        document.getElementById('contents').removeChild(addProjectBox);  
-    
-    // reset the selected cell in the data table
-    let table=document.getElementById('dataTable');
-    let rows = table.querySelectorAll('tr');
-    rows.forEach(row => {
-        let cells = row.querySelectorAll('td');
-        cells.forEach(cell => {
-            cell.classList.remove("selected");
-        });
-    });
-}
-
 async function showTasks(){
     try { 
         await fetch('https://localhost:7217/Task')
@@ -94,14 +76,14 @@ async function showTasks(){
             clearData();
             createDataTable(data, "tasks");
             let addingForm = printAddingForm("addTask");
-            addingForm.addEventListener('submit', addTaskRequest);
+            addingForm.addEventListener('submit', (event) => addRequest(event, 'task'));
             selectedTypeButtons("tasks");
         });
     } catch (error) {
         console.error('Error:', error);
         document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
         clearData();
-        createDataTable(hardcodedData, "projects");
+        // createDataTable(hardcodedData, "projects");
     }
 }
 async function showTags(){
@@ -113,7 +95,7 @@ async function showTags(){
             clearData();
             createDataTable(data, "tags");
             let addingForm = printAddingForm("addTag");
-            addingForm.addEventListener('submit', addTagRequest);
+            addingForm.addEventListener('submit', (event) => addRequest(event, 'tag'));
             selectedTypeButtons("tags");
         });
     } catch (error) {
@@ -157,6 +139,23 @@ function clearAddingForm(){
     if (oldAddingForm != null)
         oldAddingForm.parentNode.removeChild(oldAddingForm);
 }
+
+function clearItemCard() {
+    //clear the decks for new card
+    clearEdit();
+    clearAddingForm();
+    
+    // reset the selected cell in the data table
+    let table=document.getElementById('dataTable');
+    let rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        let cells = row.querySelectorAll('td');
+        cells.forEach(cell => {
+            cell.classList.remove("selected");
+        });
+    });
+}
+
 // Event listener to switch between the different data types
 function navigationEventListener(e){
     // Find which data to show and display it
@@ -238,7 +237,7 @@ async function sendDeleteData(id, data, dataType) {
             fetchUrl = 'https://localhost:7217/Task/deleteTask';
             deleteData = {
                 taskId: id,
-                Description: data
+                Name: data
             };
             reload = showTasks;
             break;
@@ -277,7 +276,7 @@ function isValidInput(input) {
 
     return onlyLetters && nullValues && lengthMax;
 }
-function addProjectRequest(event) {
+function addRequest(event, dataType) {
     event.preventDefault(); 
     let newEntry = document.getElementById('newName').value;
     
@@ -287,35 +286,22 @@ function addProjectRequest(event) {
         clearAddingForm();
         const formData = new FormData();
         formData.append('name', newEntry );
-        sendAddRequest(formData,'https://localhost:7217/Project/addProject',"project");
+        switch(dataType) {
+            case 'project':
+                sendAddRequest(formData,'https://localhost:7217/Project/addProject',"project");
+                break;
+            case 'task':
+                sendAddRequest(formData,'https://localhost:7217/Task/addTask',"task");
+                break;
+            case 'tag':
+                sendAddRequest(formData,'https://localhost:7217/Tag/addTag',"tag");
+                break;
+            default:
+                console.error(`Unknown datatype: ${dataType}`);
+        }
     }
 }
-function addTaskRequest(event){
-    event.preventDefault(); 
-    let newEntry = document.getElementById('newName').value;
-    
-    if (!isValidInput(newEntry)){
-        alert(`You have to enter (some) text`);
-    } else {
-        clearAddingForm();
-        const formData = new FormData();
-        formData.append('description', newEntry );
-        sendAddRequest(formData,'https://localhost:7217/Task/addTask',"task");
-    }
-}
-function addTagRequest(event){
-    event.preventDefault(); 
-    let newEntry = document.getElementById('newName').value;
-    
-    if (!isValidInput(newEntry)){
-        alert(`You have to enter (some) text`);
-    } else {
-        clearAddingForm();
-        const formData = new FormData();
-        formData.append('name', newEntry );
-        sendAddRequest(formData,'https://localhost:7217/Tag/addTag',"tag");
-    }
-}
+
 async function sendAddRequest(formData, fetchURL, dataType){
     try {
         const response = await fetch(fetchURL, {
@@ -396,7 +382,7 @@ function editTaskRequest(event) {
     // Data to send in the request
     const requestData = {
         TaskId: id,
-        Description: name
+        Name: name
     };
     sendEditRequest(requestData, 'https://localhost:7217/Task/updateTask', "task");
 }
@@ -567,7 +553,7 @@ function createDataTable(data, dataType) {
 
         // Project name column
         const dataCell = document.createElement('td');
-        dataCell.textContent =(dataType==='tasks') ? dataPoint.description: dataPoint.name;
+        dataCell.textContent = dataPoint.name;
         dataCell.className="data";
         row.appendChild(dataCell);
 
@@ -605,10 +591,10 @@ function createDataTable(data, dataType) {
             case'tasks':
                 // dataCell.setAttribute('data-id', dataPoint.taskId);
                 editButton.addEventListener('click', () => {
-                    editTask(dataPoint.taskId, dataPoint.description);
+                    editTask(dataPoint.taskId, dataPoint.name);
                 });
                 deleteButton.addEventListener('click', () => {
-                    deleteTask(dataPoint.taskId, dataPoint.description);
+                    deleteTask(dataPoint.taskId, dataPoint.name);
                 });
                 dataCell.addEventListener('click', (event) => {
                     showThisProject('https://localhost:7217/Task/getSingleTask/',dataPoint.taskId, event); 

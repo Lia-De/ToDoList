@@ -7,4 +7,5 @@ public class Task
     public List<Tag> Tags { get; set; } = new List<Tag>();
     public DateTime? Deadline { get; set; }
     public ToDoStatus? Status { get; set; }
+    public string? Description { get; set; }
 }

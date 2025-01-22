@@ -33,12 +33,12 @@ public class TaskController : Controller
     }
     // Create
     [HttpPost("addTask")]
-    public IActionResult AddTask([FromForm] string description)
+    public IActionResult AddTask([FromForm] string name)
     {
-        var task = new Models.Task { Description = description };
+        var task = new Models.Task { Name = name };
         _context.Tasks.Add(task);
         _context.SaveChanges();
-        return Ok($"Task {description} added");
+        return Ok($"Task {name} added");
     }
     // Update
     [HttpPost("updateTask")]
@@ -49,10 +49,10 @@ public class TaskController : Controller
         {
             return NotFound();
         }
-        string oldDesc = task.Description;
-        task.Description = frontendTask.Description;
+        string oldDesc = task.Name;
+        task.Name = frontendTask.Name;
         _context.SaveChanges();
-        return Ok($"Task {frontendTask.Description} updated from {oldDesc}");
+        return Ok($"Task {frontendTask.Name} updated from {oldDesc}");
     }
     // Delete
     [HttpDelete("deleteTask")]
