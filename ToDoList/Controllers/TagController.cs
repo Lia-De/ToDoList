@@ -27,6 +27,8 @@ public class TagController : ControllerBase
     {
         return _context
             .Tags
+            .Include(p => p.Projects)
+            .Include(t => t.Tasks)
             .FirstOrDefault(t => t.TagId == tagId);
     }
     //Create 

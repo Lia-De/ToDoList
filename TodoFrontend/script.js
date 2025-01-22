@@ -23,9 +23,9 @@ async function showProjects() {
     }
 }
 
-async function showThisProject(fetchURL, itemId, event){
+async function showThisProject(fetchURL, dataType, event){
     try { 
-        await fetch(fetchURL+itemId)
+        await fetch(fetchURL)
         .then(response => response.json())
         .then(function (data){
 
@@ -41,25 +41,29 @@ async function showThisProject(fetchURL, itemId, event){
             // Create the header row
             addElement('h3', `${data.name}`, divTarget);
 
-            console.log(data);
-            //display all tasks
-            let taskBox = addElement('div','',divTarget);
-            taskBox.id = 'taskBox';
-            addElement('h4', 'Tasks', taskBox);
-            let tasklist = addElement('ul','',taskBox);
-            data.tasks.forEach(task => {
-                addElement('li', task.name, tasklist);
-            });
-            
-            // display all tags
-            let tagBox = addElement('div','',divTarget);
-            tagBox.id='tagBox';
-            addElement('h4', `Tags`, divTarget);
-            let taglist = addElement('ul','',divTarget);
-            data.tags.forEach(tag => {
-                addElement('li', tag.name, taglist);
-            });
-
+            //display all tasks - only for projects
+            if (dataType === 'projects'){
+                let taskBox = addElement('div','',divTarget);
+                taskBox.id = 'taskBox';
+                addElement('h4', 'Tasks', taskBox);
+                let tasklist = addElement('ul','',taskBox);
+                data.tasks.forEach(task => {
+                    addElement('li', task.name, tasklist);
+                });
+            }
+            // display count of useages for tags, or all tags for the others
+            if (dataType==='tags'){
+                addElement('p', `Used in ${data.tasks.length} tasks`, divTarget);
+                addElement('p', `Used in ${data.projects.length} projects`, divTarget);
+            } else {
+                let tagBox = addElement('div','',divTarget);
+                tagBox.id='tagBox';
+                addElement('h4', `Tags`, divTarget);
+                let taglist = addElement('ul','',divTarget);
+                data.tags.forEach(tag => {
+                    addElement('li', tag.name, taglist);
+                });
+            }
         });
     } catch (error) {
         console.error('Error loading one project:', error);
@@ -590,7 +594,7 @@ function createDataTable(data, dataType) {
                     deleteProject(dataPoint.projectId, dataPoint.name);
                 });
                 dataCell.addEventListener('click', (event) => {
-                    showThisProject('https://localhost:7217/Project/getSingleProject/',dataPoint.projectId, event);
+                    showThisProject('https://localhost:7217/Project/getSingleProject/'+dataPoint.projectId, dataType, event);
                 });
                 break;
             case'tasks':
@@ -601,7 +605,7 @@ function createDataTable(data, dataType) {
                     deleteTask(dataPoint.taskId, dataPoint.name);
                 });
                 dataCell.addEventListener('click', (event) => {
-                    showThisProject('https://localhost:7217/Task/getSingleTask/',dataPoint.taskId, event); 
+                    showThisProject('https://localhost:7217/Task/getSingleTask/'+dataPoint.taskId, dataType, event); 
                 });
                 break;
             case'tags':
@@ -610,6 +614,9 @@ function createDataTable(data, dataType) {
                 });
                 deleteButton.addEventListener('click', () => {
                     deleteTag(dataPoint.tagId, dataPoint.name);
+                });
+                dataCell.addEventListener('click', (event) => {
+                    showThisProject('https://localhost:7217/Tag/getSingleTag/'+dataPoint.tagId, dataType, event);
                 });
                 break;
             default:

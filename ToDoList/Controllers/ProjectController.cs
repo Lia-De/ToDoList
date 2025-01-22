@@ -47,41 +47,7 @@ public class ProjectController : ControllerBase
         _context.SaveChanges();
         return Ok($"Project {name} added");
     }
-
-    [HttpPost("addTagsToProject/{projectId}")]
-    public IActionResult AddTagsToProject(int projectId, List<string> tagCloud) 
-    {
-        Project? project = GetProject(projectId);
-        if (project == null)
-        {
-            return BadRequest($"Project object with ID: {projectId} not found.");
-        } else
-        {
-            List<Tag> projectTags = project.Tags;
-            List<Tag> allTags = _context.Tags.ToList();
-            foreach (string tag in tagCloud)
-            {
-                // Make sure the tag is not already set on this project
-                if (!projectTags.Any(pt => pt.Name == tag))
-                {
-                    // See if it is an already existing tag, if so add it.
-                    Tag? existingTag = allTags.FirstOrDefault(pt => pt.Name == tag);
-                    if (existingTag != null)
-                    {
-                        project.Tags.Add(existingTag);
-                    } 
-                    else
-                    {
-                        // Otherwise make new tag and add it to the project.
-                        project.Tags.Add(new Tag { Name = tag });
-                    }
-                }
-            }
-            _context.SaveChanges();
-            return Ok();
-        }
-    }
-   
+  
     // Update
     [HttpPost("updateProject")]
     public IActionResult UpdateProject(Project frontendProject)
@@ -112,4 +78,86 @@ public class ProjectController : ControllerBase
         return Ok($"Project {project.Name} deleted");
     }
 
+    [HttpPost("addTagsToProject/{projectId}")]
+    public IActionResult AddTagsToProject(int projectId, List<string> tagCloud)
+    {
+        Project? project = GetProject(projectId);
+        if (project == null)
+        {
+            return BadRequest($"Project object with ID: {projectId} not found.");
+        }
+        else
+        {
+            List<Tag> projectTags = project.Tags;
+            List<Tag> allTags = _context.Tags.ToList();
+            foreach (string tag in tagCloud)
+            {
+                // Make sure the tag is not already set on this project
+                if (!projectTags.Any(pt => pt.Name == tag))
+                {
+                    // See if it is an already existing tag, if so add it.
+                    Tag? existingTag = allTags.FirstOrDefault(pt => pt.Name == tag);
+                    if (existingTag != null)
+                    {
+                        project.Tags.Add(existingTag);
+                    }
+                    else
+                    {
+                        // Otherwise make new tag and add it to the project.
+                        project.Tags.Add(new Tag { Name = tag });
+                    }
+                }
+            }
+            _context.SaveChanges();
+            return Ok();
+        }
+    }
+
+    [HttpPost("removeTag/{projectId}/{tagId}")]
+    public IActionResult RemoveTagFromProject(int projectId, int tagId)
+    {
+        Project? project = GetProject(projectId);
+        if (project == null)
+        {
+            return BadRequest($"Project object with ID: {projectId} not found.");
+        }
+        else
+        {
+            Tag? tag = _context.Tags.Find(tagId);
+            if (tag == null)
+            {
+                return BadRequest($"Tag object with ID: {tagId} not found.");
+            }
+            else
+            {
+                project.Tags.Remove(tag);
+                _context.SaveChanges();
+                return Ok();
+            }
+        }
+    }
+    [HttpPost("addTaskToProject/{projectId}")]
+    public IActionResult AddTaskToProject(int projectId, [FromForm] string taskName)
+    {
+        Project? project = GetProject(projectId);
+        if (project == null)
+        {
+            return BadRequest($"Project object with ID: {projectId} not found.");
+        }
+        else
+        {
+            Models.Task? task = _context.Tasks.ToList().FirstOrDefault(task => task.Name == taskName);
+            if (task!=null)
+            {
+                if ( !project.Tasks.Contains(task) ) project.Tasks.Add(task);
+            }
+            else
+            {
+                project.Tasks.Add(new Models.Task { Name = taskName });
+
+            }
+            _context.SaveChanges();
+            return Ok();
+        }
+    }
 }

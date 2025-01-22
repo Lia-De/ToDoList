@@ -67,4 +67,41 @@ public class TaskController : Controller
         _context.SaveChanges();
         return Ok($"Task {frontendTask.TaskId} deleted");
     }
+
+    [HttpPost("addTagsToTask/{taskId}")]
+    public IActionResult AddTagsToProject(int taskId, List<string> tagCloud)
+    {
+        Models.Task? task = GetTask(taskId);
+        if (task == null)
+        {
+            return BadRequest($"Project object with ID: {taskId} not found.");
+        }
+        else
+        {
+            List<Tag> projectTags = task.Tags;
+            List<Tag> allTags = _context.Tags.ToList();
+            foreach (string tag in tagCloud)
+            {
+                // Make sure the tag is not already set on this project
+                if (!projectTags.Any(pt => pt.Name == tag))
+                {
+                    // See if it is an already existing tag, if so add it.
+                    Tag? existingTag = allTags.FirstOrDefault(pt => pt.Name == tag);
+                    if (existingTag != null)
+                    {
+                        task.Tags.Add(existingTag);
+                    }
+                    else
+                    {
+                        // Otherwise make new tag and add it to the project.
+                        task.Tags.Add(new Tag { Name = tag });
+                    }
+                }
+            }
+            _context.SaveChanges();
+            return Ok();
+        }
+    }
+
+
 }

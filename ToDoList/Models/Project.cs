@@ -8,8 +8,4 @@ public class Project
     public List<Tag> Tags { get; set; } = new List<Tag>();
     public ToDoStatus Status { get; set; }
 
-    public bool HasTag(Tag tag)
-    {
-        return this.Tags.Contains(tag);
-    }
 }
