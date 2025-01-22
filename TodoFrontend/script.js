@@ -129,9 +129,15 @@ function clearData(){
 }
 // Helper function to clear the edit form
 function clearEdit(){
+        // reset the selected cell in the data table
+
     let oldEdit = document.getElementById("edits");
     if (oldEdit != null) 
         document.getElementById("container").removeChild(oldEdit);
+    let selectedDataCell = document.querySelectorAll("td.selected");
+    if (selectedDataCell.length != 0) {
+     selectedDataCell[0].classList.remove("selected");
+    }
 }
 // Helper function to clear the add form when we have added an item.
 function clearAddingForm(){
@@ -577,7 +583,6 @@ function createDataTable(data, dataType) {
         // Set type specific listeners and data attributes
         switch (dataType) {
             case'projects':
-                // dataCell.setAttribute('data-id', dataPoint.projectId);
                 editButton.addEventListener('click', () => {
                     editProject(dataPoint.projectId, dataPoint.name);
                 });
@@ -589,7 +594,6 @@ function createDataTable(data, dataType) {
                 });
                 break;
             case'tasks':
-                // dataCell.setAttribute('data-id', dataPoint.taskId);
                 editButton.addEventListener('click', () => {
                     editTask(dataPoint.taskId, dataPoint.name);
                 });
@@ -601,7 +605,6 @@ function createDataTable(data, dataType) {
                 });
                 break;
             case'tags':
-                // dataCell.setAttribute('data-id', dataPoint.tagId);
                 editButton.addEventListener('click', () => {
                     editTag(dataPoint.tagId, dataPoint.name);
                 });
@@ -619,3 +622,21 @@ function createDataTable(data, dataType) {
 }
 
 
+async function testAddTags(dataid){
+    let fetchUrl = 'https://localhost:7217/Project/addTagsToProject/'+dataid;
+    requestData = ['wool','cotton'];
+    const response = await fetch(fetchUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+    });
+
+    if (response.ok) {
+
+    }
+
+}
+
+// testAddTags(9);
