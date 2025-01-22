@@ -23,7 +23,7 @@ async function showProjects() {
     }
 }
 
-async function showThisProject(fetchURL, dataType, event){
+async function showThisItem(fetchURL, dataType, event){
     try { 
         await fetch(fetchURL)
         .then(response => response.json())
@@ -485,12 +485,13 @@ function createEditForm(projectID, editableText) {
 
     editBox.id = 'edits'; 
         // Create the form
+        addElement('h3', 'Edit: '+editableText, editBox);
     let form = document.createElement('form');
 
         // Create the label for the name input
     let label = document.createElement('label');
     label.setAttribute('for', 'name');
-    label.textContent = 'Name: ';
+    // label.textContent = 'Name: ';
 
     // Create the text input for the name
     let inputText = document.createElement('input');
@@ -509,7 +510,7 @@ function createEditForm(projectID, editableText) {
     // Create the submit button
     let button = document.createElement('button');
     button.type = 'submit';
-    button.textContent = 'Edit';
+    button.textContent = 'Save';
 
     // Append all elements to the form
     form.appendChild(label);
@@ -570,7 +571,7 @@ function createDataTable(data, dataType) {
         // Edit button column
         const editCell = document.createElement('td');
         const editButton = document.createElement('button');
-        editButton.textContent = 'Edit';
+        editButton.textContent = 'Save';
         editButton.className="editButton";
       
         editCell.appendChild(editButton);
@@ -594,7 +595,7 @@ function createDataTable(data, dataType) {
                     deleteProject(dataPoint.projectId, dataPoint.name);
                 });
                 dataCell.addEventListener('click', (event) => {
-                    showThisProject('https://localhost:7217/Project/getSingleProject/'+dataPoint.projectId, dataType, event);
+                    showThisItem('https://localhost:7217/Project/getSingleProject/'+dataPoint.projectId, dataType, event);
                 });
                 break;
             case'tasks':
@@ -605,7 +606,7 @@ function createDataTable(data, dataType) {
                     deleteTask(dataPoint.taskId, dataPoint.name);
                 });
                 dataCell.addEventListener('click', (event) => {
-                    showThisProject('https://localhost:7217/Task/getSingleTask/'+dataPoint.taskId, dataType, event); 
+                    showThisItem('https://localhost:7217/Task/getSingleTask/'+dataPoint.taskId, dataType, event); 
                 });
                 break;
             case'tags':
@@ -616,7 +617,7 @@ function createDataTable(data, dataType) {
                     deleteTag(dataPoint.tagId, dataPoint.name);
                 });
                 dataCell.addEventListener('click', (event) => {
-                    showThisProject('https://localhost:7217/Tag/getSingleTag/'+dataPoint.tagId, dataType, event);
+                    showThisItem('https://localhost:7217/Tag/getSingleTag/'+dataPoint.tagId, dataType, event);
                 });
                 break;
             default:
