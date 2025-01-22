@@ -58,8 +58,8 @@ async function showThisItem(fetchURL, dataType, event){
             } else {
                 let tagBox = addElement('div','',divTarget);
                 tagBox.id='tagBox';
-                addElement('h4', `Tags`, divTarget);
-                let taglist = addElement('ul','',divTarget);
+                addElement('h4', `Tags`, tagBox);
+                let taglist = addElement('ul','',tagBox);
                 data.tags.forEach(tag => {
                     addElement('li', tag.name, taglist);
                 });
@@ -181,18 +181,18 @@ function navigationEventListener(e){
 // 3 functions to add and populate edit forms and set event listeners
 function editProject (projectID, clickedProject){
     const form = createEditForm(projectID, clickedProject);
-    form.id ="editForm";
+    form.id ="editProjectForm";
     form.addEventListener('submit', editProjectRequest);
 };
 
 function editTag(tagID, tagName){
     let form = createEditForm(tagID, tagName);
-    form.id = "tagForm";
+    form.id = "editTagForm";
     form.addEventListener('submit', editTagRequest);
 }
 function editTask(taskID, taskName){
     let form = createEditForm(taskID, taskName);
-    form.id = "taskForm";
+    form.id = "editTaskForm";
     form.addEventListener('submit', editTaskRequest);
 }
 
@@ -343,7 +343,6 @@ function editProjectRequest(event) {
 
     // Get input values
     let id = parseInt(document.getElementById('id').value);
-    console.log(`trying to send edit for project ${id}`);
     let name = document.getElementById('name').value;
     
     if (!isValidInput(name)){
@@ -517,8 +516,10 @@ function createEditForm(projectID, editableText) {
     form.appendChild(inputText);
     form.appendChild(inputHidden);
     form.appendChild(button);
-
-    editBox.appendChild(form);
+    let divTarget = document.createElement('div');
+    divTarget.appendChild(form);
+    // editBox.appendChild(form);
+    editBox.appendChild(divTarget);
     containerTarget.appendChild(editBox);
     return form;
 }
