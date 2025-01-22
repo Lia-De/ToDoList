@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ToDoList.Models;
 namespace ToDoList.Controllers;
 [ApiController]
@@ -17,7 +18,18 @@ public class TaskController : Controller
     [HttpGet]
     public List<Models.Task> Index()
     {
-        return _context.Tasks.ToList();
+        return _context
+            .Tasks
+            .ToList();
+    }
+    
+    [HttpGet("getSingleTask/{taskId}")]
+    public Models.Task? GetTask(int taskId)
+    {
+        return _context
+            .Tasks
+            .Include(p => p.Tags)
+            .FirstOrDefault(t => t.TaskId == taskId);
     }
     // Create
     [HttpPost("addTask")]

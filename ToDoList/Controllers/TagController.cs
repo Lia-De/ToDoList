@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ToDoList.Models;
 namespace ToDoList.Controllers;
 
@@ -17,12 +18,25 @@ public class TagController : ControllerBase
     [HttpGet]
     public List<Tag> Index()
     {
-        return _context.Tags.ToList();
+        return _context
+            .Tags
+            .ToList();
+    }
+    [HttpGet("getSingleTag/{tagId}")]
+    public Models.Tag? GetTag(int tagId)
+    {
+        return _context
+            .Tags
+            .FirstOrDefault(t => t.TagId == tagId);
     }
     //Create 
     [HttpPost("addTag")]
     public IActionResult AddTag([FromForm] string name)
     {
+        if (_context.Tags.Any(t => t.Name == name))
+        {
+            return BadRequest("Tag already exists");
+        }
         var tag = new Tag { Name = name };
         _context.Tags.Add(tag);
         _context.SaveChanges();

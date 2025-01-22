@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.InteropServices.Marshalling;
+using System.Runtime.Intrinsics.X86;
 using ToDoList.Models;
 
 namespace ToDoList.Controllers;
@@ -14,7 +16,7 @@ public class ProjectController : ControllerBase
     {
         _context = context;
     }
-    
+
     // Adding CRUD methods
     // Read
     [HttpGet]
@@ -22,9 +24,17 @@ public class ProjectController : ControllerBase
     {
         return _context
             .Projects
-            .Include(p => p.Tasks)
-            .Include(p => p.Tags)
             .ToList();
+    }
+
+    [HttpGet("getSingleProject/{projectId}")]
+    public Project? GetProject(int projectId)
+    {
+        return _context
+            .Projects
+            .Include(p => p.Tags)
+            .Include(t => t.Tasks)
+            .FirstOrDefault(p => p.ProjectId == projectId);
     }
 
     // Create
@@ -38,19 +48,50 @@ public class ProjectController : ControllerBase
         return Ok($"Project {name} added");
     }
 
-    [HttpPost("addProjectWithTasks")]
-    public IActionResult AddProjectWithTasks(Project projectToEdit)
-    {
-        var project = _context.Projects.Find(projectToEdit.ProjectId);
-        if (project == null)
-        {
-            return NotFound();
-        }
-        project.Tags = projectToEdit.Tags;
-        project.Tasks = projectToEdit.Tasks;
-        _context.SaveChanges();
-        return Ok();
-    }
+    
+    //[HttpPost("addProjectWithTasks")]
+    //public IActionResult AddProjectWithTasks([FromForm] int projectId, [FromForm] string tagCloud, [FromForm] string taskCloud)
+    //{
+    //    List<string> tags = tagCloud.Split(',').ToList();
+    //    List<string> tasks = taskCloud.Split(',').ToList();
+    //    var project = _context.Projects.Find(projectId);
+    //    if (project == null)
+    //    {
+    //        return NotFound();
+    //    }
+
+    //    foreach (string addTag in tags)
+    //    {
+    //        string tagName = addTag.Trim(); // clean up the string
+    //        Console.WriteLine($"\nTagname:-{tagName}-");
+    //        Tag? tagToAdd = _context.Tags.FirstOrDefault(t => t.Name == tagName);
+
+    //        if (tagToAdd == null)
+    //        {
+    //            Console.WriteLine($" tag did not exist -- Now adding new tag: -{tagName}-");
+    //            tagToAdd = new Tag { Name = tagName };
+    //            Console.WriteLine($"Adding ID:{tagToAdd.TagId} name:{tagToAdd.Name}");
+    //            project.Tags.Add(tagToAdd);
+
+    //        }
+    //        else
+    //        {
+    //            Console.WriteLine($"tagToAdd is ID:{tagToAdd.TagId} name:{tagToAdd.Name}");
+    //            if (!project.Tags.Contains(tagToAdd)) // see if we have this tag already or if it's empty
+    //            {
+    //                Console.WriteLine($"The tag (id {tagToAdd.TagId}) does not exist on the project. Add it.");
+    //                project.Tags.Add(tagToAdd);
+    //            }
+    //            else
+    //            {
+    //                Console.WriteLine($"The tag (id {tagToAdd.TagId}) already exists on the project. Do not add it.");
+    //            }
+    //        }
+    //        Console.WriteLine("\n end iteration");
+    //    }
+    //    _context.SaveChanges();
+    //    return Ok();
+    //}
 
     // Update
     [HttpPost("updateProject")]

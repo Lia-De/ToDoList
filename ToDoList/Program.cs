@@ -7,9 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // Enadle us to load database nested opjects, without going into infinite loops.
-builder.Services.AddControllers()
-    .AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-
+builder.Services.AddControllers().AddJsonOptions(options => { options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles; });
 builder.Services.AddDbContext<TodoContext>(opt => opt.UseSqlite("DataSource=todo.db"));
 
 builder.Services.AddEndpointsApiExplorer();

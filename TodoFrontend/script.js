@@ -23,6 +23,67 @@ async function showProjects() {
     }
 }
 
+async function showThisProject(fetchURL, itemId, event){
+    try { 
+        await fetch(fetchURL+itemId)
+        .then(response => response.json())
+        .then(function (data){
+
+            let target = document.getElementById('container');
+            
+            clearItemCard();
+            
+            event.target.classList.add("selected");
+            // build the project card
+            let divTarget = document.createElement('div');
+            divTarget.id='edits';
+            target.appendChild(divTarget);
+            // Create the header row
+            addElement('h3', `${data.name}`, divTarget);
+
+            console.log(data);
+            //display all tasks
+            let taskBox = addElement('div','',divTarget);
+            taskBox.id = 'taskBox';
+            addElement('h4', 'Tasks', taskBox);
+            let tasklist = addElement('ul','',taskBox);
+            data.tasks.forEach(task => {
+                addElement('li', task.description, tasklist);
+            });
+            
+            // display all tags
+            let tagBox = addElement('div','',divTarget);
+            tagBox.id='tagBox';
+            addElement('h4', `Tags`, divTarget);
+            let taglist = addElement('ul','',divTarget);
+            data.tags.forEach(tag => {
+                addElement('li', tag.name, taglist);
+            });
+
+        });
+    } catch (error) {
+        console.error('Error loading one project:', error);
+    }
+}
+
+function clearItemCard() {
+    //clear the decks for new card
+    clearEdit();
+    let addProjectBox = document.getElementById('addNewItem')
+    if (addProjectBox != null)
+        document.getElementById('contents').removeChild(addProjectBox);  
+    
+    // reset the selected cell in the data table
+    let table=document.getElementById('dataTable');
+    let rows = table.querySelectorAll('tr');
+    rows.forEach(row => {
+        let cells = row.querySelectorAll('td');
+        cells.forEach(cell => {
+            cell.classList.remove("selected");
+        });
+    });
+}
+
 async function showTasks(){
     try { 
         await fetch('https://localhost:7217/Task')
@@ -71,17 +132,18 @@ function selectedTypeButtons(selectedType){
     document.getElementById(selectedType+"btn").classList.add("selected");
 }
 
-// // Helper function to create single elements, adding them to a target and returning the new element
-// function addElement(elementType, data, target){
-//     let newElement = document.createElement(elementType);
-//     newElement.innerHTML = data;
-//     target.appendChild(newElement);
-//     return newElement;
-// }
+// Helper function to create single elements, adding them to a target and returning the new element
+function addElement(elementType, data, target){
+    let newElement = document.createElement(elementType);
+    newElement.innerHTML = data;
+    target.appendChild(newElement);
+    return newElement;
+}
 
 // Helper function to clear the data from the contents div ready to be filled anew
 function clearData(){
     document.getElementById("contents").innerHTML = "";
+    clearEdit();
 }
 // Helper function to clear the edit form
 function clearEdit(){
@@ -394,7 +456,19 @@ function createAddingForm(target, dataType){
     // Create the submit button
     let button = document.createElement('button');
     button.type = 'submit';
-    button.textContent = 'Add';
+    switch(dataType) {
+        case "addProject":
+            button.textContent = 'Add Project';
+            break;
+        case "addTask":
+            button.textContent = 'Add Task';
+            break;
+        case "addTag":
+            button.textContent = 'Add Tag';
+            break;
+        default:
+            button.textContent = 'Add';
+    }
     
     // Append all elements to the form
     form.appendChild(inputText);
@@ -492,57 +566,67 @@ function createDataTable(data, dataType) {
         const row = document.createElement('tr');
 
         // Project name column
-        const projectCell = document.createElement('td');
-        projectCell.textContent =(dataType==='tasks') ? dataPoint.description: dataPoint.name;
-        projectCell.className="data";
-        row.appendChild(projectCell);
+        const dataCell = document.createElement('td');
+        dataCell.textContent =(dataType==='tasks') ? dataPoint.description: dataPoint.name;
+        dataCell.className="data";
+        row.appendChild(dataCell);
 
         // Edit button column
         const editCell = document.createElement('td');
         const editButton = document.createElement('button');
         editButton.textContent = 'Edit';
         editButton.className="editButton";
-        editButton.addEventListener('click', () => {
-            switch (dataType) {
-                case 'projects':
-                    editProject(dataPoint.projectId, dataPoint.name);
-                    break;
-                case 'tasks':
-                    editTask(dataPoint.taskId, dataPoint.description);
-                    break;
-                case 'tags':
-                    editTag(dataPoint.tagId, dataPoint.name);
-                    break;
-                default:
-                    console.error(`Unknown datatype: ${dataType}`);
-            }
-        });
+      
         editCell.appendChild(editButton);
         row.appendChild(editCell);
 
         // Delete button column
         const deleteCell = document.createElement('td');
         const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Delete';
+        deleteButton.textContent = 'Del';
         deleteButton.className="deleteButton";
-        deleteButton.addEventListener('click', () => {
-            switch (dataType) {
-                case 'projects':
-                    deleteProject(dataPoint.projectId, dataPoint.name);
-                    break;
-                case 'tasks':
-                    deleteTask(dataPoint.taskId, dataPoint.description);
-                    break;
-                case 'tags':
-                    deleteTag(dataPoint.tagId, dataPoint.name);
-                    break;
-                default:
-                    console.error(`Unknown datatype: ${dataType}`);
-            }
-            
-        });
         deleteCell.appendChild(deleteButton);
         row.appendChild(deleteCell);
+        
+        // Set type specific listeners and data attributes
+        switch (dataType) {
+            case'projects':
+                // dataCell.setAttribute('data-id', dataPoint.projectId);
+                editButton.addEventListener('click', () => {
+                    editProject(dataPoint.projectId, dataPoint.name);
+                });
+                deleteButton.addEventListener('click', () => {
+                    deleteProject(dataPoint.projectId, dataPoint.name);
+                });
+                dataCell.addEventListener('click', (event) => {
+                    showThisProject('https://localhost:7217/Project/getSingleProject/',dataPoint.projectId, event);
+                });
+                break;
+            case'tasks':
+                // dataCell.setAttribute('data-id', dataPoint.taskId);
+                editButton.addEventListener('click', () => {
+                    editTask(dataPoint.taskId, dataPoint.description);
+                });
+                deleteButton.addEventListener('click', () => {
+                    deleteTask(dataPoint.taskId, dataPoint.description);
+                });
+                dataCell.addEventListener('click', (event) => {
+                    showThisProject('https://localhost:7217/Task/getSingleTask/',dataPoint.taskId, event); 
+                });
+                break;
+            case'tags':
+                // dataCell.setAttribute('data-id', dataPoint.tagId);
+                editButton.addEventListener('click', () => {
+                    editTag(dataPoint.tagId, dataPoint.name);
+                });
+                deleteButton.addEventListener('click', () => {
+                    deleteTag(dataPoint.tagId, dataPoint.name);
+                });
+                break;
+            default:
+                console.error(`Unknown datatype: ${dataType}`);
+            }
+
 
         table.appendChild(row);
     });
