@@ -68,6 +68,10 @@ public class ProjectController : ControllerBase
             return NotFound();
         }
         string oldName = project.Name;
+        if (frontendProject.Status != project.Status)
+        {
+            project.Status = frontendProject.Status;
+        }
         project.Name = frontendProject.Name;
         _context.SaveChanges();
         return Ok($"Project ({oldName}) updated to {project.Name}");

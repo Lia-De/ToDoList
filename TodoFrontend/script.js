@@ -389,11 +389,11 @@ function editProjectRequest(event) {
     event.preventDefault(); // Prevent the default form submission
 
     // Get input values
-    let id = parseInt(document.getElementById('id').value);
+    let id = parseInt(document.getElementById('id').value, 10);
     let name = document.getElementById('name').value;
     let inputTags = document.getElementById('tagCloud').value;
-    let status =document.querySelector('input[type=radio]:checked').value;
-
+    let statusValue =document.querySelector('input[type=radio]:checked').value;
+    let status = parseInt(statusValue, 10);
     if (!isValidInput(name)){
         alert(`You have to enter (some) text`);
     } else {
@@ -402,6 +402,7 @@ function editProjectRequest(event) {
     let requestData = {
         ProjectId: id,
         Name: name,
+        Status: status
     };
     sendEditRequest(requestData, 'https://localhost:7217/Project/updateProject', "project");
     
