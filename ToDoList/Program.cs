@@ -8,9 +8,8 @@ builder.Services.AddControllers();
 
 // Enadle us to load database nested opjects, without going into infinite loops.
 builder.Services.AddControllers().AddJsonOptions(options => { options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles; });
-builder.Services.AddDbContext<TodoContext>(opt => opt.UseSqlite("DataSource=todo.db", sqliteOptions =>
-                            {
-                                // set to SplitQuery as opposed to SingleQuery which is the default
+// set to SplitQuery as opposed to SingleQuery which is the default
+builder.Services.AddDbContext<TodoContext>(opt => opt.UseSqlite("DataSource=todo.db", sqliteOptions => {
                                 sqliteOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                             }));
 
