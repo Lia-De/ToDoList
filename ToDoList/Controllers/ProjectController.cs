@@ -27,6 +27,15 @@ public class ProjectController : ControllerBase
             .ToList();
     }
 
+    [HttpGet("getProjectIds")]
+    public List<int> GetProjectIds()
+    {
+        return _context
+            .Projects
+            .Select(p => p.ProjectId)
+            .ToList();
+    }
+
     [HttpGet("getSingleProject/{projectId}")]
     public Project? GetProject(int projectId)
     {
@@ -42,6 +51,7 @@ public class ProjectController : ControllerBase
     public IActionResult AddProject([FromForm] string name)
     {
         var project = new Project { Name = name };
+        // By default, initialize project as active
         project.Status = ToDoStatus.Active;
         _context.Projects.Add(project);
         _context.SaveChanges();

@@ -33,10 +33,17 @@ public class TaskController : Controller
     }
     // Create
     [HttpPost("addTask")]
-    public IActionResult AddTask([FromForm] string name)
+    public IActionResult AddTask([FromForm] string name, [FromForm] int projectID)
     {
         var task = new Models.Task { Name = name };
-        _context.Tasks.Add(task);
+        Project? project = _context.Projects.Find(projectID);
+        Console.WriteLine($"project is: {project}");
+        if (project == null)
+        {
+            return BadRequest("Project not found");
+        }
+        project.Tasks.Add(task);
+        //_context.Tasks.Add(task);
         _context.SaveChanges();
         return Ok($"Task {name} added");
     }

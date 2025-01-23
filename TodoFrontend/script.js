@@ -12,8 +12,6 @@ async function showProjects() {
         document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Projects`;
         clearData();
         createDataTable(data, "projects");
-        let addingForm = printAddingForm("addProject");
-        addingForm.addEventListener('submit', (event) => addRequest(event, 'project'));
         selectedTypeButtons("projects");
     } catch (error) {
         console.error('Error:', error);
@@ -23,6 +21,71 @@ async function showProjects() {
     }
 }
 
+// helper function to print out the adding form
+function printAddingPlus(){
+    let target = document.getElementById("contents");
+    let addingBox = document.createElement("div");
+    addingBox.id = "addNewItem";
+    target.appendChild(addingBox);
+    addElement('button', '+', addingBox);
+    addingBox.addEventListener('click', (event) => printAddingFormAndAddListeners(event));
+
+}
+function printAddingFormAndAddListeners (event) {
+    document.getElementById('addNewItem').remove();
+    switch (document.getElementById('navigate').querySelector('.selected').id) {
+        case "projectsbtn":
+            let addingPForm = printAddingForm("addProject");
+            addingPForm.addEventListener('submit', (event) => addRequest(event, 'project'));
+            break;
+        case "tasksbtn":
+            let addingTaskForm = printAddingForm("addTask");
+            addingTaskForm.addEventListener('submit', (event) => addRequest(event, 'task'));
+            break;
+        case "tagsbtn":
+            let addingTagForm = printAddingForm("addTag");
+            addingTagForm.addEventListener('submit', (event) => addRequest(event, 'tag'));
+            break;
+        default:
+            console.error(`Unknown datatype: ${dataType}`);
+    }
+}
+async function showTasks(){
+    try { 
+        await fetch('https://localhost:7217/Task')
+        .then(response => response.json())
+        .then(function (data){
+            document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tasks`;
+            let target = document.getElementById("contents");
+            clearData();
+            createDataTable(data, "tasks");
+            selectedTypeButtons("tasks");
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
+        clearData();
+    }
+}
+async function showTags(){
+    try {await fetch('https://localhost:7217/Tag')
+        .then(response => response.json())
+        .then(function (data){
+            document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tags`;
+            let target = document.getElementById("contents");    
+            clearData();
+            createDataTable(data, "tags");
+            selectedTypeButtons("tags");
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
+        clearData();
+        createDataTable(hardcodedData, "projects");
+    }
+}
+
+// Show all details on a single item
 async function showThisItem(fetchURL, dataType, event){
     try { 
         await fetch(fetchURL)
@@ -67,46 +130,6 @@ async function showThisItem(fetchURL, dataType, event){
         });
     } catch (error) {
         console.error('Error loading one project:', error);
-    }
-}
-
-async function showTasks(){
-    try { 
-        await fetch('https://localhost:7217/Task')
-        .then(response => response.json())
-        .then(function (data){
-            document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tasks`;
-            let target = document.getElementById("contents");
-            clearData();
-            createDataTable(data, "tasks");
-            let addingForm = printAddingForm("addTask");
-            addingForm.addEventListener('submit', (event) => addRequest(event, 'task'));
-            selectedTypeButtons("tasks");
-        });
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
-        clearData();
-        // createDataTable(hardcodedData, "projects");
-    }
-}
-async function showTags(){
-    try {await fetch('https://localhost:7217/Tag')
-        .then(response => response.json())
-        .then(function (data){
-            document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tags`;
-            let target = document.getElementById("contents");    
-            clearData();
-            createDataTable(data, "tags");
-            let addingForm = printAddingForm("addTag");
-            addingForm.addEventListener('submit', (event) => addRequest(event, 'tag'));
-            selectedTypeButtons("tags");
-        });
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
-        clearData();
-        createDataTable(hardcodedData, "projects");
     }
 }
 // Helper function to switch which button is selected in the nav bar
@@ -157,13 +180,11 @@ function clearItemCard() {
     
     // reset the selected cell in the data table
     let table=document.getElementById('dataTable');
-    let rows = table.querySelectorAll('tr');
-    rows.forEach(row => {
-        let cells = row.querySelectorAll('td');
-        cells.forEach(cell => {
-            cell.classList.remove("selected");
-        });
+    let cells = table.querySelectorAll('td');
+    cells.forEach(cell => { 
+        cell.classList.remove("selected");
     });
+
 }
 
 // Event listener to switch between the different data types
@@ -180,7 +201,7 @@ function navigationEventListener(e){
  }
 // 3 functions to add and populate edit forms and set event listeners
 function editProject (projectID, clickedProject){
-    const form = createEditForm(projectID, clickedProject);
+    let form = createEditForm(projectID, clickedProject);
     form.id ="editProjectForm";
     form.addEventListener('submit', editProjectRequest);
 };
@@ -301,6 +322,8 @@ function addRequest(event, dataType) {
                 sendAddRequest(formData,'https://localhost:7217/Project/addProject',"project");
                 break;
             case 'task':
+                let projectId=event.target.projectId.value;
+                formData.append('projectId', projectId);
                 sendAddRequest(formData,'https://localhost:7217/Task/addTask',"task");
                 break;
             case 'tag':
@@ -444,6 +467,7 @@ function createAddingForm(target, dataType){
     let form = document.createElement("form");
     form.id = dataType;
    // Create the text input for the name
+   
    let inputText = document.createElement('input');
    inputText.type = 'text';
    inputText.id = 'newName';
@@ -451,30 +475,61 @@ function createAddingForm(target, dataType){
     // Create the submit button
     let button = document.createElement('button');
     button.type = 'submit';
+    // Create special inputs for each case
+    let extraInput;
     switch(dataType) {
         case "addProject":
-            button.textContent = 'Add Project';
+            button.textContent = 'Add';
             break;
         case "addTask":
-            button.textContent = 'Add Task';
+            
+            extraInput = document.createElement('select');
+            extraInput.id = 'projectId';
+            extraInput.name = 'projectId';
+            fetchProjectIds(extraInput);
+            
+            button.textContent = 'Add';
             break;
         case "addTag":
-            button.textContent = 'Add Tag';
+            button.textContent = 'Add';
             break;
         default:
             button.textContent = 'Add';
     }
     
     // Append all elements to the form
+    addElement('label', 'Name:', form);
     form.appendChild(inputText);
+    if (extraInput!=null) {
+        addElement('label', 'Associated project:', form);
+        form.appendChild(extraInput);
+    }
     form.appendChild(button);
 
     target.appendChild(form);
     return form;
 }
+// helper to fetch project IDs
+async function fetchProjectIds(target){
+    try {
+        const response = await fetch('https://localhost:7217/Project/getProjectIds');
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        // populate select items in the target element
+        data.forEach(dataPoint => {
+            let option = addElement('option', `Project ${dataPoint}`, target);
+            option.value = dataPoint;
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 
 // function to create and populate an edit form
-function createEditForm(projectID, editableText) {
+function createEditForm(dataID, editableText) {
     let containerTarget = document.getElementById("container")  
         // Check if we have an edit box already
         clearEdit();
@@ -504,7 +559,7 @@ function createEditForm(projectID, editableText) {
     inputHidden.type = 'hidden';
     inputHidden.id = 'id';
     inputHidden.name = 'id';
-    inputHidden.value = projectID; // Set the hidden input value to data.id
+    inputHidden.value = dataID; // Set the hidden input value to data.id
 
     // Create the submit button
     let button = document.createElement('button');
@@ -628,6 +683,8 @@ function createDataTable(data, dataType) {
 
         table.appendChild(row);
     });
+    // Also add the plus sign to add new items
+    printAddingPlus();
 }
 
 
@@ -647,5 +704,3 @@ async function testAddTags(dataid){
     }
 
 }
-
-// testAddTags(9);

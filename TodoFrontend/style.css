@@ -97,15 +97,24 @@ h2 {
 }
 
 form > input {
-    flex: 1;
-    margin: 0 0.4em 0.5em 0;
-    max-width: 400px;
-
+    margin: 0 0.1em 0.5em 0;
+    /* max-width: 200px; */
+    
 }
 form {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-auto-rows: auto;
     align-items: center;
-    justify-content:center;
+    /* justify-content:center; */
+}
+form > button, form > input, form > select {
+    grid-column: 2/3;
+}
+form > label {
+    grid-column: 1/2;
+    margin: 0 0.5em 0.5em 0;
+    text-align: right;
 }
 button {
     padding: 0.5em 1em;
@@ -117,14 +126,11 @@ button {
 }
 button.selected {
     background-color: hsl(83, 93%, 21%);
-    font-family: "Bodoni Moda", serif;
 }
 .editButton, .deleteButton {
     background-color: hsl(0, 0%, 82%);
 }
-#navigate>button {
 
-}
 .editButton {
     background-image: url('./img/edit_20dp.png');
     background-size: contain;
