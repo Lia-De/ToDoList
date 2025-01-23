@@ -97,7 +97,6 @@ async function showThisItem(fetchURL, dataType, event){
         await fetch(fetchURL)
         .then(response => response.json())
         .then(function (data){
-
             let target = document.getElementById('container');
             
             clearItemCard();
@@ -112,6 +111,25 @@ async function showThisItem(fetchURL, dataType, event){
 
             //display all tasks - only for projects
             if (dataType === 'projects'){
+                let status = data.status;
+                switch (status){
+                    case 0:
+                        statusValue='Status: Planning';
+                        break;
+                    case 1:
+                        statusValue='Status: Active';
+                        break;
+                    case 2:
+                        statusValue='Status: Inactive';
+                        break;
+                    case 3: 
+                        statusValue = 'Status: Completed';
+                        break;
+                    default:
+                        statusValue = 'Unknown status';
+                }
+                let projectStatus = addElement('p',statusValue,divTarget)
+                
                 let taskBox = addElement('div','',divTarget);
                 taskBox.id = 'taskBox';
                 addElement('h4', 'Tasks', taskBox);
@@ -374,7 +392,8 @@ function editProjectRequest(event) {
     let id = parseInt(document.getElementById('id').value);
     let name = document.getElementById('name').value;
     let inputTags = document.getElementById('tagCloud').value;
-    
+    let status =document.querySelector('input[type=radio]:checked').value;
+
     if (!isValidInput(name)){
         alert(`You have to enter (some) text`);
     } else {
@@ -382,7 +401,7 @@ function editProjectRequest(event) {
             // Data to send in the request
     let requestData = {
         ProjectId: id,
-        Name: name
+        Name: name,
     };
     sendEditRequest(requestData, 'https://localhost:7217/Project/updateProject', "project");
     
@@ -462,7 +481,7 @@ async function sendEditRequest(requestData, fetchURL, dataType){
             }
         } else {
             const error = await response.json();
-            alert(`Failed to update${dataType}: ${error.message}`);
+            alert(`Failed to update ${dataType}: ${error.message}`);
         }
     } catch (error) {
         console.error('Error:', error);
@@ -555,11 +574,9 @@ function createEditForm(dataID, editableText) {
     let form = document.createElement('form');
 
         // Create the label for the name input
-    let label = document.createElement('label');
+    let label = addElement('label', 'Name: ', form)
     label.setAttribute('for', 'name');
-    label.textContent = 'Name: ';
-    form.appendChild(label);
-
+    
     // Create the text input for the name
     let inputText = document.createElement('input');
     inputText.type = 'text';
@@ -567,44 +584,7 @@ function createEditForm(dataID, editableText) {
     inputText.name = 'name';
     inputText.value = editableText; // Fill the input 
     form.appendChild(inputText);
-
-    // Print out all the other stuff for Project/Task switching on the active table.
-    
-    switch (document.getElementById('navigate').querySelector('.selected').id) {
-        case "projectsbtn":
-
-            let taskLabel = addElement('label','',form);
-            taskLabel.setAttribute('for','taskCloud');
-            taskLabel.textContent = 'Tasks: ';
-
-            let taskInput = addElement('input','',form);
-            taskInput.type = 'text';
-            taskInput.id = 'taskCloud';
-            taskInput.name = 'taskCloud';
-
-            let tagLabel = addElement('label','',form);
-            tagLabel.setAttribute('for','tagCloud');
-            tagLabel.textContent = 'Tags: ';
-            
-            let tagInput = addElement('input','',form);
-            tagInput.type = 'text';
-            tagInput.id = 'tagCloud';
-            tagInput.name = 'tagCloud';
-
-
-            populateTaskAndTags(dataID, tagInput, taskInput);
-
-            break;
-        case "tasksbtn":
-            
-            break;
-        case "tagsbtn":
-            
-            break;
-        default:
-            console.error(`Unknown source of edit: ${dataType}`);
-    }
-    
+       
     // Create the hidden input for the ID
     let inputHidden = document.createElement('input');
     inputHidden.type = 'hidden';
@@ -617,9 +597,91 @@ function createEditForm(dataID, editableText) {
     button.type = 'submit';
     button.textContent = 'Save';
 
-    // Append all elements to the form
+    // Print out all the other stuff for Project/Task switching on the active table.
+    
+
+    switch (document.getElementById('navigate').querySelector('.selected').id) {
+        case "projectsbtn":
+            
+            getSingleItem(dataID,'project').then(itemData => {
+            
+                let radioLabel = addElement('label', 'Planning',form);
+                radioLabel.setAttribute('for','statusZero');
+                let radioButton = addElement('input','',form);
+                radioButton.type='radio';
+                radioButton.id = 'statusZero';
+                radioButton.name='newStatus';
+                radioButton.value=0;
+                
+                radioLabel =  addElement('label', 'Active',form);
+                radioLabel.setAttribute('for','statusOne');
+                radioButton = addElement('input','',form);
+                radioButton.type='radio';
+                radioButton.id = 'statusOne';
+                radioButton.name='newStatus';
+                radioButton.value=1;
+
+                radioLabel =  addElement('label', 'Inactive',form);
+                radioLabel.setAttribute('for','statusTwo');
+                radioButton = addElement('input','',form);
+                radioButton.type='radio';
+                radioButton.id = 'statusTwo';
+                radioButton.name='newStatus';
+                radioButton.value=2;
+
+                radioLabel =  addElement('label', 'Completed',form);
+                radioLabel.setAttribute('for','statusThree');
+                radioButton = addElement('input','',form);
+                radioButton.type='radio';
+                radioButton.id = 'statusThree';
+                radioButton.name='newStatus';
+                radioButton.value=3;
+
+                let taskLabel = addElement('label','',form);
+                taskLabel.setAttribute('for','taskCloud');
+                taskLabel.textContent = 'Tasks: ';
+
+                let taskInput = addElement('input','',form);
+                taskInput.type = 'text';
+                taskInput.id = 'taskCloud';
+                taskInput.name = 'taskCloud';
+                let tasks = itemData.tasks.map(task => task.name).join(', ');
+                taskInput.value=tasks;
+
+                let tagLabel = addElement('label','',form);
+                tagLabel.setAttribute('for','tagCloud');
+                tagLabel.textContent = 'Tags: ';
+                let tagInput = addElement('input','',form);
+                tagInput.type = 'text';
+                tagInput.id = 'tagCloud';
+                tagInput.name = 'tagCloud';
+                let tags = itemData.tags.map(tag => tag.name).join(', ');
+                tagInput.value = tags;
+
+                setStatusRadio(itemData.status);
+                    // Append all elements to the form
     form.appendChild(inputHidden);
     form.appendChild(button);
+
+            });
+            break;
+        case "tasksbtn":
+                // Append all elements to the form
+    form.appendChild(inputHidden);
+    form.appendChild(button);
+
+            break;
+        case "tagsbtn":
+                // Append all elements to the form
+    form.appendChild(inputHidden);
+    form.appendChild(button);
+
+            break;
+        default:
+            console.error(`Unknown source of edit: ${dataType}`);
+    }
+ 
+
 
     let divTarget = document.createElement('div');
     divTarget.appendChild(form);
@@ -629,33 +691,37 @@ function createEditForm(dataID, editableText) {
     return form;
 }
 
-// Helper to fetch and fill tags and tasks for Project Edit
-async function populateTaskAndTags(projectID, tagInput, taskInput){
-    try { 
-        await fetch('https://localhost:7217/Project/getSingleProject/'+projectID)	
-        .then(response => response.json())
-        .then(function (data){
-            let tags='';
-            data.tags.forEach(tag => {
-                tags = tags + tag.name + ', ';
-            });
-            tags=tags.trim();
-            tags=tags.replace(/,*$/, '');
-            tagInput.value = tags;            
-
-            let tasks='';
-            
-            data.tasks.forEach(task => {
-                tasks = tasks + task.name +', ';
-            });
-            tasks=tasks.trim();
-            tasks=tasks.replace(/,*$/, '');
-            taskInput.value=tasks;
-
-        });
-    } catch (error) { 
-        console.error('Error:', error);
+async function getSingleItem(itemID, dataType) {
+    try {
+        const response = await fetch('https://localhost:7217/Project/getSingleProject/' + itemID);
+        if (!response.ok) {
+            console.error('Failed to fetch item:', response.statusText);
+            return null;
+        }
+        const itemData = await response.json();
+        return itemData;
+    } catch (error) {
+        console.error('Error fetching item:', error);
+        return null;
     }
+}
+// Helper to fetch and fill tags and tasks for Project Edit
+function setStatusRadio(currentStatus){
+    switch (currentStatus) {
+        case 0:
+            document.getElementById('statusZero').checked = true;
+            break;
+        case 1:
+            document.getElementById('statusOne').checked = true;
+            break;
+        case 2:
+            document.getElementById('statusTwo').checked = true;
+            break;
+        case 3:
+            document.getElementById('statusThree').checked = true;
+            break;
+        }
+
 }
 
 // Function to create and populate the table

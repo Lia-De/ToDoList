@@ -94,7 +94,12 @@ h2 {
     /* max-width: 500px; */
     box-sizing: border-box;
 }
-
+#edits > h3, #edits >p {
+    display: inline-block;
+}
+#edits > p {
+    margin-left: 2em;
+}
 form > input {
     margin: 0 0.1em 0.5em 0;
     /* max-width: 200px; */
@@ -102,7 +107,7 @@ form > input {
 }
 form {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: 1fr 3fr;
     grid-auto-rows: auto;
     align-items: center;
     /* justify-content:center; */
@@ -114,6 +119,10 @@ form > label {
     grid-column: 1/2;
     margin: 0 0.5em 0.5em 0;
     text-align: right;
+}
+form > input[type="radio"] {
+    margin-left: 1em;
+    margin-right:auto;
 }
 button {
     padding: 0.5em 1em;
