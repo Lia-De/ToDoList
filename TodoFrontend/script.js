@@ -21,7 +21,7 @@ async function showProjects() {
     }
 }
 
-// helper function to print out the adding form
+// helper functions to print out the adding form
 function printAddingPlus(){
     let target = document.getElementById("contents");
     let addingBox = document.createElement("div");
@@ -87,6 +87,12 @@ async function showTags(){
 
 // Show all details on a single item
 async function showThisItem(fetchURL, dataType, event){
+    if ( event.target.classList.contains("selected")) {
+        // we are already displaying an item card, so clear it and show the adding option
+        clearItemCard();
+        printAddingPlus();
+        return
+    }
     try { 
         await fetch(fetchURL)
         .then(response => response.json())
@@ -367,6 +373,7 @@ function editProjectRequest(event) {
     // Get input values
     let id = parseInt(document.getElementById('id').value);
     let name = document.getElementById('name').value;
+    let inputTags = document.getElementById('tagCloud').value;
     
     if (!isValidInput(name)){
         alert(`You have to enter (some) text`);
@@ -378,6 +385,14 @@ function editProjectRequest(event) {
         Name: name
     };
     sendEditRequest(requestData, 'https://localhost:7217/Project/updateProject', "project");
+    
+    // also send add tags    
+    let tagArray = inputTags
+                    .split(',')
+                    .map(item => item.trim())
+                    .filter(item => item !== '');
+    addTagsToProject(id, tagArray);
+
 }
 };
 
@@ -459,11 +474,6 @@ function printAddingForm(dataType){
     let addingBox = document.createElement("div");
     addingBox.id = "addNewItem";
     target.appendChild(addingBox);
-    let addingForm = createAddingForm(addingBox, dataType);
-    return addingForm;
-}
-//function to create an add new data form
-function createAddingForm(target, dataType){
     let form = document.createElement("form");
     form.id = dataType;
    // Create the text input for the name
@@ -482,10 +492,10 @@ function createAddingForm(target, dataType){
             button.textContent = 'Add';
             break;
         case "addTask":
-            
             extraInput = document.createElement('select');
             extraInput.id = 'projectId';
             extraInput.name = 'projectId';
+
             fetchProjectIds(extraInput);
             
             button.textContent = 'Add';
@@ -506,9 +516,11 @@ function createAddingForm(target, dataType){
     }
     form.appendChild(button);
 
-    target.appendChild(form);
+    addingBox.appendChild(form);
     return form;
 }
+
+
 // helper to fetch project IDs
 async function fetchProjectIds(target){
     try {
@@ -539,13 +551,14 @@ function createEditForm(dataID, editableText) {
 
     editBox.id = 'edits'; 
         // Create the form
-        addElement('h3', 'Edit: '+editableText, editBox);
+    addElement('h3', 'Editing: '+editableText, editBox);
     let form = document.createElement('form');
 
         // Create the label for the name input
     let label = document.createElement('label');
     label.setAttribute('for', 'name');
-    // label.textContent = 'Name: ';
+    label.textContent = 'Name: ';
+    form.appendChild(label);
 
     // Create the text input for the name
     let inputText = document.createElement('input');
@@ -553,6 +566,44 @@ function createEditForm(dataID, editableText) {
     inputText.id = 'name';
     inputText.name = 'name';
     inputText.value = editableText; // Fill the input 
+    form.appendChild(inputText);
+
+    // Print out all the other stuff for Project/Task switching on the active table.
+    
+    switch (document.getElementById('navigate').querySelector('.selected').id) {
+        case "projectsbtn":
+
+            let taskLabel = addElement('label','',form);
+            taskLabel.setAttribute('for','taskCloud');
+            taskLabel.textContent = 'Tasks: ';
+
+            let taskInput = addElement('input','',form);
+            taskInput.type = 'text';
+            taskInput.id = 'taskCloud';
+            taskInput.name = 'taskCloud';
+
+            let tagLabel = addElement('label','',form);
+            tagLabel.setAttribute('for','tagCloud');
+            tagLabel.textContent = 'Tags: ';
+            
+            let tagInput = addElement('input','',form);
+            tagInput.type = 'text';
+            tagInput.id = 'tagCloud';
+            tagInput.name = 'tagCloud';
+
+
+            populateTaskAndTags(dataID, tagInput, taskInput);
+
+            break;
+        case "tasksbtn":
+            
+            break;
+        case "tagsbtn":
+            
+            break;
+        default:
+            console.error(`Unknown source of edit: ${dataType}`);
+    }
     
     // Create the hidden input for the ID
     let inputHidden = document.createElement('input');
@@ -567,10 +618,9 @@ function createEditForm(dataID, editableText) {
     button.textContent = 'Save';
 
     // Append all elements to the form
-    form.appendChild(label);
-    form.appendChild(inputText);
     form.appendChild(inputHidden);
     form.appendChild(button);
+
     let divTarget = document.createElement('div');
     divTarget.appendChild(form);
     // editBox.appendChild(form);
@@ -578,6 +628,36 @@ function createEditForm(dataID, editableText) {
     containerTarget.appendChild(editBox);
     return form;
 }
+
+// Helper to fetch and fill tags and tasks for Project Edit
+async function populateTaskAndTags(projectID, tagInput, taskInput){
+    try { 
+        await fetch('https://localhost:7217/Project/getSingleProject/'+projectID)	
+        .then(response => response.json())
+        .then(function (data){
+            let tags='';
+            data.tags.forEach(tag => {
+                tags = tags + tag.name + ', ';
+            });
+            tags=tags.trim();
+            tags=tags.replace(/,*$/, '');
+            tagInput.value = tags;            
+
+            let tasks='';
+            
+            data.tasks.forEach(task => {
+                tasks = tasks + task.name +', ';
+            });
+            tasks=tasks.trim();
+            tasks=tasks.replace(/,*$/, '');
+            taskInput.value=tasks;
+
+        });
+    } catch (error) { 
+        console.error('Error:', error);
+    }
+}
+
 // Function to create and populate the table
 function createDataTable(data, dataType) {
     // Get the table element or create it if it doesn't exist
@@ -688,19 +768,34 @@ function createDataTable(data, dataType) {
 }
 
 
-async function testAddTags(dataid){
+async function addTagsToProject(dataid, tagArray){
     let fetchUrl = 'https://localhost:7217/Project/addTagsToProject/'+dataid;
-    requestData = ['wool','cotton'];
     const response = await fetch(fetchUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify(tagArray),
     });
 
-    if (response.ok) {
+    if (!response.ok) {
+        console.log('Something went wrong with adding tags!')
+        alert('Something went wrong when adding tags to a project');
+    } 
 
-    }
+async function addTaskToProject(dataid, tagArray){
+    let fetchUrl = 'https://localhost:7217/Project/addTagsToProject/'+dataid;
+    const response = await fetch(fetchUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tagArray),
+    });
 
+    if (!response.ok) {
+        console.log('Something went wrong with adding tags!')
+        alert('Something went wrong when adding tags to a project');
+    } 
+}
 }
