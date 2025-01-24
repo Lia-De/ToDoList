@@ -134,6 +134,7 @@ function showThisItem(itemID, dataType, event){
             addElement('h4', `Used in ${data.projects.length} projects`, divTarget);
         } else {
             let status = data.status;
+            let statusValue='';
             switch (status){
                 case 0:
                     statusValue='Status: Planning';
