@@ -58,6 +58,16 @@ public class TaskController : Controller
         }
         string oldDesc = task.Name;
         task.Name = frontendTask.Name;
+
+        if (frontendTask.Status != task.Status)
+        {
+            task.Status = frontendTask.Status;
+        }
+        if (!frontendTask.Deadline.Equals(task.Deadline))
+        {
+            task.Deadline = frontendTask.Deadline;
+        }
+
         _context.SaveChanges();
         return Ok($"Task {frontendTask.Name} updated from {oldDesc}");
     }

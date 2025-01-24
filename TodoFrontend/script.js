@@ -2,6 +2,17 @@
 showProjects();
 document.getElementById("navigate").addEventListener("click",navigationEventListener);
 
+function unhideDisclaimer(){
+    let disclaimers = document.getElementById('disclaimers');
+    
+    if (document.getElementById('disclaimer').innerHTML ==="Show info") {
+        disclaimers.classList='visible';
+    document.getElementById('disclaimer').innerHTML = "Hide";
+} else {
+    document.getElementById('disclaimer').innerHTML = "Show info";
+    disclaimers.classList='';}
+}
+
 async function showProjects() {
     try {
         const response = await fetch('https://localhost:7217/Project');
@@ -21,35 +32,6 @@ async function showProjects() {
     }
 }
 
-// helper functions to print out the adding form
-function printAddingPlus(){
-    let target = document.getElementById("contents");
-    let addingBox = document.createElement("div");
-    addingBox.id = "addNewItem";
-    target.appendChild(addingBox);
-    addElement('button', '+', addingBox);
-    addingBox.addEventListener('click', (event) => printAddingFormAndAddListeners(event));
-
-}
-function printAddingFormAndAddListeners (event) {
-    document.getElementById('addNewItem').remove();
-    switch (document.getElementById('navigate').querySelector('.selected').id) {
-        case "projectsbtn":
-            let addingPForm = printAddingForm("addProject");
-            addingPForm.addEventListener('submit', (event) => addRequest(event, 'project'));
-            break;
-        case "tasksbtn":
-            let addingTaskForm = printAddingForm("addTask");
-            addingTaskForm.addEventListener('submit', (event) => addRequest(event, 'task'));
-            break;
-        case "tagsbtn":
-            let addingTagForm = printAddingForm("addTag");
-            addingTagForm.addEventListener('submit', (event) => addRequest(event, 'tag'));
-            break;
-        default:
-            console.error(`Unknown datatype: ${dataType}`);
-    }
-}
 async function showTasks(){
     try { 
         await fetch('https://localhost:7217/Task')
@@ -84,7 +66,35 @@ async function showTags(){
         createDataTable(hardcodedData, "projects");
     }
 }
+// helper functions to print out the adding form
+function printAddingPlus(){
+    let target = document.getElementById("contents");
+    let addingBox = document.createElement("div");
+    addingBox.id = "addNewItem";
+    target.appendChild(addingBox);
+    addElement('button', '+', addingBox);
+    addingBox.addEventListener('click', (event) => printAddingFormAndAddListeners(event));
 
+}
+function printAddingFormAndAddListeners (event) {
+    document.getElementById('addNewItem').remove();
+    switch (document.getElementById('navigate').querySelector('.selected').id) {
+        case "projectsbtn":
+            let addingPForm = printAddingForm("addProject");
+            addingPForm.addEventListener('submit', (event) => addRequest(event, 'project'));
+            break;
+        case "tasksbtn":
+            let addingTaskForm = printAddingForm("addTask");
+            addingTaskForm.addEventListener('submit', (event) => addRequest(event, 'task'));
+            break;
+        case "tagsbtn":
+            let addingTagForm = printAddingForm("addTag");
+            addingTagForm.addEventListener('submit', (event) => addRequest(event, 'tag'));
+            break;
+        default:
+            console.error(`Unknown datatype: ${dataType}`);
+    }
+}
 // Show all details on a single item
 function showThisItem(itemID, dataType, event){
     if ( event.target.classList.contains("selected")) {
@@ -106,27 +116,18 @@ function showThisItem(itemID, dataType, event){
         // Create the header row
         let itemID;
         switch (dataType){
-            case 'projects': itemID = data.projectId;
+            case 'project': itemID = data.projectId;
                 break;
-            case 'tasks': itemID = data.taskId;
+            case 'task': itemID = data.taskId;
                 break;
-            case 'tags': itemID = data.tagId;
+            case 'tag': itemID = data.tagId;
                 break;
             default:
                 itemID = 0;
         }
         addElement('h3', `#${itemID} ${data.name}`, divTarget);
 
-        //display all tasks - only for projects
-        if (dataType === 'project'){
-            let taskBox = addElement('div','',divTarget);
-            taskBox.id = 'taskBox';
-            addElement('h4', 'Tasks', taskBox);
-            let tasklist = addElement('ul','',taskBox);
-            data.tasks.forEach(task => {
-                addElement('li', task.name, tasklist);
-            });
-        }
+
         // display count of useages for tags, or status and all tags for the others
         if (dataType==='tag'){
             addElement('h4', `Used in ${data.tasks.length} tasks`, divTarget);
@@ -150,7 +151,16 @@ function showThisItem(itemID, dataType, event){
                     statusValue = 'Unknown status';
             }
             let projectStatus = addElement('p',statusValue,divTarget)
-
+            //display all tasks - only for projects
+            if (dataType === 'project'){
+                let taskBox = addElement('div','',divTarget);
+                taskBox.id = 'taskBox';
+                addElement('h4', 'Tasks', taskBox);
+                let tasklist = addElement('ul','',taskBox);
+                data.tasks.forEach(task => {
+                    addElement('li', task.name, tasklist);
+                });
+            }
             let tagBox = addElement('div','',divTarget);
             tagBox.id='tagBox';
             addElement('h4', `Tags`, tagBox);
@@ -163,10 +173,9 @@ function showThisItem(itemID, dataType, event){
 }
 // Helper function to switch which button is selected in the nav bar
 function selectedTypeButtons(selectedType){
-    let buttons = document.querySelectorAll("#navigate button");
-    buttons.forEach(button => {
-        button.classList.remove("selected");
-    });
+    let selectedButton = document.querySelectorAll("button.selected");
+    selectedButton[0].classList.remove('selected');
+
     document.getElementById(selectedType+"btn").classList.add("selected");
 }
 
@@ -381,7 +390,7 @@ async function sendAddRequest(formData, fetchURL, dataType){
     
             } else {
                 const error = await response.json();
-                alert(`Failed to update ${dataType}: ${error.message}`);
+                alert(`Failed to add ${dataType}: ${error.message}`);
             }
         } catch (error) {
             console.error('Error:', error);
@@ -416,7 +425,7 @@ function editProjectRequest(event) {
                     .split(',')
                     .map(item => item.trim())
                     .filter(item => item !== '');
-    addTagsToProject(id, tagArray);
+    addTagsToItem(id, tagArray, 'project');
 
 }
 };
@@ -446,6 +455,16 @@ function editTaskRequest(event) {
     // Get input values
     const id = parseInt(document.getElementById('id').value);
     const name = document.getElementById('name').value;
+    let deadline = document.getElementById('deadline').value;
+    if (deadline===''){deadline=null;}
+    let inputTags = document.getElementById('tagCloud').value;
+    let statusChecked = document.querySelector('input[type=radio]:checked');
+    let status=null;
+    if (statusChecked!=null) {
+        let statusValue =statusChecked.value;
+        let status = parseInt(statusValue, 10);
+    }
+
     if (!isValidInput(name)){
         alert(`You have to enter (some) text`);
     } else {
@@ -454,9 +473,18 @@ function editTaskRequest(event) {
     // Data to send in the request
     const requestData = {
         TaskId: id,
-        Name: name
+        Name: name,
+        Status: status,
+        Deadline: deadline
     };
+    console.log(requestData);
+
     sendEditRequest(requestData, 'https://localhost:7217/Task/updateTask', "task");
+    let tagArray = inputTags
+    .split(',')
+    .map(item => item.trim())
+    .filter(item => item !== '');
+    addTagsToItem(id, tagArray, 'task');
 }
 };
 
@@ -605,7 +633,6 @@ function createEditForm(dataID, editableText) {
 
     // Print out all the other stuff for Project/Task switching on the active table.
     
-
     switch (document.getElementById('navigate').querySelector('.selected').id) {
         case "projectsbtn":
 
@@ -645,9 +672,20 @@ function createEditForm(dataID, editableText) {
             taskTagInput.type = 'text';
             taskTagInput.id = 'tagCloud';
             taskTagInput.name = 'tagCloud';
+
+            let deadlineLabel = addElement('label','',form);
+            deadlineLabel.setAttribute('for','deadline');
+            deadlineLabel.textContent = 'Deadline: ';
+            // <input type="datetime-local" name="date" id="date">
+            let deadline = addElement('input','',form);
+            deadline.name='deadline';
+            deadline.id = 'deadline';
+            deadline.type='datetime-local';
+
             getSingleItem(dataID,'task').then(itemData => {
                         
                 fillItemData(itemData);
+                deadline.value=itemData.deadline;
           });
             break;
         case "tagsbtn":
@@ -867,8 +905,17 @@ function createDataTable(data, dataType) {
 }
 
 
-async function addTagsToProject(dataid, tagArray){
-    let fetchUrl = 'https://localhost:7217/Project/addTagsToProject/'+dataid;
+async function addTagsToItem(dataid, tagArray, dataType){
+    let fetchUrl='';
+    switch (dataType){
+    case 'project':
+        fetchUrl = 'https://localhost:7217/Project/addTagsToProject/'+dataid;
+        break;
+    case 'task':
+        fetchUrl = 'https://localhost:7217/Task/addTagsToTask/'+dataid;    
+        break;
+    }
+    
     const response = await fetch(fetchUrl, {
         method: 'POST',
         headers: {
@@ -882,19 +929,4 @@ async function addTagsToProject(dataid, tagArray){
         alert('Something went wrong when adding tags to a project');
     } 
 
-async function addTaskToProject(dataid, tagArray){
-    let fetchUrl = 'https://localhost:7217/Project/addTagsToProject/'+dataid;
-    const response = await fetch(fetchUrl, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(tagArray),
-    });
-
-    if (!response.ok) {
-        console.log('Something went wrong with adding tags!')
-        alert('Something went wrong when adding tags to a project');
-    } 
-}
 }
