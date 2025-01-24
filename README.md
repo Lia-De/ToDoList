@@ -16,4 +16,11 @@ Frontend styled responsively, mobile-first.
 ### To do 2025-01-23
 * Set variables for the fetch URL base parts
 * Enable adding of tasks on project panel
-* Enable making projects active/inactive
+* ~~Enable making projects active/inactive~~
+
+### To do 2025-01-24
+* **Global Fetch URL variables!**
+* Enable removing tags or tasks from a project without deleting the tag
+* enable removing tags from a task without deleting the tag
+* Set-up possibility to specify a deadline on a task
+* Disable editing on completed tasks?
