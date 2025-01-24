@@ -1,7 +1,10 @@
 // Start by showing current projects and set up a listener to change the displayed data
+import config from './config.js';
+
 showProjects();
 document.getElementById("navigate").addEventListener("click",navigationEventListener);
 
+document.getElementById('disclaimer').addEventListener('click', unhideDisclaimer);
 function unhideDisclaimer(){
     let disclaimers = document.getElementById('disclaimers');
     
@@ -15,7 +18,7 @@ function unhideDisclaimer(){
 
 async function showProjects() {
     try {
-        const response = await fetch('https://localhost:7217/Project');
+        const response = await fetch(`${config.apiBaseUrl}/Project`);
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -34,7 +37,7 @@ async function showProjects() {
 
 async function showTasks(){
     try { 
-        await fetch('https://localhost:7217/Task')
+        await fetch(`${config.apiBaseUrl}/Task`)
         .then(response => response.json())
         .then(function (data){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tasks`;
@@ -50,7 +53,7 @@ async function showTasks(){
     }
 }
 async function showTags(){
-    try {await fetch('https://localhost:7217/Tag')
+    try {await fetch(`${config.apiBaseUrl}/Tag`)
         .then(response => response.json())
         .then(function (data){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tags`;
@@ -134,6 +137,7 @@ function showThisItem(itemID, dataType, event){
             addElement('h4', `Used in ${data.projects.length} projects`, divTarget);
         } else {
             let status = data.status;
+            let statusValue='';
             switch (status){
                 case 0:
                     statusValue='Status: Planning';
@@ -285,7 +289,7 @@ async function sendDeleteData(id, data, dataType) {
     switch (dataType) {
         case  "project":
             // set vars
-            fetchUrl = 'https://localhost:7217/Project/deleteProject';
+            fetchUrl = `${config.apiBaseUrl}/Project/deleteProject`;
             deleteData = {
                 projectId: id,
                 Name: data
@@ -294,7 +298,7 @@ async function sendDeleteData(id, data, dataType) {
             break;
         case "tag":
             // set vars
-            fetchUrl = 'https://localhost:7217/Tag/deleteTag';
+            fetchUrl = `${config.apiBaseUrl}/Tag/deleteTag`;
             deleteData = {
                 tagId: id,
                 Name: data
@@ -303,7 +307,7 @@ async function sendDeleteData(id, data, dataType) {
             break;
         case "task":
             // set vars
-            fetchUrl = 'https://localhost:7217/Task/deleteTask';
+            fetchUrl = `${config.apiBaseUrl}/Task/deleteTask`;
             deleteData = {
                 taskId: id,
                 Name: data
@@ -357,15 +361,15 @@ function addRequest(event, dataType) {
         formData.append('name', newEntry );
         switch(dataType) {
             case 'project':
-                sendAddRequest(formData,'https://localhost:7217/Project/addProject',"project");
+                sendAddRequest(formData`${config.apiBaseUrl}/Project/addProject`,"project");
                 break;
             case 'task':
                 let projectId=event.target.projectId.value;
                 formData.append('projectId', projectId);
-                sendAddRequest(formData,'https://localhost:7217/Task/addTask',"task");
+                sendAddRequest(formData,`${config.apiBaseUrl}/Task/addTask`,"task");
                 break;
             case 'tag':
-                sendAddRequest(formData,'https://localhost:7217/Tag/addTag',"tag");
+                sendAddRequest(formData,`${config.apiBaseUrl}/Tag/addTag`,"tag");
                 break;
             default:
                 console.error(`Unknown datatype: ${dataType}`);
@@ -418,7 +422,7 @@ function editProjectRequest(event) {
         Name: name,
         Status: status
     };
-    sendEditRequest(requestData, 'https://localhost:7217/Project/updateProject', "project");
+    sendEditRequest(requestData, `${config.apiBaseUrl}/Project/updateProject`, "project");
     
     // also send add tags    
     let tagArray = inputTags
@@ -445,7 +449,7 @@ function editTagRequest(event) {
         TagId: id,
         Name: name
     };
-    sendEditRequest(requestData, 'https://localhost:7217/Tag/updateTag', "tag");
+    sendEditRequest(requestData, `${config.apiBaseUrl}/Tag/updateTag`, "tag");
 }
 };
 
@@ -478,7 +482,7 @@ function editTaskRequest(event) {
         Deadline: deadline
     };
     
-    sendEditRequest(requestData, 'https://localhost:7217/Task/updateTask', "task");
+    sendEditRequest(requestData, `${config.apiBaseUrl}/Task/updateTask`, "task");
     let tagArray = inputTags
     .split(',')
     .map(item => item.trim())
@@ -576,7 +580,7 @@ function printAddingForm(dataType){
 // helper to fetch project IDs
 async function fetchProjectIds(target){
     try {
-        const response = await fetch('https://localhost:7217/Project/getProjectIds');
+        const response = await fetch(`${config.apiBaseUrl}/Project/getProjectIds`);
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -711,13 +715,13 @@ async function getSingleItem(itemID, dataType) {
     let fetchURL;
     switch (dataType) {
         case 'project':
-            fetchURL = 'https://localhost:7217/Project/getSingleProject/' + itemID;
+            fetchURL = `${config.apiBaseUrl}/Project/getSingleProject/${itemID}`;
             break;
         case 'task':
-            fetchURL = 'https://localhost:7217/Task/getSingleTask/' + itemID;
+            fetchURL = `${config.apiBaseUrl}/Task/getSingleTask/${itemID}`;
             break;
         case 'tag':
-            fetchURL = 'https://localhost:7217/Tag/getSingleTag/' + itemID;
+            fetchURL = `${config.apiBaseUrl}/Tag/getSingleTag/${itemID}`;
             break;
         default:
             fetchURL='';
@@ -908,10 +912,10 @@ async function addTagsToItem(dataid, tagArray, dataType){
     let fetchUrl='';
     switch (dataType){
     case 'project':
-        fetchUrl = 'https://localhost:7217/Project/addTagsToProject/'+dataid;
+        fetchUrl = `${config.apiBaseUrl}/Project/addTagsToProject/${dataid}`;
         break;
     case 'task':
-        fetchUrl = 'https://localhost:7217/Task/addTagsToTask/'+dataid;    
+        fetchUrl = `${config.apiBaseUrl}/Task/addTagsToTask/${dataid}`;    
         break;
     }
     
