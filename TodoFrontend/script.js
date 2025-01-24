@@ -86,75 +86,80 @@ async function showTags(){
 }
 
 // Show all details on a single item
-async function showThisItem(fetchURL, dataType, event){
+function showThisItem(itemID, dataType, event){
     if ( event.target.classList.contains("selected")) {
         // we are already displaying an item card, so clear it and show the adding option
         clearItemCard();
         printAddingPlus();
         return
     }
-    try { 
-        await fetch(fetchURL)
-        .then(response => response.json())
-        .then(function (data){
-            let target = document.getElementById('container');
+    getSingleItem(itemID, dataType).then( data => {
+        let target = document.getElementById('container');
             
-            clearItemCard();
-            
-            event.target.classList.add("selected");
-            // build the project card
-            let divTarget = document.createElement('div');
-            divTarget.id='edits';
-            target.appendChild(divTarget);
-            // Create the header row
-            addElement('h3', `${data.name}`, divTarget);
+        clearItemCard();
+        
+        event.target.classList.add("selected");
+        // build the project card
+        let divTarget = document.createElement('div');
+        divTarget.id='edits';
+        target.appendChild(divTarget);
+        // Create the header row
+        let itemID;
+        switch (dataType){
+            case 'projects': itemID = data.projectId;
+                break;
+            case 'tasks': itemID = data.taskId;
+                break;
+            case 'tags': itemID = data.tagId;
+                break;
+            default:
+                itemID = 0;
+        }
+        addElement('h3', `#${itemID} ${data.name}`, divTarget);
 
-            //display all tasks - only for projects
-            if (dataType === 'projects'){
-                let status = data.status;
-                switch (status){
-                    case 0:
-                        statusValue='Status: Planning';
-                        break;
-                    case 1:
-                        statusValue='Status: Active';
-                        break;
-                    case 2:
-                        statusValue='Status: Inactive';
-                        break;
-                    case 3: 
-                        statusValue = 'Status: Completed';
-                        break;
-                    default:
-                        statusValue = 'Unknown status';
-                }
-                let projectStatus = addElement('p',statusValue,divTarget)
-                
-                let taskBox = addElement('div','',divTarget);
-                taskBox.id = 'taskBox';
-                addElement('h4', 'Tasks', taskBox);
-                let tasklist = addElement('ul','',taskBox);
-                data.tasks.forEach(task => {
-                    addElement('li', task.name, tasklist);
-                });
+        //display all tasks - only for projects
+        if (dataType === 'project'){
+            let taskBox = addElement('div','',divTarget);
+            taskBox.id = 'taskBox';
+            addElement('h4', 'Tasks', taskBox);
+            let tasklist = addElement('ul','',taskBox);
+            data.tasks.forEach(task => {
+                addElement('li', task.name, tasklist);
+            });
+        }
+        // display count of useages for tags, or status and all tags for the others
+        if (dataType==='tag'){
+            addElement('h4', `Used in ${data.tasks.length} tasks`, divTarget);
+            addElement('h4', `Used in ${data.projects.length} projects`, divTarget);
+        } else {
+            let status = data.status;
+            switch (status){
+                case 0:
+                    statusValue='Status: Planning';
+                    break;
+                case 1:
+                    statusValue='Status: Active';
+                    break;
+                case 2:
+                    statusValue='Status: Inactive';
+                    break;
+                case 3: 
+                    statusValue = 'Status: Completed';
+                    break;
+                default:
+                    statusValue = 'Unknown status';
             }
-            // display count of useages for tags, or all tags for the others
-            if (dataType==='tags'){
-                addElement('p', `Used in ${data.tasks.length} tasks`, divTarget);
-                addElement('p', `Used in ${data.projects.length} projects`, divTarget);
-            } else {
-                let tagBox = addElement('div','',divTarget);
-                tagBox.id='tagBox';
-                addElement('h4', `Tags`, tagBox);
-                let taglist = addElement('ul','',tagBox);
-                data.tags.forEach(tag => {
-                    addElement('li', tag.name, taglist);
-                });
-            }
-        });
-    } catch (error) {
-        console.error('Error loading one project:', error);
-    }
+            let projectStatus = addElement('p',statusValue,divTarget)
+
+            let tagBox = addElement('div','',divTarget);
+            tagBox.id='tagBox';
+            addElement('h4', `Tags`, tagBox);
+            let taglist = addElement('ul','',tagBox);
+            data.tags.forEach(tag => {
+                addElement('li', tag.name, taglist);
+            });
+        }
+    });
 }
 // Helper function to switch which button is selected in the nav bar
 function selectedTypeButtons(selectedType){
@@ -603,85 +608,58 @@ function createEditForm(dataID, editableText) {
 
     switch (document.getElementById('navigate').querySelector('.selected').id) {
         case "projectsbtn":
+
+            createStatusRadioButtons(form);
+
+            let taskLabel = addElement('label','',form);
+            taskLabel.setAttribute('for','taskCloud');
+            taskLabel.textContent = 'Tasks: ';
+
+            let taskInput = addElement('input','',form);
+            taskInput.type = 'text';
+            taskInput.id = 'taskCloud';
+            taskInput.name = 'taskCloud';
+            let tagLabel = addElement('label','',form);
+            tagLabel.setAttribute('for','tagCloud');
+            tagLabel.textContent = 'Tags: ';
+            let tagInput = addElement('input','',form);
+            tagInput.type = 'text';
+            tagInput.id = 'tagCloud';
+            tagInput.name = 'tagCloud';
             
+            // fill the form with relevant data
+
             getSingleItem(dataID,'project').then(itemData => {
-            
-                let radioLabel = addElement('label', 'Planning',form);
-                radioLabel.setAttribute('for','statusZero');
-                let radioButton = addElement('input','',form);
-                radioButton.type='radio';
-                radioButton.id = 'statusZero';
-                radioButton.name='newStatus';
-                radioButton.value=0;
-                
-                radioLabel =  addElement('label', 'Active',form);
-                radioLabel.setAttribute('for','statusOne');
-                radioButton = addElement('input','',form);
-                radioButton.type='radio';
-                radioButton.id = 'statusOne';
-                radioButton.name='newStatus';
-                radioButton.value=1;
-
-                radioLabel =  addElement('label', 'Inactive',form);
-                radioLabel.setAttribute('for','statusTwo');
-                radioButton = addElement('input','',form);
-                radioButton.type='radio';
-                radioButton.id = 'statusTwo';
-                radioButton.name='newStatus';
-                radioButton.value=2;
-
-                radioLabel =  addElement('label', 'Completed',form);
-                radioLabel.setAttribute('for','statusThree');
-                radioButton = addElement('input','',form);
-                radioButton.type='radio';
-                radioButton.id = 'statusThree';
-                radioButton.name='newStatus';
-                radioButton.value=3;
-
-                let taskLabel = addElement('label','',form);
-                taskLabel.setAttribute('for','taskCloud');
-                taskLabel.textContent = 'Tasks: ';
-
-                let taskInput = addElement('input','',form);
-                taskInput.type = 'text';
-                taskInput.id = 'taskCloud';
-                taskInput.name = 'taskCloud';
-                let tasks = itemData.tasks.map(task => task.name).join(', ');
-                taskInput.value=tasks;
-
-                let tagLabel = addElement('label','',form);
-                tagLabel.setAttribute('for','tagCloud');
-                tagLabel.textContent = 'Tags: ';
-                let tagInput = addElement('input','',form);
-                tagInput.type = 'text';
-                tagInput.id = 'tagCloud';
-                tagInput.name = 'tagCloud';
-                let tags = itemData.tags.map(tag => tag.name).join(', ');
-                tagInput.value = tags;
-
-                setStatusRadio(itemData.status);
-                    // Append all elements to the form
-    form.appendChild(inputHidden);
-    form.appendChild(button);
-
+                        
+                  fillItemData(itemData);
             });
             break;
         case "tasksbtn":
                 // Append all elements to the form
-    form.appendChild(inputHidden);
-    form.appendChild(button);
+            createStatusRadioButtons(form);
 
+            let taskTagLabel = addElement('label','',form);
+            taskTagLabel.setAttribute('for','tagCloud');
+            taskTagLabel.textContent = 'Tags: ';
+            let taskTagInput = addElement('input','',form);
+            taskTagInput.type = 'text';
+            taskTagInput.id = 'tagCloud';
+            taskTagInput.name = 'tagCloud';
+            getSingleItem(dataID,'task').then(itemData => {
+                        
+                fillItemData(itemData);
+          });
             break;
         case "tagsbtn":
                 // Append all elements to the form
-    form.appendChild(inputHidden);
-    form.appendChild(button);
 
             break;
         default:
             console.error(`Unknown source of edit: ${dataType}`);
     }
  
+    form.appendChild(inputHidden);
+    form.appendChild(button);
 
 
     let divTarget = document.createElement('div');
@@ -693,8 +671,22 @@ function createEditForm(dataID, editableText) {
 }
 
 async function getSingleItem(itemID, dataType) {
+    let fetchURL;
+    switch (dataType) {
+        case 'project':
+            fetchURL = 'https://localhost:7217/Project/getSingleProject/' + itemID;
+            break;
+        case 'task':
+            fetchURL = 'https://localhost:7217/Task/getSingleTask/' + itemID;
+            break;
+        case 'tag':
+            fetchURL = 'https://localhost:7217/Tag/getSingleTag/' + itemID;
+            break;
+        default:
+            fetchURL='';
+    }
     try {
-        const response = await fetch('https://localhost:7217/Project/getSingleProject/' + itemID);
+        const response = await fetch(fetchURL);
         if (!response.ok) {
             console.error('Failed to fetch item:', response.statusText);
             return null;
@@ -706,9 +698,18 @@ async function getSingleItem(itemID, dataType) {
         return null;
     }
 }
-// Helper to fetch and fill tags and tasks for Project Edit
-function setStatusRadio(currentStatus){
-    switch (currentStatus) {
+
+function fillItemData(itemData) {
+    let taskCloud = document.getElementById('taskCloud');
+    if (taskCloud!= null) {
+        let tasks = itemData.tasks.map(task => task.name).join(', ');
+        taskCloud.value=tasks;
+    }
+
+    let tags = itemData.tags.map(tag => tag.name).join(', ');
+    document.getElementById('tagCloud').value = tags;
+
+    switch (itemData.status) {
         case 0:
             document.getElementById('statusZero').checked = true;
             break;
@@ -722,9 +723,40 @@ function setStatusRadio(currentStatus){
             document.getElementById('statusThree').checked = true;
             break;
         }
-
 }
+function createStatusRadioButtons(form){
+    let radioLabel = addElement('label', 'Planning',form);
+    radioLabel.setAttribute('for','statusZero');
+    let radioButton = addElement('input','',form);
+    radioButton.type='radio';
+    radioButton.id = 'statusZero';
+    radioButton.name='newStatus';
+    radioButton.value=0;
+    
+    radioLabel =  addElement('label', 'Active',form);
+    radioLabel.setAttribute('for','statusOne');
+    radioButton = addElement('input','',form);
+    radioButton.type='radio';
+    radioButton.id = 'statusOne';
+    radioButton.name='newStatus';
+    radioButton.value=1;
 
+    radioLabel =  addElement('label', 'Inactive',form);
+    radioLabel.setAttribute('for','statusTwo');
+    radioButton = addElement('input','',form);
+    radioButton.type='radio';
+    radioButton.id = 'statusTwo';
+    radioButton.name='newStatus';
+    radioButton.value=2;
+
+    radioLabel =  addElement('label', 'Completed',form);
+    radioLabel.setAttribute('for','statusThree');
+    radioButton = addElement('input','',form);
+    radioButton.type='radio';
+    radioButton.id = 'statusThree';
+    radioButton.name='newStatus';
+    radioButton.value=3;
+}
 // Function to create and populate the table
 function createDataTable(data, dataType) {
     // Get the table element or create it if it doesn't exist
@@ -798,7 +830,7 @@ function createDataTable(data, dataType) {
                     deleteProject(dataPoint.projectId, dataPoint.name);
                 });
                 dataCell.addEventListener('click', (event) => {
-                    showThisItem('https://localhost:7217/Project/getSingleProject/'+dataPoint.projectId, dataType, event);
+                    showThisItem(dataPoint.projectId, 'project', event);
                 });
                 break;
             case'tasks':
@@ -809,7 +841,7 @@ function createDataTable(data, dataType) {
                     deleteTask(dataPoint.taskId, dataPoint.name);
                 });
                 dataCell.addEventListener('click', (event) => {
-                    showThisItem('https://localhost:7217/Task/getSingleTask/'+dataPoint.taskId, dataType, event); 
+                    showThisItem(dataPoint.taskId, 'task', event); 
                 });
                 break;
             case'tags':
@@ -820,7 +852,7 @@ function createDataTable(data, dataType) {
                     deleteTag(dataPoint.tagId, dataPoint.name);
                 });
                 dataCell.addEventListener('click', (event) => {
-                    showThisItem('https://localhost:7217/Tag/getSingleTag/'+dataPoint.tagId, dataType, event);
+                    showThisItem(dataPoint.tagId, 'tag', event);
                 });
                 break;
             default:
