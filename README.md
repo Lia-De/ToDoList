@@ -1,10 +1,13 @@
 # To Do List app
 Created 2025-01-08 as part of Lexicon course, fullstack C# developer.
+## Version 0.2 
+Second hand-in with links between all three classes (Project, Task, Tag).
+Most editing possibilities are realized.
 
 ## Initial state
 The app contains three data models in their own db table (SQLite) for Project, Task and Tag. 
 
-## Updated functions
+## Updated functions 2025-01-17
 * I can add individual new Projects, Tasks and Tags. 
 * Tasks must be associated with a project, and may have identical names between projects.
 * Tags must be uniquely named, can have many per project, and many per task.
@@ -19,7 +22,7 @@ Frontend styled responsively, mobile-first.
 * ~~Enable making projects active/inactive~~
 
 ### To do 2025-01-24
-* **Global Fetch URL variables!**
+* ~~**Global Fetch URL variables!**~~
 * Enable removing tags or tasks from a project without deleting the tag
 * enable removing tags from a task without deleting the tag
 * Set-up possibility to specify a deadline on a task
