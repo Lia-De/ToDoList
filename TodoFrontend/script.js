@@ -477,8 +477,7 @@ function editTaskRequest(event) {
         Status: status,
         Deadline: deadline
     };
-    console.log(requestData);
-
+    
     sendEditRequest(requestData, 'https://localhost:7217/Task/updateTask', "task");
     let tagArray = inputTags
     .split(',')
