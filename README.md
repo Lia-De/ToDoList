@@ -25,5 +25,5 @@ Frontend styled responsively, mobile-first.
 * ~~**Global Fetch URL variables!**~~
 * Enable removing tags or tasks from a project without deleting the tag
 * enable removing tags from a task without deleting the tag
-* Set-up possibility to specify a deadline on a task
+* ~~Set-up possibility to specify a deadline on a task~~
 * Disable editing on completed tasks?
