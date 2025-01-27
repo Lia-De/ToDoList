@@ -13,14 +13,24 @@ The app contains three data models in their own db table (SQLite) for Project, T
 
 Frontend styled responsively, mobile-first.
 
-### To do 2025-01-23
-* Set variables for the fetch URL base parts
-* Enable adding of tasks on project panel
-* ~~Enable making projects active/inactive~~
+### To do 2025-01-27
+* (design) Expand Figma designs
+* Change to follow re-design:
+  * (frontend) Finish raw html/css styling
+  * (backend) Set up timers and total time for Tasks.
+  * (backend) Set up methods to total time for a project
+  * (frontend/backend) User input to add description text to Tasks
+
 
 ### To do 2025-01-24
-* **Global Fetch URL variables!**
+* ~~**Global Fetch URL variables!**~~
 * Enable removing tags or tasks from a project without deleting the tag
 * enable removing tags from a task without deleting the tag
-* Set-up possibility to specify a deadline on a task
+* ~~Set-up possibility to specify a deadline on a task~~
 * Disable editing on completed tasks?
+
+### To do 2025-01-23
+* ~~Set variables for the fetch URL base parts~~
+* ~~Enable adding of tasks on project panel~~
+* ~~Enable making projects active/inactive~~
+
