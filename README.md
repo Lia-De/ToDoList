@@ -14,6 +14,7 @@ The app contains three data models in their own db table (SQLite) for Project, T
 Frontend styled responsively, mobile-first.
 
 ### To do 2025-01-27
+* ~~Added css vars for colours~~ 
 * (design) Expand Figma designs
 * Change to follow re-design:
   * (frontend) Finish raw html/css styling
