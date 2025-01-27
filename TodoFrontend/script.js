@@ -361,7 +361,7 @@ function addRequest(event, dataType) {
         formData.append('name', newEntry );
         switch(dataType) {
             case 'project':
-                sendAddRequest(formData`${config.apiBaseUrl}/Project/addProject`,"project");
+                sendAddRequest(formData,`${config.apiBaseUrl}/Project/addProject`,"project");
                 break;
             case 'task':
                 let projectId=event.target.projectId.value;
