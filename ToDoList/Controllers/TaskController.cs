@@ -35,15 +35,17 @@ public class TaskController : Controller
     [HttpPost("addTask")]
     public IActionResult AddTask([FromForm] string name, [FromForm] int projectID)
     {
-        var task = new Models.Task { Name = name };
+        
         Project? project = _context.Projects.Find(projectID);
         Console.WriteLine($"project is: {project}");
         if (project == null)
         {
             return BadRequest("Project not found");
         }
-        project.Tasks.Add(task);
-        //_context.Tasks.Add(task);
+        // Explicitly set this as linked
+        var task = new Models.Task { Name = name, ProjectId = projectID, Project = project };
+        //project.Tasks.Add(task);
+        _context.Tasks.Add(task);
         _context.SaveChanges();
         return Ok($"Task {name} added");
     }
@@ -51,56 +53,69 @@ public class TaskController : Controller
     [HttpPost("updateTask")]
     public IActionResult UpdateTask(ToDoList.Models.Task frontendTask)
     {
+        string updatedInfo = "";
         var task = _context.Tasks.Find(frontendTask.TaskId);
         if (task == null)
         {
             return NotFound();
         }
-        string oldDesc = task.Name;
-        task.Name = frontendTask.Name;
+        string oldName = task.Name;
+        if (oldName != frontendTask.Name)
+        {
+            task.Name = frontendTask.Name;
+            updatedInfo += " Name";
+        }
 
         if (frontendTask.Status != task.Status)
         {
             task.Status = frontendTask.Status;
+            updatedInfo += " Status";
         }
+
         if (!frontendTask.Deadline.Equals(task.Deadline))
         {
             task.Deadline = frontendTask.Deadline;
+            updatedInfo += " Deadline";
+        }
+        if (frontendTask.Description != null)
+        {
+            task.Description = frontendTask.Description;
+            updatedInfo += " Description";
         }
 
         _context.SaveChanges();
-        return Ok($"Task {frontendTask.Name} updated from {oldDesc}");
+        return Ok($"Task {frontendTask.Name} updated with {updatedInfo}");
     }
     // Delete
-    [HttpDelete("deleteTask")]
-    public IActionResult DeleteTask(ToDoList.Models.Task frontendTask)
+    [HttpDelete("deleteTask/{taskId}")]
+    public IActionResult DeleteTask(int taskId)
     {
-        var task = _context.Tasks.Find(frontendTask.TaskId);
+        var task = _context.Tasks.Find(taskId);
         if (task == null)
         {
             return NotFound();
         }
         _context.Tasks.Remove(task);
         _context.SaveChanges();
-        return Ok($"Task {frontendTask.TaskId} deleted");
+        return Ok($"Task {taskId} deleted");
     }
 
     [HttpPost("addTagsToTask/{taskId}")]
-    public IActionResult AddTagsToProject(int taskId, List<string> tagCloud)
+    public IActionResult AddTagsToTask(int taskId, List<string> tagCloud)
     {
         Models.Task? task = GetTask(taskId);
         if (task == null)
         {
-            return BadRequest($"Project object with ID: {taskId} not found.");
+            return BadRequest($"Task object with ID: {taskId} not found.");
         }
         else
         {
-            List<Tag> projectTags = task.Tags;
+            List<Tag> taskTags = task.Tags;
             List<Tag> allTags = _context.Tags.ToList();
             foreach (string tag in tagCloud)
             {
                 // Make sure the tag is not already set on this project
-                if (!projectTags.Any(pt => pt.Name == tag))
+                if (!taskTags.Any(pt => pt.Name == tag))
                 {
                     // See if it is an already existing tag, if so add it.
                     Tag? existingTag = allTags.FirstOrDefault(pt => pt.Name == tag);

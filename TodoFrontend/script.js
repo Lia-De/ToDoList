@@ -1,10 +1,36 @@
 // Start by showing current projects and set up a listener to change the displayed data
 import config from './config.js';
 
-showProjects();
+// showProjects();
 document.getElementById("navigate").addEventListener("click",navigationEventListener);
-
 document.getElementById('disclaimer').addEventListener('click', unhideDisclaimer);
+
+// set listeners for all deadlines FIX To do the right stuff
+for (let elem of document.getElementsByClassName('noDeadline')) {
+    elem.addEventListener('mouseover', (event)=> {
+        event.target.innerHTML="Set deadline";
+        // elem.addEventListener('mouseover', popup);
+        // elem.addEventListener('mouseout', popdown);
+    });
+}
+
+for (let elem of document.getElementsByClassName('item')) {
+    elem.addEventListener('click', (event) => {
+        let item = event.target;
+        let details = document.getElementById('detail');
+        if (details) {
+            details.parentNode.removeChild(details);
+        } else {
+            let deleteDiv = item.nextElementSibling?.nextElementSibling; 
+            details = document.createElement("div");
+            details.id = "detail";
+            details.textContent = "Detail content here";
+            deleteDiv.insertAdjacentElement("afterend", details);
+        }
+    });
+
+}
+
 function unhideDisclaimer(){
     let disclaimers = document.getElementById('disclaimers');
     
@@ -199,10 +225,11 @@ function clearData(){
 // Helper function to clear the edit form
 function clearEdit(){
         // reset the selected cell in the data table
-
+    
     let oldEdit = document.getElementById("edits");
-    if (oldEdit != null) 
-        document.getElementById("container").removeChild(oldEdit);
+    if (oldEdit != null) {
+        oldEdit.parentNode.removeChild(oldEdit);        
+    }
     let selectedDataCell = document.querySelectorAll("td.selected");
     if (selectedDataCell.length != 0) {
      selectedDataCell[0].classList.remove("selected");
@@ -242,8 +269,8 @@ function navigationEventListener(e){
     }
  }
 // 3 functions to add and populate edit forms and set event listeners
-function editProject (projectID, clickedProject){
-    let form = createEditForm(projectID, clickedProject);
+function editProject (projectID, clickedProject, target){
+    let form = createEditForm(projectID, clickedProject, target);
     form.id ="editProjectForm";
     form.addEventListener('submit', editProjectRequest);
 };
@@ -292,7 +319,7 @@ async function sendDeleteData(id, data, dataType) {
             fetchUrl = `${config.apiBaseUrl}/Project/deleteProject`;
             deleteData = {
                 projectId: id,
-                Name: data
+                name: data
             };
             reload = showProjects;
             break;
@@ -334,8 +361,8 @@ async function sendDeleteData(id, data, dataType) {
                 alert(`Failed to update project: ${error.message}`);
             }
         } catch (error) {
-            console.error('Error:', error);
-            alert('An unexpected error occurred.');
+            console.error(`Error:${error.message}`, error);
+            alert(`An unexpected error occurred.`);
         }
 
 }
@@ -361,7 +388,7 @@ function addRequest(event, dataType) {
         formData.append('name', newEntry );
         switch(dataType) {
             case 'project':
-                sendAddRequest(formData`${config.apiBaseUrl}/Project/addProject`,"project");
+                sendAddRequest(formData,`${config.apiBaseUrl}/Project/addProject`,"project");
                 break;
             case 'task':
                 let projectId=event.target.projectId.value;
@@ -533,43 +560,47 @@ function printAddingForm(dataType){
     let form = document.createElement("form");
     form.id = dataType;
    // Create the text input for the name
-   
+   let label = addElement('label', 'Name:', form);
+   label.setAttribute('for', 'newName');
    let inputText = document.createElement('input');
    inputText.type = 'text';
    inputText.id = 'newName';
    inputText.name = 'newName';
-    // Create the submit button
+   form.appendChild(inputText); 
+   // Create the submit button
     let button = document.createElement('button');
     button.type = 'submit';
+    button.textContent = 'Add';
+    
+    
     // Create special inputs for each case
-    let extraInput;
+    
     switch(dataType) {
         case "addProject":
-            button.textContent = 'Add';
             break;
         case "addTask":
-            extraInput = document.createElement('select');
+            let extraInput = document.createElement('select');
             extraInput.id = 'projectId';
             extraInput.name = 'projectId';
-
+            // fill the select field with projects
             fetchProjectIds(extraInput);
-            
-            button.textContent = 'Add';
+            label = addElement('label', 'Associated project:', form);
+            label.setAttribute('for','projectId');
+            form.appendChild(extraInput);
+            label = addElement('label','Optional Deadline: ', form);
+            label.setAttribute('for','deadline');
+            let deadline= addElement('input','',form);
+            deadline.type = 'datetime-local';
+            deadline.name="deadline";
+            deadline.id="deadline";
+
             break;
         case "addTag":
-            button.textContent = 'Add';
             break;
         default:
-            button.textContent = 'Add';
     }
     
-    // Append all elements to the form
-    addElement('label', 'Name:', form);
-    form.appendChild(inputText);
-    if (extraInput!=null) {
-        addElement('label', 'Associated project:', form);
-        form.appendChild(extraInput);
-    }
+
     form.appendChild(button);
 
     addingBox.appendChild(form);
@@ -598,13 +629,13 @@ async function fetchProjectIds(target){
 
 // function to create and populate an edit form
 function createEditForm(dataID, editableText) {
-    let containerTarget = document.getElementById("container")  
+    let containerTarget = document.getElementById("container");
         // Check if we have an edit box already
-        clearEdit();
+    clearEdit();
 
         // Create the container div
     let editBox = document.createElement('div');
-
+    
     editBox.id = 'edits'; 
         // Create the form
     addElement('h3', 'Editing: '+editableText, editBox);
@@ -641,17 +672,23 @@ function createEditForm(dataID, editableText) {
 
             createStatusRadioButtons(form);
 
-            let taskLabel = addElement('label','',form);
-            taskLabel.setAttribute('for','taskCloud');
-            taskLabel.textContent = 'Tasks: ';
-
+            label = addElement('label','Tasks: ',form);
+            label.setAttribute('for','taskCloud');
             let taskInput = addElement('input','',form);
             taskInput.type = 'text';
             taskInput.id = 'taskCloud';
             taskInput.name = 'taskCloud';
-            let tagLabel = addElement('label','',form);
-            tagLabel.setAttribute('for','tagCloud');
-            tagLabel.textContent = 'Tags: ';
+
+            label = addElement('label','Current tags:',form);
+            let oldTags = addElement('input','',form);
+            oldTags.type='text';
+            oldTags.name='tagCloud';
+            oldTags.id='oldTags';
+            oldTags.disabled = true;
+
+            label = addElement('label','Add new tags:',form);
+            label.setAttribute('for','tagCloud');
+            label.id='tagLabel';
             let tagInput = addElement('input','',form);
             tagInput.type = 'text';
             tagInput.id = 'tagCloud';
@@ -667,19 +704,23 @@ function createEditForm(dataID, editableText) {
         case "tasksbtn":
                 // Append all elements to the form
             createStatusRadioButtons(form);
+            
+            label = addElement('label','Current tags:',form);
+            let oldTasks = addElement('input','',form);
+            oldTasks.type='text';
+            oldTasks.id='oldTags';
+            oldTasks.disabled = true;
 
-            let taskTagLabel = addElement('label','',form);
-            taskTagLabel.setAttribute('for','tagCloud');
-            taskTagLabel.textContent = 'Tags: ';
+            label = addElement('label','Add new tags: ',form);
+            label.setAttribute('for','tagCloud');
+            label.id='tagLabel';
             let taskTagInput = addElement('input','',form);
             taskTagInput.type = 'text';
             taskTagInput.id = 'tagCloud';
             taskTagInput.name = 'tagCloud';
 
-            let deadlineLabel = addElement('label','',form);
-            deadlineLabel.setAttribute('for','deadline');
-            deadlineLabel.textContent = 'Deadline: ';
-            // <input type="datetime-local" name="date" id="date">
+            label = addElement('label','Deadline: ',form);
+            label.setAttribute('for','deadline');
             let deadline = addElement('input','',form);
             deadline.name='deadline';
             deadline.id = 'deadline';
@@ -745,10 +786,12 @@ function fillItemData(itemData) {
     if (taskCloud!= null) {
         let tasks = itemData.tasks.map(task => task.name).join(', ');
         taskCloud.value=tasks;
+        // oldTasks.value=tasks;
     }
 
     let tags = itemData.tags.map(tag => tag.name).join(', ');
-    document.getElementById('tagCloud').value = tags;
+    // document.getElementById('tagCloud').value = tags;
+    document.getElementById('oldTags').value = tags;
 
     switch (itemData.status) {
         case 0:

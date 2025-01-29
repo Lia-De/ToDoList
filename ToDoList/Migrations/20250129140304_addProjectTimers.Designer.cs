@@ -11,8 +11,8 @@ using ToDoList;
 namespace ToDoList.Migrations
 {
     [DbContext(typeof(TodoContext))]
-    [Migration("20250122121134_changeTaskName")]
-    partial class changeTaskName
+    [Migration("20250129140304_addProjectTimers")]
+    partial class addProjectTimers
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -63,6 +63,9 @@ namespace ToDoList.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER");
 
+                    b.Property<TimeSpan>("TotalWorkingTime")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("ProjectId");
 
                     b.ToTable("Projects");
@@ -92,15 +95,24 @@ namespace ToDoList.Migrations
                     b.Property<DateTime?>("Deadline")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("ProjectId")
+                    b.Property<int>("ProjectId")
                         .HasColumnType("INTEGER");
 
                     b.Property<int?>("Status")
                         .HasColumnType("INTEGER");
+
+                    b.Property<TimeSpan>("TimeSpent")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("TimerStart")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("TaskId");
 
@@ -141,9 +153,13 @@ namespace ToDoList.Migrations
 
             modelBuilder.Entity("ToDoList.Models.Task", b =>
                 {
-                    b.HasOne("ToDoList.Models.Project", null)
+                    b.HasOne("ToDoList.Models.Project", "Project")
                         .WithMany("Tasks")
-                        .HasForeignKey("ProjectId");
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
                 });
 
             modelBuilder.Entity("ToDoList.Models.Project", b =>

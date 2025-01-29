@@ -10,5 +10,6 @@ namespace ToDoList
         public DbSet<Models.Task> Tasks { get; set; }
         public DbSet<Models.Project> Projects { get; set; }
         public DbSet<Models.Tag> Tags { get; set; }
+        public DbSet<Models.ProjectTimer> ProjectTimers { get; set; }
     }
 }

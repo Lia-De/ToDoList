@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Intrinsics.X86;
 using ToDoList.Models;
+using ToDoList.Services;
 
 namespace ToDoList.Controllers;
 [ApiController]
@@ -11,10 +12,12 @@ namespace ToDoList.Controllers;
 public class ProjectController : ControllerBase
 {
     private TodoContext _context;
+    private readonly ProjectService _projectService;
 
-    public ProjectController(TodoContext context)
+    public ProjectController(TodoContext context, ProjectService service)
     {
         _context = context;
+        _projectService = service;
     }
 
     // Adding CRUD methods
@@ -51,8 +54,8 @@ public class ProjectController : ControllerBase
     public IActionResult AddProject([FromForm] string name)
     {
         var project = new Project { Name = name };
-        // By default, initialize project as active
-        project.Status = ToDoStatus.Active;
+        // By default, initialize project as planning
+        project.Status = ToDoStatus.Planning;
         _context.Projects.Add(project);
         _context.SaveChanges();
         return Ok($"Project {name} added");
@@ -62,19 +65,26 @@ public class ProjectController : ControllerBase
     [HttpPost("updateProject")]
     public IActionResult UpdateProject(Project frontendProject)
     {
-        var project = _context.Projects.Find(frontendProject.ProjectId);
+        string updatedInfo = "";
+        var project = GetProject(frontendProject.ProjectId);
         if (project == null)
         {
             return NotFound();
         }
-        string oldName = project.Name;
+        
         if (frontendProject.Status != project.Status)
         {
             project.Status = frontendProject.Status;
+            updatedInfo += " Status";
         }
-        project.Name = frontendProject.Name;
+        string oldName = project.Name;
+        if (project.Name != frontendProject.Name)
+        {
+            project.Name = frontendProject.Name;
+            updatedInfo += " Name";
+        }
         _context.SaveChanges();
-        return Ok($"Project ({oldName}) updated to {project.Name}");
+        return Ok($"Project ({oldName}) updated with: {updatedInfo}.");
     }
 
 
@@ -82,12 +92,16 @@ public class ProjectController : ControllerBase
     [HttpDelete("deleteProject")]
     public IActionResult DeleteProject(Project frontendProject)
     {
-        var project = _context.Projects.Find(frontendProject.ProjectId);
+        var project = _context.Projects.Include(t => t.Tasks).FirstOrDefault(proj => proj.ProjectId==frontendProject.ProjectId);
+        
         if (project == null)
         {
             return NotFound();
         }
+
+        _context.Tasks.RemoveRange(project.Tasks);
         _context.Projects.Remove(project);
+
         _context.SaveChanges();
         return Ok($"Project {project.Name} deleted");
     }
@@ -95,7 +109,9 @@ public class ProjectController : ControllerBase
     [HttpPost("addTagsToProject/{projectId}")]
     public IActionResult AddTagsToProject(int projectId, List<string> tagCloud)
     {
-        Project? project = GetProject(projectId);
+        Project? project = _context.Projects
+                            .Include(p => p.Tags)
+                            .FirstOrDefault(p => p.ProjectId == projectId);
         if (project == null)
         {
             return BadRequest($"Project object with ID: {projectId} not found.");
@@ -103,14 +119,14 @@ public class ProjectController : ControllerBase
         else
         {
             List<Tag> projectTags = project.Tags;
-            List<Tag> allTags = _context.Tags.ToList();
+
             foreach (string tag in tagCloud)
             {
                 // Make sure the tag is not already set on this project
                 if (!projectTags.Any(pt => pt.Name == tag))
                 {
                     // See if it is an already existing tag, if so add it.
-                    Tag? existingTag = allTags.FirstOrDefault(pt => pt.Name == tag);
+                    Tag? existingTag = _context.Tags.FirstOrDefault(pt => pt.Name == tag);
                     if (existingTag != null)
                     {
                         project.Tags.Add(existingTag);
@@ -167,8 +183,7 @@ public class ProjectController : ControllerBase
             }
             else
             {
-                project.Tasks.Add(new Models.Task { Name = taskName });
-
+                project.Tasks.Add(new Models.Task { Name = taskName, ProjectId = projectId, Project = project });
             }
             _context.SaveChanges();
             return Ok();

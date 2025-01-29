@@ -12,29 +12,144 @@
     <script src="fallback.js"></script>
 </head>
 <body>
-    <div id="site-container">
-        <h1>To Do List</h1>
-        <div id="navigate">
-            <button id="projectsbtn" class="selected">Projects</button>
-            <button id="tasksbtn">Tasks</button>
-            <button id="tagsbtn">Tags</button>
-        </div>
-        <div id="container">
-            <h2 id="nowShowing"></h1>
-            <div id="contents">
+<div id="site-container">
+    <h1>To Do List</h1>
+    <div id="navigate">
+        <button id="projectsbtn" class="selected">Projects</button>
+        <button id="tasksbtn">Tasks</button>
+        <button id="tagsbtn">Tags</button>
+    </div>
+    <div id="container">
+        <h2 id="nowShowing">Active projects</h2>
+        
+        <div id="contents">
+                <div class="item selected" id="1">
+                    <p class="statusActive">Active</p>
+                    <h3>Green Tartan Blankets</h3>
 
+                    <p class="totalTime"> 4:56 hours</p>                
+                    <span class="taskTimers">
+                        <button class="timerStart running"></button>
+                        
+                        <button class="timerStop valid"></button>
+                    </span>
+
+
+                </div>
+                <div class="edit"><button class="editButton"></button></div>
+                <div class="delete"><button class="deleteButton"></button></div>
+
+                
+
+            <div class="item" id="2">
+                <p class="statusPlanning">Planning</p>
+                <h3>Project 2</h3>
+                
             </div>
-        </div>
-        <div id="footer">
-            <button id='disclaimer'>Show info</button>
-            <div id="disclaimers">
-                    <p>Note, you can not yet delete tasks or tags from a project only. 
-                To remove a tag from a project it must be deleted completely, 
-                also removing it from all other associated items.</p>
-                <p>To add a task to a project, do that from the Task panel. They must not be uniquely named.</p>
-                <p>Tags may be added from anywhere, or as unassociated tags. They must be uniquely named.</p>
+            <div class="edit"><button class="editButton"></button></div>
+            <div class="delete"><button class="deleteButton"></button></div>
+            <div class="item" id="3">
+                <p class="statusComplete">Completed</p>
+                <h3>Project 3</h3>
+
+                </div>
+            <div class="edit"><button class="editButton"></button></div>
+            <div class="delete"><button class="deleteButton"></button></div>
+
+            <div class="item" id="4">
+                <p class="statusActive">Active</p>
+                <h3>Project 4</h3>
             </div>
-        </div>
+            <div class="edit"><button class="editButton"></button></div>
+            <div class="delete"><button class="deleteButton"></button></div>
+
+            <div id="detail"> 
+                <span class="header">
+                        <h2 id="itemtitle">Project 1</h2> 
+                        <p class="totalTime"> 4:56 hours</p>
+                        <p class="statusActive">Active</p>
+                </span>
+                <span class="header">
+                    <h3>Tasks</h3>
+
+                    <p id="addingBox"><button>+</button></p>
+                </span>
+                <div class="detailTask shadowbox">
+                    <span class="header">
+                        <h4>Task 1 </h4> 
+                        <p class="noDeadline"></p>
+                        
+                        <p class="statusPlanning">Planning</p>
+                    </span>
+                    <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Quidem nihil similique maxime, distinctio eligendi ipsum quasi, ipsa quaerat asperiores nisi reprehenderit iste non et aperiam odio eaque alias. Ullam blanditiis veritatis eius vel ex quo doloremque ad incidunt nemo repudiandae!</p>
+                    <div class="tagCloud">cotton, silk, counting</div>
+                </div>
+                <div class="detailTask shadowbox">
+                    <span class="header">
+                        <h4>Task 3</h4> 
+                        <p class="deadline">2025-01-30 16:00</p>
+                        
+                        <p class="statusActive">Active</p>
+                    </span>
+                    
+                    <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Quidem nihil similique maxime, distinctio eligendi ipsum quasi, ipsa quaerat asperiores nisi reprehenderit iste non et aperiam odio eaque alias. Ullam blanditiis veritatis eius vel ex quo doloremque ad incidunt nemo repudiandae!</p>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Fuga consequatur inventore totam neque magnam nobis facere ab nulla assumenda nemo.</p>
+                    <div class="tagCloud">cotton, silk, counting</div>
+                </div>
+                <div class="detailTask shadowbox">
+
+                    <span class="header">
+                        <h4>Beaming the warp </h4> 
+                        <p class="noDeadline"></p>
+                    
+
+                        <p class="statusComplete">Completed</p>
+                    </span>
+                    <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Quidem nihil similique maxime, distinctio eligendi ipsum quasi, ipsa quaerat asperiores nisi reprehenderit iste non et aperiam odio eaque alias. Ullam blanditiis veritatis eius vel ex quo doloremque ad incidunt nemo repudiandae!</p>
+                    <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Quidem nihil similique maxime, distinctio eligendi ipsum quasi, ipsa quaerat asperiores nisi reprehenderit iste non et aperiam odio eaque alias. Ullam blanditiis veritatis eius vel ex quo doloremque ad incidunt nemo repudiandae!</p>
+                    <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Quidem nihil similique maxime, distinctio eligendi ipsum quasi, ipsa quaerat asperiores nisi reprehenderit iste non et aperiam odio eaque alias. Ullam blanditiis veritatis eius vel ex quo doloremque ad incidunt nemo repudiandae!</p>
+                    <div class="tagCloud">cotton, silk, counting</div>
+                </div>
+            </div>
+
+            <div class="item" id="5">
+                <p class="statusActive">Active</p>
+                <h3>Project 5</h3>
+            </div>
+            <div class="edit"><button class="editButton"></button></div>
+            <div class="delete"><button class="deleteButton"></button></div>
+        
+            <div class="item" id="6">
+                <p class="statusActive">Active</p>
+                <p class="statusInactive">Inactive</p>
+                <p class="statusComplete">Completed</p>
+                <p class="statusPlanning">Planning</p>
+                <h3>Project 6</h3>
+            </div>
+            <div class="edit"><button class="editButton"></button></div>
+            <div class="delete"><button class="deleteButton"></button></div>
+            
+            <div class="item" id="7">
+                <p class="statusComplete">Completed</p>
+                <h3>Project 7</h3>
+            </div>
+            <div class="edit"><button class="editButton"></button></div>
+            <div class="delete"><button class="deleteButton"></button></div>
+    
+    </div>
+
+        
+</div>
+<div id="footer">
+    <button id='disclaimer'>Show info</button>
+    <div id="disclaimers">
+            <p>Note, you can not yet delete tasks or tags from a project only. 
+        To remove a tag from a project it must be deleted completely, 
+        also removing it from all other associated items.</p>
+        <p>To add a task to a project, do that from the Task panel. They must not be uniquely named.</p>
+        <p>Tags may be added from anywhere, or as unassociated tags. They must be uniquely named.</p>
+    </div>
+</div>
     <script type="module" src="script.js"></script>
 </body>
 </html>
