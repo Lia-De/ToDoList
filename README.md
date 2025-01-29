@@ -15,17 +15,16 @@ it took.
 * Tags should be universal, available to be applied to any and all projects and sub-tasks.
 * Tasks must belong to a project.
 * Tasks should have a title and possibly description, status and possibly a deadline and tags.
-* Users should be able to track time per Task
-* Timing for a project must be associated with a Task.
+* Users should be able to track time per Project.
 * Front end should be a website done with responsive designed mobile-first.
    * Create projects, add tasks and tags
    * List all Projects
      * Name, Description, Status, TimeSpent, Tasks and Tags
-     * For Tasks: Name, Description, Status, Deadline, TimeSpent, LastProgress
+     * For Tasks: Name, Description, Status, Deadline, TimeSpent
      * For Tags: Name
    * List all Tags (show names and usages in Projects/Tasks)
    * Add Tags to Tasks
-   * Start and stop Timers for Tasks
+   * Start and stop Timers for Projects
    * Edit fields for Project:
       * Name
       * Description
@@ -35,14 +34,15 @@ it took.
       * Descriptions
       * Status
       * Deadline
-      * Manually add time spent
    * Edit name for Tags
 
 ### Possible features
 * Login for users
 * Ability to start timer on the project itself, not associated with a task
 * Sorting projects by: Name, Status, Hours Worked, Tag
+* Keeping time per Task as well as for whole Project
 * Keep a history of DateTime stamps for each time you worked on a Task
+* Manually add time spent
 
 ~~--------------------------------------------------~~
 ### To do 2025-01-27
