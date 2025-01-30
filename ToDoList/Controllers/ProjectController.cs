@@ -47,6 +47,7 @@ public class ProjectController : ControllerBase
             .Projects
             .Include(p => p.Tags)
             .Include(t => t.Tasks)
+            .ThenInclude(tag => tag.Tags)
             .FirstOrDefault(p => p.ProjectId == projectId);
     }
     [HttpGet("setStatus/{projectId}/{status}")]

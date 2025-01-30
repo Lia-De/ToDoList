@@ -63,7 +63,7 @@ h2 {
 .header {
     display: flex;
     justify-content: space-between;
-    padding-right: 2em;
+    padding-right: 1em;
 }
 .header>p {
     margin:auto 0; 
@@ -240,6 +240,7 @@ p.totalTime {
     overflow: hidden;
     /* leave space for the icon */
     padding-left: 20px;
+    margin-right: 0.4em;
     text-align: right;
     max-height: 1em;
     width: 5.5rem;
@@ -294,17 +295,17 @@ p.noDeadline {
 }
 #timerStart{
     background-image: url('./img/timer_play_20dp_F5F5F5.png');
-    background-color: var(--mainGreen);
+    background-color: var(--mainSelected);
 }
 #timerStart.running {
-    background-color: var(--mainSelected);
+    background-color: var(--greySelected);
 }
 #timerStop{
     background-image: url('./img/timer_off_20dp_F5F5F5.png');
     background-color: var(--greySelected);   
 }
 #timerStop.valid {
-    background-color: var(--mainGreen);
+    background-color: var(--mainSelected);
 }
 
 @media screen and (min-width: 960px) {
@@ -342,12 +343,16 @@ p.noDeadline {
     #dataTable {
         max-width: unset;
     }
-    #edits {
-        grid-column: 2 / 3;
+    div#edits {
+        grid-column: 3 / 4;
+        grid-row: 1 / 19
     }
     div#detail {
         grid-column: 3 / 4;
         grid-row: 1 / 19
+    }
+    .header {
+        padding-right: 0.2em;
     }
 }
 @media screen and (max-height: 500px){

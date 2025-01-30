@@ -79,7 +79,7 @@ async function showProjects() {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
-        document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Projects`;
+        document.getElementById("nowShowing").innerHTML = `${data.length} Projects`;
         clearData();
         createDataCards(data, "projects");
         selectedTypeButtons("projects");
@@ -136,7 +136,7 @@ function printAddingPlus(){
     addingBox.addEventListener('click', (event) => printAddingFormAndAddListeners(event));
 
 }
-function printAddingFormAndAddListeners (event) {
+function printAddingFormAndAddListeners (event, dataType) {
     
     switch (document.getElementById('navigate').querySelector('.selected').id) {
         case "projectsbtn":
@@ -177,7 +177,6 @@ function showThisItem(itemID, dataType, event){
         if (deleteDiv && deleteDiv.classList.contains("delete")) {
             deleteDiv.insertAdjacentElement("afterend", detailDiv);
         }
-        // target.appendChild(divTarget);
         // Create the header row
         let itemID;
         switch (dataType){
@@ -197,31 +196,7 @@ function showThisItem(itemID, dataType, event){
             addElement('h4', `Used in ${data.tasks.length} tasks`, detailDiv);
             addElement('h4', `Used in ${data.projects.length} projects`, detailDiv);
         } else {
-
-{/* 
-    <span class="header">
-        <p class="statusActive">Active</p>
-        <h2 id="itemtitle">Green Tartan Blankets</h2> 
-        <p class="totalTime">4:56 hours</p>
-        <span id="taskTimers">
-            <button id="timerStart"></button>
-            <button id="timerStop"></button>
-        </span>
-    </span>
-    <span class="header">
-        <h3>Tasks</h3>
-        <p id="addingBox"><button>+</button></p>
-    </span>
-
-    <div class="detailTask shadowbox">
-        <span class="header">
-            <p class="statusPlanning">Planning</p>
-            <h4>Task 1 </h4> 
-            <p class="noDeadline"></p>
-        </span>
-        <p>Description</p>
-        <div class="tagCloud">cotton, silk, counting</div>
-    </div> */}
+            if (dataType === 'project'){
             let header = addElement('span','',detailDiv);
             header.classList = 'header';
             let status = data.status;
@@ -253,40 +228,44 @@ function showThisItem(itemID, dataType, event){
                 stopTimer(data.projectId);
             });
 
-            //display all tasks - only for projects
-            if (dataType === 'project'){
-
-  
-            
-
             // header for Tasks
-                header = addElement('span','',detailDiv);
-                header.classList = 'header';
-                addElement('h3', 'Tasks', header);
-                let element = addElement('p','',header);
-                element.id='addingBox';
-                let addButton = addElement('button','+', element);
-                addButton.id="addTaskButton";
-                // ADD LISTENER TO CREATE TASK FORM
+            header = addElement('span','',detailDiv);
+            header.classList = 'header';
+            addElement('h3', 'Tasks', header);
+            let element = addElement('p','',header);
+            element.id='addingBox';
+            let addButton = addElement('button','+', element);
+            // ADD LISTENER TO CREATE TASK FORM for ths
+            addButton.id="addTaskButton";
+            addButton.addEventListener('click', (event) => {
+                let addingTaskForm = printAddingForm("addTask");
+                addingTaskForm.addEventListener('submit', (event) => addRequest(event, 'task'));
+            });
+
             // Each task:
             data.tasks.forEach(task => {
-                let taskDiv = addElement('div','',detailDiv);
-                taskDiv.classList='detailTask shadowbox';
-                header = addElement('span','',taskDiv);
-                header.classList = 'header';
-                let status = task.status;
-                let statusValue=statusTexts[status];
-                let statusElement = addElement('p',statusValue, header);
-                statusElement.classList=`status${status}`;
-                addElement('h4',task.name, header);
-                let deadline = addElement('p','', header);
-                if (task.deadline) {
-                deadline.innerHTML = task.deadline;
-                deadline.classList = 'deadline';
-                } else {
-                    deadline.classList='noDeadline';
-
-                }
+            let taskDiv = addElement('div','',detailDiv);
+            taskDiv.classList='detailTask shadowbox';
+            header = addElement('span','',taskDiv);
+            header.classList = 'header';
+            let status = task.status;
+            let statusValue=statusTexts[status];
+            let statusElement = addElement('p',statusValue, header);
+            statusElement.classList=`status${status}`;
+            addElement('h4',task.name, header);
+            let deadline = addElement('p','', header);
+            if (task.deadline) {
+            deadline.innerHTML = task.deadline;
+            deadline.classList = 'deadline';
+            } else {
+                deadline.classList='noDeadline';
+            }
+        // <p>Description</p>
+        // <div class="tagCloud">cotton, silk, counting</div>
+            addElement('p', task.description, detailDiv)
+            
+            let tags = task.tags.map(tag => tag.name).join(', ');
+            element = addElement('div',`Tags: ${tags}`,taskDiv);
             });
             }
 
@@ -492,7 +471,7 @@ function addRequest(event, dataType) {
     if (!isValidInput(newEntry)){
         alert(`You have to enter (some) text`);
     } else {
-        clearAddingForm();
+        
         const formData = new FormData();
         formData.append('name', newEntry );
         switch(dataType) {
@@ -500,7 +479,7 @@ function addRequest(event, dataType) {
                 sendAddRequest(formData,`${config.apiBaseUrl}/Project/addProject`,"project");
                 break;
             case 'task':
-                let projectId=event.target.projectId.value;
+                let projectId= parseInt(document.getElementById('projectId').value);
                 formData.append('projectId', projectId);
                 sendAddRequest(formData,`${config.apiBaseUrl}/Task/addTask`,"task");
                 break;
@@ -510,6 +489,7 @@ function addRequest(event, dataType) {
             default:
                 console.error(`Unknown datatype: ${dataType}`);
         }
+        clearAddingForm();
     }
 }
 
@@ -524,7 +504,7 @@ async function sendAddRequest(formData, fetchURL, dataType){
                 if (dataType==="project")
                     showProjects();
                 if (dataType==="task")
-                    showTasks();
+                    showProjects();
                 if (dataType ==="tag")
                     showTags();
     
@@ -690,13 +670,14 @@ function printAddingForm(dataType){
         case "addProject":
             break;
         case "addTask":
-            let extraInput = document.createElement('select');
+            let extraInput = document.createElement('input');
+            extraInput.type='hidden';
             extraInput.id = 'projectId';
             extraInput.name = 'projectId';
+            extraInput.value = document.getElementById('contents').querySelector('.selected').id;
+            console.log(extraInput.value);
             // fill the select field with projects
-            fetchProjectIds(extraInput);
-            label = addElement('label', 'Associated project:', form);
-            label.setAttribute('for','projectId');
+
             form.appendChild(extraInput);
             label = addElement('label','Optional Deadline: ', form);
             label.setAttribute('for','deadline');
@@ -716,26 +697,6 @@ function printAddingForm(dataType){
 
     addingBox.appendChild(form);
     return form;
-}
-
-
-// helper to fetch project IDs
-async function fetchProjectIds(target){
-    try {
-        const response = await fetch(`${config.apiBaseUrl}/Project/getProjectIds`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-
-        // populate select items in the target element
-        data.forEach(dataPoint => {
-            let option = addElement('option', `Project ${dataPoint}`, target);
-            option.value = dataPoint;
-        });
-    } catch (error) {
-        console.error('Error:', error);
-    }
 }
 
 // function to create and populate an edit form
@@ -856,9 +817,9 @@ function createEditForm(dataID, editableText) {
 
     let divTarget = document.createElement('div');
     divTarget.appendChild(form);
-    // editBox.appendChild(form);
     editBox.appendChild(divTarget);
     containerTarget.appendChild(editBox);
+
     return form;
 }
 
@@ -896,11 +857,9 @@ function fillItemData(itemData) {
     if (taskCloud!= null) {
         let tasks = itemData.tasks.map(task => task.name).join(', ');
         taskCloud.value=tasks;
-        // oldTasks.value=tasks;
     }
 
     let tags = itemData.tags.map(tag => tag.name).join(', ');
-    // document.getElementById('tagCloud').value = tags;
     document.getElementById('oldTags').value = tags;
 
     switch (itemData.status) {
@@ -960,9 +919,10 @@ function createDataCards(data, dataType){
 <div class="edit"><button class="editButton"></button></div>
 <div class="delete"><button class="deleteButton"></button></div>
 */
-
+let timerCount = 0;
 const target = document.getElementById('contents');
 data.forEach(dataPoint => {
+    if (dataPoint.hasTimerRunning) timerCount +=1;
     let itemdiv = addElement('div','', target);
     itemdiv.classList = 'item';
     
@@ -1029,7 +989,7 @@ data.forEach(dataPoint => {
 
 
 });
-
+document.getElementById("nowShowing").innerHTML += ` ${timerCount} timer(s) running`;
 }
 
 function formatTimeSpan(timeSpanString) {
