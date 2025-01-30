@@ -1,22 +1,18 @@
 const hardcodedData=[
-    {
-      "id": 1,
-      "name": "Frilled Veil"
-    },
-    {
-      "id": 2,
-      "name": "Green Tartan"
-    },
-    {
-      "id": 3,
-      "name": "Filtar"
-    },
-    {
-      "id": 8,
-      "name": "Linnen"
-    },
-    {
-      "id": 9,
-      "name": "Testy"
-    }
-  ]
+  {
+    "projectId": 1,
+    "name": "Green Tartan",
+    "tasks": [],
+    "tags": [],
+    "status": 0,
+    "totalWorkingTime": "01:24:49.8570820"
+  },
+  {
+    "projectId": 2,
+    "name": "Kruseler",
+    "tasks": [],
+    "tags": [],
+    "status": 2,
+    "totalWorkingTime": "00:08:43.6513201"
+  }
+]

@@ -1,33 +1,63 @@
 // Start by showing current projects and set up a listener to change the displayed data
 import config from './config.js';
+const statusTexts = ["Planning", "Active", "Inactive", "Complete"];
 
-// showProjects();
+showProjects();
 document.getElementById("navigate").addEventListener("click",navigationEventListener);
 document.getElementById('disclaimer').addEventListener('click', unhideDisclaimer);
 
-// set listeners for all deadlines FIX To do the right stuff
-for (let elem of document.getElementsByClassName('noDeadline')) {
-    elem.addEventListener('mouseover', (event)=> {
-        event.target.innerHTML="Set deadline";
-        // elem.addEventListener('mouseover', popup);
-        // elem.addEventListener('mouseout', popdown);
-    });
+printAddingPlus();
+
+
+async function startTimer(piD){
+    try {
+        const response = await fetch(`${config.apiBaseUrl}/Project/startTimer/${piD}`, {
+            method: 'POST',
+            body: piD, 
+        });
+        if (!response.ok) {
+            response.text()
+            .then(data => {
+                alert(data); 
+            });
+        } 
+        document.getElementById('timerStart').classList = 'running';
+        document.getElementById('timerStop').classList = 'valid';
+
+
+    } catch (error) {
+            console.error('Error:', error);
+            document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
+            clearData();
+            createDataTable(hardcodedData, "projects");
+    }
+
 }
 
-for (let elem of document.getElementsByClassName('item')) {
-    elem.addEventListener('click', (event) => {
-        let item = event.target;
-        let details = document.getElementById('detail');
-        if (details) {
-            details.parentNode.removeChild(details);
-        } else {
-            let deleteDiv = item.nextElementSibling?.nextElementSibling; 
-            details = document.createElement("div");
-            details.id = "detail";
-            details.textContent = "Detail content here";
-            deleteDiv.insertAdjacentElement("afterend", details);
-        }
-    });
+async function stopTimer(prId){
+    try {
+        const response = await fetch(`${config.apiBaseUrl}/Project/stopTimer/${prId}`, {
+            method: 'POST',
+            body: prId, 
+        });
+        if (!response.ok) {
+            response.text()
+            .then(data => {
+                alert(data); 
+            });
+        } 
+        response.text().then(data => {
+            alert(data); 
+        });
+        document.getElementById('timerStart').classList = '';
+        document.getElementById('timerStop').classList = '';
+
+    } catch (error) {
+            console.error('Error:', error);
+            document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
+            clearData();
+            createDataTable(hardcodedData, "projects");
+    }
 
 }
 
@@ -51,13 +81,13 @@ async function showProjects() {
         const data = await response.json();
         document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Projects`;
         clearData();
-        createDataTable(data, "projects");
+        createDataCards(data, "projects");
         selectedTypeButtons("projects");
     } catch (error) {
         console.error('Error:', error);
         document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
         clearData();
-        createDataTable(hardcodedData, "projects");
+        createDataCards(hardcodedData, "projects");
     }
 }
 
@@ -90,23 +120,24 @@ async function showTags(){
         });
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
+        document.getElementById("nowShowing").innerHTML =`Database is unreachable`;
         clearData();
-        createDataTable(hardcodedData, "projects");
+        // createDataCards(hardcodedData, "projects");
     }
 }
 // helper functions to print out the adding form
 function printAddingPlus(){
-    let target = document.getElementById("contents");
+    let target = document.getElementById("tagsbtn");
     let addingBox = document.createElement("div");
-    addingBox.id = "addNewItem";
-    target.appendChild(addingBox);
-    addElement('button', '+', addingBox);
+    // addingBox.id = "addNewItem";
+    addingBox.id = "addItemButton"
+    target.insertAdjacentElement("afterend", addingBox);
+    addElement('button', '+ Add new item', addingBox);
     addingBox.addEventListener('click', (event) => printAddingFormAndAddListeners(event));
 
 }
 function printAddingFormAndAddListeners (event) {
-    document.getElementById('addNewItem').remove();
+    
     switch (document.getElementById('navigate').querySelector('.selected').id) {
         case "projectsbtn":
             let addingPForm = printAddingForm("addProject");
@@ -129,19 +160,24 @@ function showThisItem(itemID, dataType, event){
     if ( event.target.classList.contains("selected")) {
         // we are already displaying an item card, so clear it and show the adding option
         clearItemCard();
-        printAddingPlus();
         return
     }
     getSingleItem(itemID, dataType).then( data => {
-        let target = document.getElementById('container');
-            
+        // Fix this to the right div event.target.closest('.item')
+        let target = event.target.closest('.item')
+                
         clearItemCard();
         
         event.target.classList.add("selected");
         // build the project card
-        let divTarget = document.createElement('div');
-        divTarget.id='edits';
-        target.appendChild(divTarget);
+        let detailDiv = document.createElement('div');
+        detailDiv.id='detail';
+        // fix this appending
+        let deleteDiv = target.nextElementSibling?.nextElementSibling;
+        if (deleteDiv && deleteDiv.classList.contains("delete")) {
+            deleteDiv.insertAdjacentElement("afterend", detailDiv);
+        }
+        // target.appendChild(divTarget);
         // Create the header row
         let itemID;
         switch (dataType){
@@ -154,44 +190,107 @@ function showThisItem(itemID, dataType, event){
             default:
                 itemID = 0;
         }
-        addElement('h3', `#${itemID} ${data.name}`, divTarget);
-
-
+        
         // display count of useages for tags, or status and all tags for the others
         if (dataType==='tag'){
-            addElement('h4', `Used in ${data.tasks.length} tasks`, divTarget);
-            addElement('h4', `Used in ${data.projects.length} projects`, divTarget);
+            addElement('h3', `#${itemID} ${data.name}`, detailDiv);
+            addElement('h4', `Used in ${data.tasks.length} tasks`, detailDiv);
+            addElement('h4', `Used in ${data.projects.length} projects`, detailDiv);
         } else {
+
+{/* 
+    <span class="header">
+        <p class="statusActive">Active</p>
+        <h2 id="itemtitle">Green Tartan Blankets</h2> 
+        <p class="totalTime">4:56 hours</p>
+        <span id="taskTimers">
+            <button id="timerStart"></button>
+            <button id="timerStop"></button>
+        </span>
+    </span>
+    <span class="header">
+        <h3>Tasks</h3>
+        <p id="addingBox"><button>+</button></p>
+    </span>
+
+    <div class="detailTask shadowbox">
+        <span class="header">
+            <p class="statusPlanning">Planning</p>
+            <h4>Task 1 </h4> 
+            <p class="noDeadline"></p>
+        </span>
+        <p>Description</p>
+        <div class="tagCloud">cotton, silk, counting</div>
+    </div> */}
+            let header = addElement('span','',detailDiv);
+            header.classList = 'header';
             let status = data.status;
-            let statusValue='';
-            switch (status){
-                case 0:
-                    statusValue='Status: Planning';
-                    break;
-                case 1:
-                    statusValue='Status: Active';
-                    break;
-                case 2:
-                    statusValue='Status: Inactive';
-                    break;
-                case 3: 
-                    statusValue = 'Status: Completed';
-                    break;
-                default:
-                    statusValue = 'Unknown status';
+            let statusValue=statusTexts[status];
+            let statusElement = addElement('p',statusValue, header);
+            statusElement.classList=`status${status}`;
+            let title = addElement('h2',data.name, header);
+            title.id="itemtitle";
+            let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
+            time.classList = 'totalTime';
+            let taskTimers = addElement('span','',header);
+            taskTimers.id='taskTimers';
+            let startButton = addElement('button','',taskTimers);
+            startButton.id = 'timerStart';
+            let stopButton = addElement('button','',taskTimers);
+            stopButton.id = 'timerStop';
+            if (data.hasTimerRunning){
+                startButton.classList = 'running';
+                stopButton.classList = 'valid';
             }
-            let projectStatus = addElement('p',statusValue,divTarget)
+            startButton.addEventListener('click', (event) => {
+            if (event.target.classList !='running')
+                startTimer(data.projectId);
+            });
+            
+            stopButton.addEventListener('click', (event) => {
+            let project = event.target.parentNode.parentNode.id;
+            if (event.target.classList == 'valid')
+                stopTimer(data.projectId);
+            });
+
             //display all tasks - only for projects
             if (dataType === 'project'){
-                let taskBox = addElement('div','',divTarget);
-                taskBox.id = 'taskBox';
-                addElement('h4', 'Tasks', taskBox);
-                let tasklist = addElement('ul','',taskBox);
-                data.tasks.forEach(task => {
-                    addElement('li', task.name, tasklist);
-                });
+
+  
+            
+
+            // header for Tasks
+                header = addElement('span','',detailDiv);
+                header.classList = 'header';
+                addElement('h3', 'Tasks', header);
+                let element = addElement('p','',header);
+                element.id='addingBox';
+                let addButton = addElement('button','+', element);
+                addButton.id="addTaskButton";
+                // ADD LISTENER TO CREATE TASK FORM
+            // Each task:
+            data.tasks.forEach(task => {
+                let taskDiv = addElement('div','',detailDiv);
+                taskDiv.classList='detailTask shadowbox';
+                header = addElement('span','',taskDiv);
+                header.classList = 'header';
+                let status = task.status;
+                let statusValue=statusTexts[status];
+                let statusElement = addElement('p',statusValue, header);
+                statusElement.classList=`status${status}`;
+                addElement('h4',task.name, header);
+                let deadline = addElement('p','', header);
+                if (task.deadline) {
+                deadline.innerHTML = task.deadline;
+                deadline.classList = 'deadline';
+                } else {
+                    deadline.classList='noDeadline';
+
+                }
+            });
             }
-            let tagBox = addElement('div','',divTarget);
+
+            let tagBox = addElement('div','',detailDiv);
             tagBox.id='tagBox';
             addElement('h4', `Tags`, tagBox);
             let taglist = addElement('ul','',tagBox);
@@ -221,18 +320,28 @@ function addElement(elementType, data, target){
 function clearData(){
     document.getElementById("contents").innerHTML = "";
     clearEdit();
+    clearAddingForm();
 }
-// Helper function to clear the edit form
+// Helper function to clear the edit and detail form
 function clearEdit(){
-        // reset the selected cell in the data table
-    
-    let oldEdit = document.getElementById("edits");
+           
+    let oldEdit = document.getElementById("detail");
     if (oldEdit != null) {
         oldEdit.parentNode.removeChild(oldEdit);        
     }
-    let selectedDataCell = document.querySelectorAll("td.selected");
+
+    oldEdit = document.getElementById("edits");
+    if (oldEdit != null) {
+        oldEdit.parentNode.removeChild(oldEdit);        
+    }
+    // reset the selected cell in the data table
+    let selectedDataCell = document.querySelectorAll("div.item.selected");
     if (selectedDataCell.length != 0) {
      selectedDataCell[0].classList.remove("selected");
+    }
+    let oldTimers = document.getElementById('taskTimers');
+    if (oldTimers != null){
+        oldTimers.parentNode.removeChild(oldTimers);
     }
 }
 // Helper function to clear the add form when we have added an item.
@@ -248,8 +357,8 @@ function clearItemCard() {
     clearAddingForm();
     
     // reset the selected cell in the data table
-    let table=document.getElementById('dataTable');
-    let cells = table.querySelectorAll('td');
+    let table=document.getElementById('contents');
+    let cells = table.querySelectorAll('item');
     cells.forEach(cell => { 
         cell.classList.remove("selected");
     });
@@ -269,8 +378,8 @@ function navigationEventListener(e){
     }
  }
 // 3 functions to add and populate edit forms and set event listeners
-function editProject (projectID, clickedProject, target){
-    let form = createEditForm(projectID, clickedProject, target);
+function editProject (projectID, clickedProject){
+    let form = createEditForm(projectID, clickedProject);
     form.id ="editProjectForm";
     form.addEventListener('submit', editProjectRequest);
 };
@@ -553,10 +662,12 @@ async function sendEditRequest(requestData, fetchURL, dataType){
     }
 }
 function printAddingForm(dataType){
-    let target = document.getElementById("contents");
+    let target = document.getElementById("nowShowing");
     let addingBox = document.createElement("div");
     addingBox.id = "addNewItem";
-    target.appendChild(addingBox);
+    addingBox.classList.add('shadowbox');
+    // target.appendChild(addingBox);
+    target.insertAdjacentElement("afterend", addingBox);
     let form = document.createElement("form");
     form.id = dataType;
    // Create the text input for the name
@@ -635,7 +746,6 @@ function createEditForm(dataID, editableText) {
 
         // Create the container div
     let editBox = document.createElement('div');
-    
     editBox.id = 'edits'; 
         // Create the form
     addElement('h3', 'Editing: '+editableText, editBox);
@@ -841,6 +951,106 @@ function createStatusRadioButtons(form){
     radioButton.name='newStatus';
     radioButton.value=3;
 }
+function createDataCards(data, dataType){
+/* <div class="item" id="4">
+    <p class="statusInactive">Inactive</p>
+    <h3>Project 4</h3>
+    <p class="totalTime"> 4:56 hours</p>                
+</div> 
+<div class="edit"><button class="editButton"></button></div>
+<div class="delete"><button class="deleteButton"></button></div>
+*/
+
+const target = document.getElementById('contents');
+data.forEach(dataPoint => {
+    let itemdiv = addElement('div','', target);
+    itemdiv.classList = 'item';
+    
+    // switch on dataType
+    itemdiv.id = dataPoint.projectId;
+    
+    // switch on dataType, not for tags
+    let element = addElement('p',statusTexts[dataPoint.status], itemdiv);
+    element.classList.add(`status${dataPoint.status}`);
+    
+    addElement('h3',dataPoint.name, itemdiv);
+
+    // switch on dataType, not for tags
+    element = addElement('p',formatTimeSpan(dataPoint.totalWorkingTime), itemdiv);
+    element.classList = 'totalTime';
+
+    let editdiv = addElement('div', '', target);
+    editdiv.classList = 'edit';
+    let editButton = addElement('button','',editdiv)
+    editButton.classList="editButton";
+
+    let deldiv = addElement('div','',target);
+    deldiv.classList = 'delete';
+    let deleteButton=addElement('button','',deldiv);
+    deleteButton.classList = 'deleteButton';
+
+    switch (dataType) {
+        case'projects':
+            editButton.addEventListener('click', () => {
+                editProject(dataPoint.projectId, dataPoint.name);
+            });
+            deleteButton.addEventListener('click', () => {
+                deleteProject(dataPoint.projectId, dataPoint.name);
+            });
+            itemdiv.addEventListener('click', (event) => {
+                showThisItem(dataPoint.projectId, 'project', event);
+            });
+            break;
+        case'tasks':
+            editButton.addEventListener('click', () => {
+                editTask(dataPoint.taskId, dataPoint.name);
+            });
+            deleteButton.addEventListener('click', () => {
+                deleteTask(dataPoint.taskId, dataPoint.name);
+            });
+            itemdiv.addEventListener('click', (event) => {
+                showThisItem(dataPoint.taskId, 'task', event); 
+            });
+            break;
+        case'tags':
+            editButton.addEventListener('click', () => {
+                editTag(dataPoint.tagId, dataPoint.name);
+            });
+            deleteButton.addEventListener('click', () => {
+                deleteTag(dataPoint.tagId, dataPoint.name);
+            });
+            itemdiv.addEventListener('click', (event) => {
+                showThisItem(dataPoint.tagId, 'tag', event);
+            });
+            break;
+        default:
+            console.error(`Unknown datatype: ${dataType}`);
+        }
+
+
+});
+
+}
+
+function formatTimeSpan(timeSpanString) {
+    // Extract hh:mm:ss from "hh:mm:ss.ffffff"
+    if (timeSpanString == "00:00:00") {
+        return 'Not tracked';
+    }
+    let [hours, minutes, seconds] = timeSpanString.split(":").map(Number);
+
+    // Round seconds to remove microseconds
+    seconds = Math.floor(seconds); 
+
+    // Convert hours to days and remaining hours
+    let days = Math.floor(hours / 24);
+    hours = hours % 24; // Get remaining hours after extracting days
+    // Format with leading zeros
+    return `${days}${String(hours)}h ${String(minutes)
+            .padStart(2, '0')}m ${String(seconds)
+                .padStart(2, '0')}s`;
+}
+
 // Function to create and populate the table
 function createDataTable(data, dataType) {
     // Get the table element or create it if it doesn't exist
@@ -945,9 +1155,7 @@ function createDataTable(data, dataType) {
 
 
         table.appendChild(row);
-    });
-    // Also add the plus sign to add new items
-    printAddingPlus();
+    });    
 }
 
 
