@@ -4,8 +4,12 @@ namespace ToDoList.Services;
 
 public class ProjectService
 {
-    // private Dictionary for project and timer start
-    
+    private TodoContext _context;
+    public ProjectService(TodoContext context)
+    {
+        _context = context;
+    }
+
 
     // Method to give us the total working time of a Project, calculated from it's Tasks
     public TimeSpan TotalActiveTime(Project project)
@@ -22,35 +26,46 @@ public class ProjectService
         project.TotalWorkingTime = result;
         return result;
     }
-    public DateTime StartTaskTimer(int projectId, TodoContext context)
+    public DateTime StartTaskTimer(int projectId)
     {
         DateTime startTime = DateTime.Now;
         // is there a timer for the project already?
-        ProjectTimer? timer = context.ProjectTimers.Find(projectId);
+        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti=> ti.ProjectId==projectId);
         if (timer != null) 
         {
-            throw new InvalidOperationException("This project already has a timer running");
+            throw new Exception("This project already has a timer running");
         }
-        context.ProjectTimers.Add(new ProjectTimer() { ProjectId= projectId, StartDate = startTime });
-        context.SaveChanges();
+        Project? project = _context.Projects.FirstOrDefault(ti => ti.ProjectId==projectId);
+        if (project != null) project.HasTimerRunning = true;
+        _context.ProjectTimers.Add(new ProjectTimer() { ProjectId= projectId, StartDate = startTime });
+        _context.SaveChanges();
         return startTime;
     }
-    public TimeSpan StopTaskTimer(int projectId, TodoContext context)
+    public TimeSpan StopTaskTimer(int projectId)
     {
         DateTime stopTime = DateTime.Now;
         TimeSpan result = TimeSpan.Zero;
-        ProjectTimer? timer = context.ProjectTimers.Find(projectId) as ProjectTimer;
+        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti => ti.ProjectId == projectId); 
         if (timer == null)
         {
-            throw new Exception();
+            throw new Exception($"No timers found for project {projectId}");
         }
-        result = stopTime - timer.StartDate;
-        if (result > TimeSpan.Zero)
+        else
         {
-            context.ProjectTimers.Remove(timer);
-            context.SaveChanges();
-        }
+            result = stopTime - timer.StartDate;
+            if (result > TimeSpan.Zero)
+            {
+                Project? project = _context.Projects.Find(projectId);
+                if (project != null)
+                {
+                    project.TotalWorkingTime += result;
+                    project.HasTimerRunning = false;
+                }
+                _context.ProjectTimers.Remove(timer);
+                _context.SaveChanges();
+            }
 
-        return result;
+            return result;
+        }
     }
 }

@@ -8,4 +8,5 @@ public class Project
     public List<Tag> Tags { get; set; } = new List<Tag>();
     public ToDoStatus Status { get; set; }
     public TimeSpan TotalWorkingTime { get; set; } = TimeSpan.Zero;
+    public bool HasTimerRunning { get; set; } = false;
 }

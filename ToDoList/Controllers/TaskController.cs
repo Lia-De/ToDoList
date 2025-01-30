@@ -31,6 +31,25 @@ public class TaskController : Controller
             .Include(p => p.Tags)
             .FirstOrDefault(t => t.TaskId == taskId);
     }
+    [HttpGet("setStatus/{taskId}/{status}")]
+    public IActionResult SetStatus(int taskId, int status)
+    {
+        Models.Task? task = _context.Tasks.FirstOrDefault(p => p.TaskId == taskId);
+        if (task == null)
+        {
+            return NotFound();
+        }
+        else
+        {
+            ToDoStatus? taskStatus = task.Status;
+            if (taskStatus == null || taskStatus != (ToDoStatus)status)
+            {
+                task.Status = (ToDoStatus)status;
+                _context.SaveChanges();
+            }
+                return Ok();
+        }
+    }
     // Create
     [HttpPost("addTask")]
     public IActionResult AddTask([FromForm] string name, [FromForm] int projectID)

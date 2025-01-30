@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics.Eventing.Reader;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Intrinsics.X86;
 using ToDoList.Models;
@@ -47,6 +48,24 @@ public class ProjectController : ControllerBase
             .Include(p => p.Tags)
             .Include(t => t.Tasks)
             .FirstOrDefault(p => p.ProjectId == projectId);
+    }
+    [HttpGet("setStatus/{projectId}/{status}")]
+    public IActionResult SetStatus(int projectId, int status)
+    {
+        Project? project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId);
+        if (project == null)
+        {
+            return NotFound();
+        }
+        else 
+        {
+            if (project.Status != (ToDoStatus)status)
+            {
+                project.Status = (ToDoStatus)status;
+                _context.SaveChanges();
+            }
+                return Ok();
+        }
     }
 
     // Create
@@ -189,4 +208,47 @@ public class ProjectController : ControllerBase
             return Ok();
         }
     }
+
+    [HttpGet("getProjecTimers")]
+    public List<ProjectTimer> GetProjectTimers()
+    {
+        return _context.ProjectTimers.ToList();
+    }
+
+    [HttpPost("startTimer/{projectId}")]
+    public IActionResult StartTimer(int projectId)
+    {
+        try
+        {
+            DateTime result = _projectService.StartTaskTimer(projectId);
+
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+    [HttpPost("stopTimer/{projectId}")]
+    public IActionResult StopTimer(int projectId)
+    {
+        try
+        {
+            TimeSpan duration = _projectService.StopTaskTimer(projectId);
+            if (duration > TimeSpan.Zero)
+            {
+                return Ok($"Time spent was: {duration.ToString(@"hh\:mm\:ss")}");
+            }
+            else
+            {
+                return BadRequest("There was no timer, or something else went wrong.");
+            }
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        
+    }
+
 }
