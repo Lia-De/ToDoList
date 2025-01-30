@@ -155,7 +155,7 @@ button.selected {
     border: 1px solid var(--greyBorder);
     border-radius: 5px;
     box-shadow: 0 0 5px var(--greyShadow);
-    margin: 0 0.5em 0.5em 0.5em;
+    margin: -0.4em 0 1em 2em;
     padding: 0 0.5em 1.5em 1em;
     box-sizing: border-box;
 }
@@ -187,7 +187,7 @@ div.delete {
 }
 div#detail {
     background-color: var(--greyMain);
-    grid-column: 1 / 3;
+    grid-column: 1 / 2;
 }
 
 div.selected {
@@ -393,6 +393,9 @@ p.noDeadline {
     }
     p.totalTime {
         margin-top: 0.5em;
+    }
+    #detail {
+        margin-left: 0;
     }
     
 }

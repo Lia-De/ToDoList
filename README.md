@@ -9,40 +9,40 @@ the things you do for a project. I might be wanting to sell the results of my wo
 it took.
 
 ### Required features
-* Adding Projects, with title, some description and a way to add Tags and Tasks.
-* Projects should total the time spent on them.
-* Projects should have status: Planning, active, paused or completed.
-* Tags should be universal, available to be applied to any and all projects and sub-tasks.
-* Tasks must belong to a project.
-* Tasks should have a title and possibly description, status and possibly a deadline and tags.
-* Users should be able to track time per Project.
-* Front end should be a website done with responsive designed mobile-first.
-   * Create projects, add tasks and tags
-   * List all Projects
-     * Name, Description, Status, TimeSpent, Tasks and Tags
-     * For Tasks: Name, Description, Status, Deadline, TimeSpent
-     * For Tags: Name
-   * List all Tags (show names and usages in Projects/Tasks)
-   * Add Tags to Tasks
-   * Start and stop Timers for Projects
-   * Edit fields for Project:
-      * Name
-      * Description
-      * Status
-   * Edit fields for Tasks:
-      * Name
-      * Descriptions
-      * Status
-      * Deadline
-   * Edit name for Tags
+- [ ] Adding Projects, with title, some description and a way to add Tags and Tasks.
+- [x] Projects should total the time spent on them.
+- [x] Projects should have status: Planning, active, paused or completed.
+- [ ] Tags should be universal, available to be applied to any and all projects and sub-tasks.
+- [ ] Tasks must belong to a project.
+- [ ] Tasks should have a title and possibly description, status and possibly a deadline and tags.
+- [x] Users should be able to track time per Project.
+- [ ] Front end should be a website done with responsive designed mobile-first.
+   - [ ] Create projects, add tasks and tags
+   - [ ] List all Projects
+     - [ ] Name, Description, Status, TimeSpent, Tasks and Tags
+     - [ ] For Tasks: Name, Description, Status, Deadline, TimeSpent
+     - [ ] For Tags: Name
+   - [ ] List all Tags (show names and usages in Projects/Tasks)
+   - [ ] Add Tags to Tasks
+   - [x] Start and stop Timers for Projects
+   - [ ] Edit fields for Project:
+      - [x] Name
+      - [ ] Description
+      - [x] Status
+   - [ ] Edit fields for Tasks:
+      - [ ] Name
+      - [ ] Descriptions
+      - [ ] Status
+      - [ ] Deadline
+   - [x] Edit name for Tags
 
 ### Possible features
-* Login for users
-* Ability to start timer on the project itself, not associated with a task
-* Sorting projects by: Name, Status, Hours Worked, Tag
-* Keeping time per Task as well as for whole Project
-* Keep a history of DateTime stamps for each time you worked on a Task
-* Manually add time spent
+- [ ] Login for users
+- [ ] Ability to start timer on the each task
+- [ ] Sorting projects by: Name, Status, Hours Worked, Tag
+- [ ] Keeping time per Task as well as for whole Project
+- [ ] Keep a history of DateTime stamps for each time you worked on a Task
+- [ ] Manually add time spent
 
 ~~--------------------------------------------------~~
 ### To do 2025-01-27

@@ -197,7 +197,7 @@ function showThisItem(itemID, dataType, event){
             addElement('h4', `Used in ${data.projects.length} projects`, detailDiv);
         } else {
             if (dataType === 'project'){
-            let header = addElement('span','',detailDiv);
+            let header = addElement('div','',detailDiv);
             header.classList = 'header';
             let status = data.status;
             let statusValue=statusTexts[status];
@@ -207,7 +207,7 @@ function showThisItem(itemID, dataType, event){
             title.id="itemtitle";
             let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
             time.classList = 'totalTime';
-            let taskTimers = addElement('span','',header);
+            let taskTimers = addElement('div','',header);
             taskTimers.id='taskTimers';
             let startButton = addElement('button','',taskTimers);
             startButton.id = 'timerStart';
@@ -229,7 +229,7 @@ function showThisItem(itemID, dataType, event){
             });
 
             // header for Tasks
-            header = addElement('span','',detailDiv);
+            header = addElement('div','',detailDiv);
             header.classList = 'header';
             addElement('h3', 'Tasks', header);
             let element = addElement('p','',header);
@@ -246,7 +246,7 @@ function showThisItem(itemID, dataType, event){
             data.tasks.forEach(task => {
             let taskDiv = addElement('div','',detailDiv);
             taskDiv.classList='detailTask shadowbox';
-            header = addElement('span','',taskDiv);
+            header = addElement('div','',taskDiv);
             header.classList = 'header';
             let status = task.status;
             let statusValue=statusTexts[status];
