@@ -15,16 +15,12 @@
 }
 
 #container {
-    width: 90%;
-    max-width: 600px;
+    width: 95%;
     margin: 0 auto;
     padding: 0;
     border: 1px solid var(--greyBorder);
     border-radius: 5px;
     box-shadow: 0 0 5px var(--greyShadow);   
-}
-#nowShowing {
-    grid-column: 1/3;
 }
 #container>div {
     margin-bottom: 0.8em;
@@ -32,9 +28,6 @@
 }
 #contents {
     margin: 0 1em 0 0;
-    display:grid;
-    gap: 0.5em 0.5em;
-    grid-template-columns:  auto 40px;
 }
 
 h1 {
@@ -49,9 +42,7 @@ h2 {
 }
 #addNewItem {
     padding: 0.3em;
-    margin-right: 0.5em;
-    grid-column: 1/3;
-    max-width: 500px;
+    margin: 0.5em;
 }
 #addingBox {
     margin:auto 0;
@@ -64,6 +55,7 @@ h2 {
     display: flex;
     justify-content: space-between;
     padding-right: 1em;
+    flex-wrap: wrap;
 }
 .header>p {
     margin:auto 0; 
@@ -85,9 +77,10 @@ form > input {
 }
 form {
     display: grid;
-    grid-template-columns: 1fr 3fr;
+    grid-template-columns: 100px auto;
     grid-auto-rows: auto;
     align-items: center;
+
 }
 form > button, form > input, form > select {
     grid-column: 2/3;
@@ -119,7 +112,7 @@ button.selected {
     font-size: 0.5em;
 }
 .editButton, .deleteButton {
-    background-color: var(--greyShadow);
+    background-color: var(--mainGreen);
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -129,7 +122,7 @@ button.selected {
     height: 2em;
 }
 .editButton {
-    background-image: url('./img/edit_20dp.png');
+    background-image: url('./img/edit.png');
 
 }
 .deleteButton {
@@ -150,32 +143,38 @@ button.selected {
     display:block;
 }
 
-
 #edits, #detail {
     border: 1px solid var(--greyBorder);
-    border-radius: 5px;
     box-shadow: 0 0 5px var(--greyShadow);
-    margin: -0.4em 0 1em 2em;
+    border-radius: 5px;
+    margin: 0 0 1em 2em;
     padding: 0 0.5em 1.5em 1em;
-    box-sizing: border-box;
+    overflow: hidden; /* or overflow: auto; */
 }
 
-div.item {
-    /* background-color: #e0e0e0; */
+div.itemCard{
+    margin-bottom: 0.5em;
+    display: grid;
+    grid-template-columns: auto 40px;
     background-color: var(--greyMain);
-    padding: 0.5em;
     border-bottom: 0.1em solid var(--greyBorder);
     border-right: 0.1em solid var(--greyBorder);
     border-radius: 5px;
+    padding: 0.5em 0.2em;
+}
+div.item {
+
+    
     grid-column: 1/2;
     grid-row: span 2;
     display: flex;
     flex-direction: row;
 }
 div.item:hover {
-    background-color: var(--greyShadow);
+    background-color: var(--greySelected);
     border-color: var(--greyShadow);
     box-shadow: 0 0 5px var(--greyBorder);
+    border-radius: 5px;
 }
 div.edit {
     grid-column: 2/3;
@@ -187,17 +186,17 @@ div.delete {
 }
 div#detail {
     background-color: var(--greyMain);
-    grid-column: 1 / 2;
 }
 
 div.selected {
-    background-color: var(--greySelected);
-    border-color: var(--greySelected);
-    box-shadow: 0 0 5px var(--greyShadow);
+    background-color: var(--greyShadow);
+    border-radius: 15px;
 }
 .item > h3, .item >p {
-    /* display: inline-block; */
     margin: auto 0.5em;
+}
+.item.selected > h3 {
+    color: var(--mainSelected)
 }
 .item > h3 {
     margin-left: 0.5em;
@@ -212,28 +211,28 @@ div.selected {
     height: 20px;
     color: transparent;
 }
-p.status1 {  /* Active */
+
+p.status0 {  /* Planning */
+    background-image: url('./img/pending_20dp.png');
+}p.status1 {  /* Active */
     width: 20px;
     height: 20px;
     border-radius: 50%;
     border: 2px solid var(--mainSelected);
-    box-sizing: border-box;
-    
+    box-sizing: border-box;   
 }
-p.status0 {  /* Planning */
-    background-image: url('./img/pending_20dp.png');
+
+p.status2 { /* inactive */
+    background-image: url('./img/pause_circle_20dp.png');
 }
 p.status3 { /* Completed */
     border-radius: 50%;
     background-color: var(--mainSelected);
     background-image: url('./img/done.png');
 } 
-p.status2 { /* inactive */
-    background-image: url('./img/pause_circle_20dp.png');
 
-}
-p.totalTime {
-    background-image: url('./img/schedule_20dp_223602.png');
+.totalTime {
+    background-image: url('./img/schedule_20dp_ADADAD.png');
     background-size: contain;
     background-position: left;
     background-repeat: no-repeat;
@@ -243,7 +242,9 @@ p.totalTime {
     margin-right: 0.4em;
     text-align: right;
     max-height: 1em;
-    width: 5.5rem;
+}
+.item > .totalTime {
+    width: 1.6rem;
 }
 p.deadline {
     background-image: url('./img/calendar_clock_20dp.png');
@@ -273,10 +274,6 @@ p.noDeadline {
     border-left: 0.2em solid var(--greyBorder);
     box-shadow: 0 0 5px var(--greyShadow);
 }
-.selected > #taskTimers >.shadowbox {
-    border: 2px solid var(--greyShadow);
-    
-}
 
 [id^=timer] {
     display: inline-block;
@@ -299,6 +296,7 @@ p.noDeadline {
 }
 #timerStart.running {
     background-color: var(--greySelected);
+    border-color: var(--mainGreen);
 }
 #timerStop{
     background-image: url('./img/timer_off_20dp_F5F5F5.png');
@@ -307,12 +305,40 @@ p.noDeadline {
 #timerStop.valid {
     background-color: var(--mainSelected);
 }
+p.totalTime.runningTimer {
+    background-image: url('./img/timer_play_20dp_223602.png');
+    background-size: 20px;
+}
+ul.tagsList  {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;  
+}
+ul.tagsList > li {
+    list-style: none;
+    padding: 0.3em 15px 0.3em 25px;
+    background-image: url('./img/tag-outline.png');
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: 20px;
+}
+#addTagsToProject, #addTagsToTask {
+    color:transparent;
+    background-image: url('./img/tag-plus.png');
+    background-repeat: no-repeat;
+    background-position: left center;
+    background-size: 20px;
+}
+/* Start styling for Tags page */
 
-@media screen and (min-width: 960px) {
+
+@media screen and (min-width: 1100px) {
 
     #site-container {
         display: grid;
-        grid-template-columns: 130px auto;
+        grid-template-columns: 160px auto;
+        max-width: 1300px;
+        margin: 0 auto;
     }
     #site-container > h1 {
         grid-column: 1 / 3;
@@ -322,34 +348,34 @@ p.noDeadline {
         margin-left: 2em;
         flex-direction: column;
         justify-content: unset;
+        grid-column: 1 / 2;
+        grid-row: 2;
     }
     #navigate > button {
         width: 120px;
         margin-bottom: 1em;
-        
+        font-size: 1.2em;
     }
     #container {
         max-width: unset;
+        grid-column: 2 / 3;
     }
     #contents {
+        display:grid;
         max-width: unset;
-        grid-column: 1 / 2;
-        grid-template-columns: minmax(350px, 2fr) 40px 3fr;
-        grid-auto-rows: minmax(60px, auto); 
+        grid-template-columns: 1fr 1fr;
+        grid-auto-rows: minmax(100px, auto); 
     }
     #taskTimers{
         margin-left: 0.2em;
     }
-    #dataTable {
-        max-width: unset;
-    }
-    div#edits {
-        grid-column: 3 / 4;
-        grid-row: 1 / 19
-    }
+    div.itemCard{
+        grid-column: 1 / 2 ;
+        max-height: 100px;
+     }
     div#detail {
-        grid-column: 3 / 4;
-        grid-row: 1 / 19
+        grid-column: 2 / 3;
+        /* align-self: start; */
     }
     .header {
         padding-right: 0.2em;
@@ -361,28 +387,9 @@ p.noDeadline {
         width: 95%;
         max-width: unset;
     }
+
 }
-@media screen and (min-width: 1201px)  {
-    #site-container {
-        max-width: 1300px;
-        margin: 0 auto;
-    }
-    #container {
-        grid-template-columns: 1fr 1fr;
-    }
-    h1 {
-        font-size: 60px;
-    }
-    table {
-        max-width: unset;
-    }
-    #edits {
-        max-width: unset;
-    }
-    #projectsbtn {
-        font-size: 1.2em;
-    }
-}
+
 @media screen and (max-width: 450px) {
     div.item.selected, .header {
         display:block;
@@ -397,5 +404,7 @@ p.noDeadline {
     #detail {
         margin-left: 0;
     }
-    
+    * {
+        word-wrap: break-word;
+    }
 }

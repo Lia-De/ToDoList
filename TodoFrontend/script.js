@@ -115,7 +115,8 @@ async function showTags(){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tags`;
             let target = document.getElementById("contents");    
             clearData();
-            createDataTable(data, "tags");
+            // createDataTable(data, "tags");
+            createDataCards(data,'tags');
             selectedTypeButtons("tags");
         });
     } catch (error) {
@@ -128,11 +129,10 @@ async function showTags(){
 // helper functions to print out the adding form
 function printAddingPlus(){
     let target = document.getElementById("tagsbtn");
-    let addingBox = document.createElement("div");
-    // addingBox.id = "addNewItem";
+    let addingBox = document.createElement('button');
+    addingBox.innerText='+ New item';
     addingBox.id = "addItemButton"
     target.insertAdjacentElement("afterend", addingBox);
-    addElement('button', '+ Add new item', addingBox);
     addingBox.addEventListener('click', (event) => printAddingFormAndAddListeners(event));
 
 }
@@ -163,20 +163,15 @@ function showThisItem(itemID, dataType, event){
         return
     }
     getSingleItem(itemID, dataType).then( data => {
-        // Fix this to the right div event.target.closest('.item')
-        let target = event.target.closest('.item')
-                
+        let target = event.target.closest('.itemCard');   
         clearItemCard();
         
         event.target.classList.add("selected");
         // build the project card
         let detailDiv = document.createElement('div');
         detailDiv.id='detail';
-        // fix this appending
-        let deleteDiv = target.nextElementSibling?.nextElementSibling;
-        if (deleteDiv && deleteDiv.classList.contains("delete")) {
-            deleteDiv.insertAdjacentElement("afterend", detailDiv);
-        }
+        target.insertAdjacentElement("afterend", detailDiv);
+
         // Create the header row
         let itemID;
         switch (dataType){
@@ -244,40 +239,50 @@ function showThisItem(itemID, dataType, event){
 
             // Each task:
             data.tasks.forEach(task => {
-            let taskDiv = addElement('div','',detailDiv);
-            taskDiv.classList='detailTask shadowbox';
-            header = addElement('div','',taskDiv);
-            header.classList = 'header';
-            let status = task.status;
-            let statusValue=statusTexts[status];
-            let statusElement = addElement('p',statusValue, header);
-            statusElement.classList=`status${status}`;
-            addElement('h4',task.name, header);
-            let deadline = addElement('p','', header);
-            if (task.deadline) {
-            deadline.innerHTML = task.deadline;
-            deadline.classList = 'deadline';
-            } else {
-                deadline.classList='noDeadline';
-            }
-        // <p>Description</p>
-        // <div class="tagCloud">cotton, silk, counting</div>
-            addElement('p', task.description, detailDiv)
-            
-            let tags = task.tags.map(tag => tag.name).join(', ');
-            element = addElement('div',`Tags: ${tags}`,taskDiv);
+                let taskDiv = addElement('div','',detailDiv);
+                taskDiv.classList='detailTask shadowbox';
+                header = addElement('div','',taskDiv);
+                header.classList = 'header';
+                let status = task.status;
+                let statusValue=statusTexts[status];
+                let statusElement = addElement('p',statusValue, header);
+                statusElement.classList=`status${status}`;
+                addElement('h4',task.name, header);
+                let deadline = addElement('p','', header);
+                if (task.deadline) {
+                deadline.innerHTML = task.deadline;
+                deadline.classList = 'deadline';
+                } else {
+                    deadline.classList='noDeadline';
+                }
+                addElement('p', task.description, detailDiv)
+
+                element = addElement('ul',``,taskDiv);
+                element.classList='tagsList';
+                task.tags.forEach(tag => {
+                    addElement('li', tag.name, element);
+                });
+                let addTags = addElement('li', 'Add Tags',element);
+                addTags.id = "addTagsToTask";
             });
             }
 
             let tagBox = addElement('div','',detailDiv);
             tagBox.id='tagBox';
-            addElement('h4', `Tags`, tagBox);
+            tagBox.classList='tagsList';
             let taglist = addElement('ul','',tagBox);
+            taglist.classList='tagsList';
             data.tags.forEach(tag => {
                 addElement('li', tag.name, taglist);
             });
+            let addTagsButton = addElement('li', 'Add Tags',taglist);
+            addTagsButton.id = "addTagsToProject";
         }
+        // Ensure the div#detail spans the grid properly when we resize.
+        let rowSpan = Math.ceil(detailDiv.scrollHeight / 100);
+        detailDiv.setAttribute('style',`grid-row: 1 / span ${rowSpan}`);
     });
+    
 }
 // Helper function to switch which button is selected in the nav bar
 function selectedTypeButtons(selectedType){
@@ -642,12 +647,19 @@ async function sendEditRequest(requestData, fetchURL, dataType){
     }
 }
 function printAddingForm(dataType){
-    let target = document.getElementById("nowShowing");
+    
     let addingBox = document.createElement("div");
     addingBox.id = "addNewItem";
     addingBox.classList.add('shadowbox');
-    // target.appendChild(addingBox);
-    target.insertAdjacentElement("afterend", addingBox);
+    if (dataType != "addTask")
+    {
+        let target = document.getElementById("contents");
+        target.insertAdjacentElement("afterbegin", addingBox);
+    } else {
+        let target = document.getElementById('addingBox').parentNode;
+        target.insertAdjacentElement('afterend',addingBox);
+    }
+    
     let form = document.createElement("form");
     form.id = dataType;
    // Create the text input for the name
@@ -675,7 +687,6 @@ function printAddingForm(dataType){
             extraInput.id = 'projectId';
             extraInput.name = 'projectId';
             extraInput.value = document.getElementById('contents').querySelector('.selected').id;
-            console.log(extraInput.value);
             // fill the select field with projects
 
             form.appendChild(extraInput);
@@ -911,85 +922,76 @@ function createStatusRadioButtons(form){
     radioButton.value=3;
 }
 function createDataCards(data, dataType){
-/* <div class="item" id="4">
-    <p class="statusInactive">Inactive</p>
-    <h3>Project 4</h3>
-    <p class="totalTime"> 4:56 hours</p>                
-</div> 
-<div class="edit"><button class="editButton"></button></div>
-<div class="delete"><button class="deleteButton"></button></div>
-*/
-let timerCount = 0;
-const target = document.getElementById('contents');
-data.forEach(dataPoint => {
-    if (dataPoint.hasTimerRunning) timerCount +=1;
-    let itemdiv = addElement('div','', target);
+    let timerCount = 0;
+    const target = document.getElementById('contents');
+    data.forEach(dataPoint => {
+   
+   
+    if (dataType=='projects' && dataPoint.hasTimerRunning) {
+        timerCount +=1;
+    }
+    let itemCard = addElement('div','',target);
+    itemCard.classList="itemCard";
+
+    let itemdiv = addElement('div','', itemCard);
     itemdiv.classList = 'item';
     
-    // switch on dataType
-    itemdiv.id = dataPoint.projectId;
     
-    // switch on dataType, not for tags
-    let element = addElement('p',statusTexts[dataPoint.status], itemdiv);
-    element.classList.add(`status${dataPoint.status}`);
+    itemdiv.id = dataType=='projects'? dataPoint.projectId : dataPoint.tagId;
     
-    addElement('h3',dataPoint.name, itemdiv);
+    if (dataType=='projects'){
+    let statuselement = addElement('p',statusTexts[dataPoint.status], itemdiv);
+    statuselement.classList.add(`status${dataPoint.status}`);
+    }
+    
+    let element= addElement('h3',dataPoint.name, itemdiv);
 
-    // switch on dataType, not for tags
-    element = addElement('p',formatTimeSpan(dataPoint.totalWorkingTime), itemdiv);
-    element.classList = 'totalTime';
+    if (dataType=='projects'){
+        element = addElement('p',formatTimeSpan(dataPoint.totalWorkingTime), itemdiv);
+        element.classList = 'totalTime';
+        if (dataPoint.hasTimerRunning) {
+            element.classList.add('runningTimer');
+        }
+        let editdiv = addElement('div', '', itemCard);
+        editdiv.classList = 'edit';
+        let editButton = addElement('button','',editdiv);
+        editButton.classList="editButton";
+        editButton.addEventListener('click', () => {
+            editProject(dataPoint.projectId, dataPoint.name);
+        });
+    } else {
+        addElement('p', 'Usage: 1 (5)', itemdiv);
+        
+    }
 
-    let editdiv = addElement('div', '', target);
-    editdiv.classList = 'edit';
-    let editButton = addElement('button','',editdiv)
-    editButton.classList="editButton";
 
-    let deldiv = addElement('div','',target);
+    let deldiv = addElement('div','',itemCard);
     deldiv.classList = 'delete';
     let deleteButton=addElement('button','',deldiv);
     deleteButton.classList = 'deleteButton';
+    if (dataType =='projects') {
 
-    switch (dataType) {
-        case'projects':
-            editButton.addEventListener('click', () => {
-                editProject(dataPoint.projectId, dataPoint.name);
-            });
-            deleteButton.addEventListener('click', () => {
-                deleteProject(dataPoint.projectId, dataPoint.name);
-            });
-            itemdiv.addEventListener('click', (event) => {
-                showThisItem(dataPoint.projectId, 'project', event);
-            });
-            break;
-        case'tasks':
-            editButton.addEventListener('click', () => {
-                editTask(dataPoint.taskId, dataPoint.name);
-            });
-            deleteButton.addEventListener('click', () => {
-                deleteTask(dataPoint.taskId, dataPoint.name);
-            });
-            itemdiv.addEventListener('click', (event) => {
-                showThisItem(dataPoint.taskId, 'task', event); 
-            });
-            break;
-        case'tags':
-            editButton.addEventListener('click', () => {
-                editTag(dataPoint.tagId, dataPoint.name);
-            });
-            deleteButton.addEventListener('click', () => {
-                deleteTag(dataPoint.tagId, dataPoint.name);
-            });
-            itemdiv.addEventListener('click', (event) => {
-                showThisItem(dataPoint.tagId, 'tag', event);
-            });
-            break;
-        default:
-            console.error(`Unknown datatype: ${dataType}`);
-        }
+        deleteButton.addEventListener('click', () => {
+            deleteProject(dataPoint.projectId, dataPoint.name);
+        });
+        itemdiv.addEventListener('click', (event) => {
+            showThisItem(dataPoint.projectId, 'project', event);
+        });
+    } 
+    if (dataType=='tags') {
 
-
+        deleteButton.addEventListener('click', () => {
+            deleteTag(dataPoint.tagId, dataPoint.name);
+        });
+        itemdiv.addEventListener('click', (event) => {
+            showThisItem(dataPoint.tagId, 'tag', event);
+        });
+    }
 });
-document.getElementById("nowShowing").innerHTML += ` ${timerCount} timer(s) running`;
+    if (dataType == 'projects') {
+        document.getElementById("nowShowing")
+        .innerHTML += ` ${timerCount} timer(s) running`;
+    }
 }
 
 function formatTimeSpan(timeSpanString) {
