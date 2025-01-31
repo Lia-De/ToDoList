@@ -995,7 +995,7 @@ document.getElementById("nowShowing").innerHTML += ` ${timerCount} timer(s) runn
 function formatTimeSpan(timeSpanString) {
     // Extract hh:mm:ss from "hh:mm:ss.ffffff"
     if (timeSpanString == "00:00:00") {
-        return 'Not tracked';
+        return 'No time recorded';
     }
     let [hours, minutes, seconds] = timeSpanString.split(":").map(Number);
 

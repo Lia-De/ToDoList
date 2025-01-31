@@ -364,3 +364,6 @@ FodyWeavers.xsd
 /ToDoList/todo.db-shm
 /ToDoList/todo.db-wal
 /TodoFrontend/newDesignHTML.html
+
+.env
+ToDoList/todo.db
