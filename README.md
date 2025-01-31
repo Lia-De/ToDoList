@@ -19,21 +19,21 @@ it took.
 - [ ] Front end should be a website done with responsive designed mobile-first.
    - [ ] Create projects, add tasks and tags
    - [ ] List all Projects
-     - [ ] Name, Description, Status, TimeSpent, Tasks and Tags
-     - [ ] For Tasks: Name, Description, Status, Deadline, TimeSpent
+     - [X] Name, Description, Status, TimeSpent, Tasks and Tags
+     - [ ] For Tasks: Name, Description, Status, Deadline, (TimeSpent)
      - [ ] For Tags: Name
    - [ ] List all Tags (show names and usages in Projects/Tasks)
-   - [ ] Add Tags to Tasks
+   - [X] Add Tags to Tasks
    - [x] Start and stop Timers for Projects
    - [ ] Edit fields for Project:
       - [x] Name
       - [ ] Description
       - [x] Status
    - [ ] Edit fields for Tasks:
-      - [ ] Name
+      - [X] Name
       - [ ] Descriptions
       - [ ] Status
-      - [ ] Deadline
+      - [X] Deadline
    - [x] Edit name for Tags
 
 ### Possible features
@@ -44,14 +44,22 @@ it took.
 - [ ] Keep a history of DateTime stamps for each time you worked on a Task
 - [ ] Manually add time spent
 
+Lo-fi prototype: [Find it on Figma](https://www.figma.com/proto/CZhjlhFft9ezpkyJNBcyUX/Crafting-To-Do?node-id=17-78&t=J5iyQDHvTie9OMjz-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=17%3A77)
+
 ~~--------------------------------------------------~~
+### To do 2024-01-30
+* Map js methods for showing editing form
+* Add description options in user input
+* Expand creation of Task with more than name and deadline
+* Re-design and code viewing of Tags
+
 ### To do 2025-01-27
 * ~~Added css vars for colours~~ 
 * (design) Expand Figma designs
 * Change to follow re-design:
   * (frontend) Finish raw html/css styling
   * (backend) Set up timers and total time for Tasks.
-  * (backend) Set up methods to total time for a project
+  * ~~(backend) Set up methods to total time for a project~~
   * (frontend/backend) User input to add description text to Tasks
 
 ### To do 2025-01-24
