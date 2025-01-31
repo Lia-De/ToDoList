@@ -23,6 +23,7 @@ async function startTimer(piD){
         } 
         document.getElementById('timerStart').classList = 'running';
         document.getElementById('timerStop').classList = 'valid';
+        showProjects();
 
 
     } catch (error) {
@@ -47,7 +48,10 @@ async function stopTimer(prId){
             });
         } 
         response.text().then(data => {
-            alert(data); 
+            // alert(data); 
+            let reportedTime = addElement('p',`${data}`,document.getElementById('taskTimers'));
+            reportedTime.classList = "timerReport";
+
         });
         document.getElementById('timerStart').classList = '';
         document.getElementById('timerStop').classList = '';
@@ -653,6 +657,8 @@ function printAddingForm(dataType){
     addingBox.classList.add('shadowbox');
     if (dataType != "addTask")
     {
+        let title = dataType=='addProject' ? 'project': 'tag';
+        addElement('h4',`Add ${title}`,addingBox);
         let target = document.getElementById("contents");
         target.insertAdjacentElement("afterbegin", addingBox);
     } else {
@@ -665,11 +671,11 @@ function printAddingForm(dataType){
    // Create the text input for the name
    let label = addElement('label', 'Name:', form);
    label.setAttribute('for', 'newName');
-   let inputText = document.createElement('input');
+   let inputText = addElement('input','',form);
    inputText.type = 'text';
    inputText.id = 'newName';
    inputText.name = 'newName';
-   form.appendChild(inputText); 
+
    // Create the submit button
     let button = document.createElement('button');
     button.type = 'submit';
@@ -680,8 +686,21 @@ function printAddingForm(dataType){
     
     switch(dataType) {
         case "addProject":
+            label = addElement('label','Description', form);
+            label.setAttribute('for','description');
+            inputText = addElement('input','',form);
+            inputText.id='description';
+            inputText.name='description';
+            inputText.type='text';
             break;
         case "addTask":
+            label = addElement('label','Description', form);
+            label.setAttribute('for','description');
+            inputText = addElement('input','',form);
+            inputText.id='description';
+            inputText.name='description';
+            inputText.type='text';
+
             let extraInput = document.createElement('input');
             extraInput.type='hidden';
             extraInput.id = 'projectId';
@@ -960,7 +979,9 @@ function createDataCards(data, dataType){
             editProject(dataPoint.projectId, dataPoint.name);
         });
     } else {
-        addElement('p', 'Usage: 1 (5)', itemdiv);
+        let projectCount = dataPoint.projectCount;
+        let taskCount = dataPoint.taskCount;
+        addElement('p', `Usage: ${projectCount} (${taskCount})` , itemdiv);
         
     }
 

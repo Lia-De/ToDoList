@@ -31,15 +31,6 @@ public class ProjectController : ControllerBase
             .ToList();
     }
 
-    [HttpGet("getProjectIds")]
-    public List<int> GetProjectIds()
-    {
-        return _context
-            .Projects
-            .Select(p => p.ProjectId)
-            .ToList();
-    }
-
     [HttpGet("getSingleProject/{projectId}")]
     public Project? GetProject(int projectId)
     {
@@ -73,6 +64,9 @@ public class ProjectController : ControllerBase
     [HttpPost("addProject")]
     public IActionResult AddProject([FromForm] string name)
     {
+        // public IActionResult AddProject(Project frontendProject) {
+        // var project = new Project {Name = name, Description = description};
+        // }
         var project = new Project { Name = name };
         // By default, initialize project as planning
         project.Status = ToDoStatus.Planning;

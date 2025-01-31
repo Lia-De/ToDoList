@@ -108,9 +108,7 @@ button:hover {
 button.selected {
     background-color: var(--mainSelected);
 }
-#tagsbtn {
-    font-size: 0.5em;
-}
+
 .editButton, .deleteButton {
     background-color: var(--mainGreen);
     background-size: contain;
@@ -136,10 +134,14 @@ button.selected {
 
 }
 #disclaimers >p {
+    display:inline-block;
+    
+}
+#disclaimers >p.disclaimer {
     font-size: 0.8em;
     display:none;
 }
-#disclaimers.visible >p{
+#disclaimers.visible >p.disclaimer{
     display:block;
 }
 
@@ -204,7 +206,7 @@ div.selected {
 }
 
 [class^="status"] {
-    background-size: contain;
+    background-size: 20px;
     background-position: left;
     background-repeat: no-repeat;
     width: 20px;
@@ -292,7 +294,7 @@ p.noDeadline {
 }
 #timerStart{
     background-image: url('./img/timer_play_20dp_F5F5F5.png');
-    background-color: var(--mainSelected);
+    background-color: var(--mainGreen);
 }
 #timerStart.running {
     background-color: var(--greySelected);
@@ -304,6 +306,10 @@ p.noDeadline {
 }
 #timerStop.valid {
     background-color: var(--mainSelected);
+}
+.timerReport {
+    display: inline-block;
+
 }
 p.totalTime.runningTimer {
     background-image: url('./img/timer_play_20dp_223602.png');

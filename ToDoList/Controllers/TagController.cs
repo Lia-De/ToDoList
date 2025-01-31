@@ -16,11 +16,18 @@ public class TagController : ControllerBase
     }
     // Read
     [HttpGet]
-    public List<Tag> Index()
+    public List<TagDto> Index()
     {
         return _context
-            .Tags
-            .ToList();
+              .Tags
+              .Select(t => new TagDto
+              {
+                  TagId = t.TagId,
+                  Name = t.Name,
+                  ProjectCount = t.Projects.Count(),
+                  TaskCount = t.Tasks.Count()
+              })
+              .ToList();
     }
     [HttpGet("getSingleTag/{tagId}")]
     public Models.Tag? GetTag(int tagId)
