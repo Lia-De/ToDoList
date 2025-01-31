@@ -12,17 +12,17 @@ it took.
 - [ ] Adding Projects, with title, some description and a way to add Tags and Tasks.
 - [x] Projects should total the time spent on them.
 - [x] Projects should have status: Planning, active, paused or completed.
-- [ ] Tags should be universal, available to be applied to any and all projects and sub-tasks.
-- [ ] Tasks must belong to a project.
+- [X] Tags should be universal, available to be applied to any and all projects and sub-tasks.
+- [X] Tasks must belong to a project.
 - [ ] Tasks should have a title and possibly description, status and possibly a deadline and tags.
 - [x] Users should be able to track time per Project.
 - [ ] Front end should be a website done with responsive designed mobile-first.
    - [ ] Create projects, add tasks and tags
    - [ ] List all Projects
      - [X] Name, Description, Status, TimeSpent, Tasks and Tags
-     - [ ] For Tasks: Name, Description, Status, Deadline, (TimeSpent)
-     - [ ] For Tags: Name
-   - [ ] List all Tags (show names and usages in Projects/Tasks)
+     - [X] For Tasks: Name, Description, Status, Deadline, (TimeSpent)
+     - [X] For Tags: Name
+   - [X] List all Tags (show names and usages in Projects/Tasks)
    - [X] Add Tags to Tasks
    - [x] Start and stop Timers for Projects
    - [ ] Edit fields for Project:
@@ -51,7 +51,7 @@ Lo-fi prototype: [Find it on Figma](https://www.figma.com/proto/CZhjlhFft9ezpkyJ
 * Map js methods for showing editing form
 * Add description options in user input
 * Expand creation of Task with more than name and deadline
-* Re-design and code viewing of Tags
+* ~~Re-design and code viewing of Tags~~
 
 ### To do 2025-01-27
 * ~~Added css vars for colours~~ 
