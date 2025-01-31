@@ -44,6 +44,8 @@ it took.
 - [ ] Keep a history of DateTime stamps for each time you worked on a Task
 - [ ] Manually add time spent
 
+Lo-fi prototype: [Find it on Figma](https://www.figma.com/proto/CZhjlhFft9ezpkyJNBcyUX/Crafting-To-Do?node-id=17-78&t=J5iyQDHvTie9OMjz-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=17%3A77)
+
 ~~--------------------------------------------------~~
 ### To do 2024-01-30
 * Map js methods for showing editing form
