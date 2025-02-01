@@ -27,6 +27,7 @@ public class TagController : ControllerBase
                   ProjectCount = t.Projects.Count(),
                   TaskCount = t.Tasks.Count()
               })
+              .OrderBy(t => t.Name)
               .ToList();
     }
     [HttpGet("getSingleTag/{tagId}")]

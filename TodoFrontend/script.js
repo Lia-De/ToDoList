@@ -49,8 +49,12 @@ async function stopTimer(prId){
         } 
         response.text().then(data => {
             // alert(data); 
-            let reportedTime = addElement('p',`${data}`,document.getElementById('taskTimers'));
+            let reportedTime = document.createElement('p');
+            reportedTime.innerHTML = `${formatTimeSpan(data)} was added to the Running time of this Project`;
+            
             reportedTime.classList = "timerReport";
+            let target = document.getElementById('taskTimers');
+            target.insertAdjacentElement("afterend", reportedTime);
 
         });
         document.getElementById('timerStart').classList = '';
@@ -119,7 +123,6 @@ async function showTags(){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tags`;
             let target = document.getElementById("contents");    
             clearData();
-            // createDataTable(data, "tags");
             createDataCards(data,'tags');
             selectedTypeButtons("tags");
         });
@@ -127,7 +130,6 @@ async function showTags(){
         console.error('Error:', error);
         document.getElementById("nowShowing").innerHTML =`Database is unreachable`;
         clearData();
-        // createDataCards(hardcodedData, "projects");
     }
 }
 // helper functions to print out the adding form
@@ -308,7 +310,7 @@ function printAllTagsAndForm(tags, target, type){
         tagInput.id = 'taskTagCloud';
         tagInput.name = 'taskTagCloud';
         // set event listener
-        addTags.addEventListener('click', ());
+        // addTags.addEventListener('click', ());
 
     } else {
         tagDiv.id='projectTagAdding';
@@ -408,11 +410,11 @@ function editTag(tagID, tagName){
     form.id = "editTagForm";
     form.addEventListener('submit', editTagRequest);
 }
-// function editTask(taskID, taskName){
-//     let form = createEditForm(taskID, taskName);
-//     form.id = "editTaskForm";
-//     form.addEventListener('submit', editTaskRequest);
-// }
+function editTask(taskID, taskName){
+    let form = createEditForm(taskID, taskName);
+    form.id = "editTaskForm";
+    form.addEventListener('submit', editTaskRequest);
+}
 
 function deleteProject(id, name){
     const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
@@ -617,12 +619,12 @@ function editTaskRequest(event) {
     const name = document.getElementById('name').value;
     let deadline = document.getElementById('deadline').value;
     if (deadline===''){deadline=null;}
-    let inputTags = document.getElementById('tagCloud').value;
+    // let inputTags = document.getElementById('tagCloud').value;
     let statusChecked = document.querySelector('input[type=radio]:checked');
     let status=null;
     if (statusChecked!=null) {
         let statusValue =statusChecked.value;
-        let status = parseInt(statusValue, 10);
+        status = parseInt(statusValue, 10);
     }
 
     if (!isValidInput(name)){
@@ -630,20 +632,23 @@ function editTaskRequest(event) {
     } else {
         clearEdit();
 
-    // Data to send in the request
+    // Data to send in the request Adding fake project(and id)
     const requestData = {
         TaskId: id,
         Name: name,
         Status: status,
-        Deadline: deadline
+        ProjectID: 1,
+        Project: {ProjectId: 1, Name: ''},
+        Deadline: deadline,
+        Description: ''
     };
-    
+    console.log(requestData);
     sendEditRequest(requestData, `${config.apiBaseUrl}/Task/updateTask`, "task");
-    let tagArray = inputTags
-    .split(',')
-    .map(item => item.trim())
-    .filter(item => item !== '');
-    addTagsToItem(id, tagArray, 'task');
+    // let tagArray = inputTags
+    // .split(',')
+    // .map(item => item.trim())
+    // .filter(item => item !== '');
+    // addTagsToItem(id, tagArray, 'task');
 }
 };
 
@@ -674,11 +679,12 @@ async function sendEditRequest(requestData, fetchURL, dataType){
             }
         } else {
             const error = await response.json();
-            alert(`Failed to update ${dataType}: ${error.message}`);
+            alert(`Failed to update ${dataType}: ${error.message} `);
         }
     } catch (error) {
         console.error('Error:', error);
         alert('An unexpected error occurred.');
+        console.log(error.message);
     }
 }
 function printAddingForm(dataType){

@@ -20,6 +20,7 @@ public class TaskController : Controller
     {
         return _context
             .Tasks
+            .OrderByDescending(d => d.Deadline)
             .ToList();
     }
     
@@ -73,7 +74,7 @@ public class TaskController : Controller
     public IActionResult UpdateTask(ToDoList.Models.Task frontendTask)
     {
         string updatedInfo = "";
-        var task = _context.Tasks.Find(frontendTask.TaskId);
+        var task = _context.Tasks.FirstOrDefault(t => t.TaskId == frontendTask.TaskId);
         if (task == null)
         {
             return NotFound();

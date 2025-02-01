@@ -28,7 +28,12 @@ public class ProjectController : ControllerBase
     {
         return _context
             .Projects
+            .OrderByDescending(p => p.HasTimerRunning)          // First, sort by HasTimerRunning (true first)
+            .ThenBy(p => p.Status != ToDoStatus.Active)         // Then, sort by Status (Active)
+            .ThenBy(p => p.Status)
+            .ThenBy(p => p.Name)                                // Finally, sort alphabetically by Name
             .ToList();
+
     }
 
     [HttpGet("getSingleProject/{projectId}")]
