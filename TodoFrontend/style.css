@@ -173,7 +173,7 @@ div.item {
     flex-direction: row;
 }
 div.item:hover {
-    background-color: var(--greySelected);
+    background-color: var(--greyBorder);
     border-color: var(--greyShadow);
     box-shadow: 0 0 5px var(--greyBorder);
     border-radius: 5px;

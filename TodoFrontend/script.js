@@ -243,7 +243,8 @@ function showThisItem(itemID, dataType, event){
             tagBox.id='tagBox';
             tagBox.classList='tagsList';
 
-            printAllTagsAndForm(data.tags, tagBox, 'project');
+            let ptform = printAllTagsAndForm(data.tags, tagBox, 'project');
+            ptform.addEventListener('submit', addTagToProject);
 
             // header for Tasks
             header = addElement('div','',detailDiv);
@@ -269,7 +270,8 @@ function showThisItem(itemID, dataType, event){
                 let statusValue=statusTexts[status];
                 let statusElement = addElement('p',statusValue, header);
                 statusElement.classList=`status${status}`;
-                addElement('h4',task.name, header);
+                let taskname=addElement('h4',task.name, header);
+                taskname.id='name';
                 let deadline = addElement('p','', header);
                 if (task.deadline) {
                 deadline.innerHTML = task.deadline;
@@ -280,7 +282,13 @@ function showThisItem(itemID, dataType, event){
                 addElement('p', task.description, taskDiv)
                 let taskTagDiv = addElement('div','',taskDiv);
                 taskTagDiv.classList='tagsList';
-                printAllTagsAndForm(task.tags, taskTagDiv, 'task');
+                let form = printAllTagsAndForm(task.tags, taskTagDiv, 'task');
+                let hiddenId = addElement('input','',form);
+                hiddenId.id = 'taskid';
+                hiddenId.type="hidden";
+                hiddenId.value = task.taskId;
+                // set event listener
+                form.addEventListener('submit', addTagToTask);
             });
             }
         }
@@ -309,16 +317,12 @@ function printAllTagsAndForm(tags, target, type){
         tagDiv.id='taskTagAdding';
         tagInput.id = 'taskTagCloud';
         tagInput.name = 'taskTagCloud';
-        // set event listener
-        // addTags.addEventListener('click', ());
-
     } else {
         tagDiv.id='projectTagAdding';
         tagInput.id = 'projectTagCloud';
         tagInput.name = 'projectTagCloud';
-        // set event listener
     }
-
+    return form;
 }
 
 // Helper function to switch which button is selected in the nav bar
@@ -514,15 +518,28 @@ function addRequest(event, dataType) {
         alert(`You have to enter (some) text`);
     } else {
         
-        const formData = new FormData();
+        let formData = new FormData();
         formData.append('name', newEntry );
         switch(dataType) {
             case 'project':
                 sendAddRequest(formData,`${config.apiBaseUrl}/Project/addProject`,"project");
                 break;
             case 'task':
-                let projectId= parseInt(document.getElementById('projectId').value);
-                formData.append('projectId', projectId);
+                let desc = document.getElementById('description').value;
+                if (desc=='') {
+                    desc = null;
+                }
+                let deadline = document.getElementById('deadline');
+                if (deadline==null || deadline.value===''){deadline=null;}
+                let projectId= document.getElementById('detail').previousElementSibling.firstElementChild.id;
+                
+                formData ={
+                    Name: newEntry,
+                    ProjectId: projectId,
+                    Description: desc,
+                    Deadline: deadline
+                };
+
                 sendAddRequest(formData,`${config.apiBaseUrl}/Task/addTask`,"task");
                 break;
             case 'tag':
@@ -536,6 +553,22 @@ function addRequest(event, dataType) {
 }
 
 async function sendAddRequest(formData, fetchURL, dataType){
+    if (dataType==="task"){
+        try {
+            const response = await fetch(fetchURL, {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)});
+        if (response.ok) {
+            showProjects();
+        }   
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An unexpected error occurred.');
+        }
+    } else { 
     try {
         const response = await fetch(fetchURL, {
             method: 'POST',
@@ -545,8 +578,6 @@ async function sendAddRequest(formData, fetchURL, dataType){
             if (response.ok) {
                 if (dataType==="project")
                     showProjects();
-                if (dataType==="task")
-                    showProjects();
                 if (dataType ==="tag")
                     showTags();
     
@@ -554,10 +585,12 @@ async function sendAddRequest(formData, fetchURL, dataType){
                 const error = await response.json();
                 alert(`Failed to add ${dataType}: ${error.message}`);
             }
+            
         } catch (error) {
             console.error('Error:', error);
             alert('An unexpected error occurred.');
         }
+    }
 }
 
 function editProjectRequest(event) {
@@ -567,7 +600,7 @@ function editProjectRequest(event) {
     // Get input values
     let id = parseInt(document.getElementById('id').value, 10);
     let name = document.getElementById('name').value;
-    let inputTags = document.getElementById('tagCloud').value;
+    let inputTags = document.getElementById('projectTagCloud').value;
     let statusValue =document.querySelector('input[type=radio]:checked').value;
     let status = parseInt(statusValue, 10);
     if (!isValidInput(name)){
@@ -616,10 +649,10 @@ function editTaskRequest(event) {
 
     // Get input values
     const id = parseInt(document.getElementById('id').value);
-    const name = document.getElementById('name').value;
-    let deadline = document.getElementById('deadline').value;
-    if (deadline===''){deadline=null;}
-    // let inputTags = document.getElementById('tagCloud').value;
+    const name = document.getElementById('name').innerText;
+    let deadline = document.getElementById('deadline');
+    if (deadline==null || deadline.value===''){deadline=null;}
+    let inputTags = document.getElementById('taskTagCloud').value;
     let statusChecked = document.querySelector('input[type=radio]:checked');
     let status=null;
     if (statusChecked!=null) {
@@ -632,23 +665,20 @@ function editTaskRequest(event) {
     } else {
         clearEdit();
 
-    // Data to send in the request Adding fake project(and id)
+    // Data to send in the request
     const requestData = {
         TaskId: id,
         Name: name,
         Status: status,
-        ProjectID: 1,
-        Project: {ProjectId: 1, Name: ''},
         Deadline: deadline,
         Description: ''
     };
-    console.log(requestData);
     sendEditRequest(requestData, `${config.apiBaseUrl}/Task/updateTask`, "task");
-    // let tagArray = inputTags
-    // .split(',')
-    // .map(item => item.trim())
-    // .filter(item => item !== '');
-    // addTagsToItem(id, tagArray, 'task');
+    let tagArray = inputTags
+    .split(',')
+    .map(item => item.trim())
+    .filter(item => item !== '');
+    addTagsToItem(id, tagArray, 'task');
 }
 };
 
@@ -1172,23 +1202,39 @@ function createDataTable(data, dataType) {
                 console.error(`Unknown datatype: ${dataType}`);
             }
 
-
         table.appendChild(row);
     });    
 }
 
-
-async function addTagsToItem(dataid, tagArray, dataType){
+function addTagToTask(){
+    addTagToItem('task');
+}
+function addTagToProject(){
+    addTagToItem('project');
+}
+async function addTagToItem(dataType){
+    let inputTags;
+    let dataid;
     let fetchUrl='';
     switch (dataType){
     case 'project':
+        inputTags = document.getElementById('projectTagCloud').value;
+        dataid= document.getElementById('contents').querySelector('.selected').id;
+        console.log(dataid);
         fetchUrl = `${config.apiBaseUrl}/Project/addTagsToProject/${dataid}`;
+        console.log(fetchUrl);
         break;
-    case 'task':
+    case 'task':    
+        inputTags = document.getElementById('taskTagCloud').value;
+        dataid = parseInt(document.getElementById('taskid').value,10);
+        
         fetchUrl = `${config.apiBaseUrl}/Task/addTagsToTask/${dataid}`;    
         break;
     }
-    
+    let tagArray = inputTags
+    .split(',')
+    .map(item => item.trim())
+    .filter(item => item !== '');
     const response = await fetch(fetchUrl, {
         method: 'POST',
         headers: {

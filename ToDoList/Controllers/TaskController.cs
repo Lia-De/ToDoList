@@ -53,25 +53,32 @@ public class TaskController : Controller
     }
     // Create
     [HttpPost("addTask")]
-    public IActionResult AddTask([FromForm] string name, [FromForm] int projectID)
+    public IActionResult AddTask(TaskDto newTask)
     {
         
-        Project? project = _context.Projects.Find(projectID);
-        Console.WriteLine($"project is: {project}");
+        Project? project = _context.Projects.Find(newTask.ProjectId);
+       
         if (project == null)
         {
             return BadRequest("Project not found");
         }
         // Explicitly set this as linked
-        var task = new Models.Task { Name = name, ProjectId = projectID, Project = project };
-        //project.Tasks.Add(task);
-        _context.Tasks.Add(task);
+        var task = new Models.Task { Name = newTask.Name, ProjectId = project.ProjectId, Project = project };
+        if (newTask.Deadline != null)
+        {
+            task.Deadline = newTask.Deadline;
+        }
+        if (newTask.Description != null)
+        {
+            task.Description = newTask.Description;
+        }
+            _context.Tasks.Add(task);
         _context.SaveChanges();
-        return Ok($"Task {name} added");
+        return Ok($"Task {newTask.Name} added");
     }
     // Update
     [HttpPost("updateTask")]
-    public IActionResult UpdateTask(ToDoList.Models.Task frontendTask)
+    public IActionResult UpdateTask(ToDoList.Models.TaskDto frontendTask)
     {
         string updatedInfo = "";
         var task = _context.Tasks.FirstOrDefault(t => t.TaskId == frontendTask.TaskId);
