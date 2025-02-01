@@ -309,7 +309,6 @@ p.noDeadline {
 }
 .timerReport {
     display: inline-block;
-
 }
 p.totalTime.runningTimer {
     background-image: url('./img/timer_play_20dp_223602.png');
@@ -327,13 +326,37 @@ ul.tagsList > li {
     background-repeat: no-repeat;
     background-position: left center;
     background-size: 20px;
+    min-height: 20px;
 }
-#addTagsToProject, #addTagsToTask {
+div.tagsList{
+    display: flex;
+    flex-direction: row;
+}
+#projectTagAdding, #taskTagAdding{
+    margin: auto 0;
+}
+#projectTagAdding>form, #taskTagAdding>form {
+    grid-template-columns: 40px auto;
+}
+#taskTagAdding>form>button, #projectTagAdding>form>button {
+    grid-column: 1/2;
+    margin: 0 0.5em 0.5em auto;
+    padding: 0;
     color:transparent;
-    background-image: url('./img/tag-plus.png');
+    background-color: var(--greyMain);
+    border: unset;
+    background-image: url('./img/tag-plus-outline.png');
     background-repeat: no-repeat;
-    background-position: left center;
+    background-position: center center;
     background-size: 20px;
+    height: 25px;
+    width: 25px;
+}
+#taskTagAdding>form>button:hover, #projectTagAdding>form>button:hover {
+    border: 2px solid var(--greySelected);
+}
+#taskTagAdding>form>input ,#projectTagAdding>form>input {
+    max-width: 100px;
 }
 /* Start styling for Tags page */
 
@@ -412,5 +435,21 @@ ul.tagsList > li {
     }
     * {
         word-wrap: break-word;
+    }
+    div.tagsList{
+        display: block;
+    }
+    p.totalTime {
+        width: 6em;
+    }
+    #taskTimers {
+        margin: 0;
+    }
+    #taskTimers>button {
+        margin-right: 1em;
+    }
+    ul.tagsList {
+        padding-left: 0;
+        margin-top: 0;
     }
 }

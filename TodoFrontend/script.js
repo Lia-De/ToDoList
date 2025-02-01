@@ -192,15 +192,25 @@ function showThisItem(itemID, dataType, event){
         // display count of useages for tags, or status and all tags for the others
         if (dataType==='tag'){
             addElement('h3', `#${itemID} ${data.name}`, detailDiv);
-            addElement('h4', `Used in ${data.tasks.length} tasks`, detailDiv);
-            addElement('h4', `Used in ${data.projects.length} projects`, detailDiv);
+            
+            if (data.projects.length > 0) {
+                let allProjects = addElement('p', `Used in <b>${data.projects.length}</b> projects:`, detailDiv);
+                let list = addElement('ul','',detailDiv);
+                data.projects.forEach(project => {
+                    addElement('li',project.name, list);
+                });
+            } else {addElement('p','Not used in any project.',detailDiv);}
+            if (data.tasks.length > 0) {        
+                addElement('p', `Also used in <b>${data.tasks.length}</b> tasks`, detailDiv);
+            } else {
+                addElement('p', `Not used in any task.`, detailDiv);
+            }
         } else {
             if (dataType === 'project'){
             let header = addElement('div','',detailDiv);
             header.classList = 'header';
             let status = data.status;
-            let statusValue=statusTexts[status];
-            let statusElement = addElement('p',statusValue, header);
+            let statusElement = addElement('p',statusTexts[status], header);
             statusElement.classList=`status${status}`;
             let title = addElement('h2',data.name, header);
             title.id="itemtitle";
@@ -226,6 +236,12 @@ function showThisItem(itemID, dataType, event){
             if (event.target.classList == 'valid')
                 stopTimer(data.projectId);
             });
+            
+            let tagBox = addElement('div','',detailDiv);
+            tagBox.id='tagBox';
+            tagBox.classList='tagsList';
+
+            printAllTagsAndForm(data.tags, tagBox, 'project');
 
             // header for Tasks
             header = addElement('div','',detailDiv);
@@ -259,35 +275,50 @@ function showThisItem(itemID, dataType, event){
                 } else {
                     deadline.classList='noDeadline';
                 }
-                addElement('p', task.description, detailDiv)
-
-                element = addElement('ul',``,taskDiv);
-                element.classList='tagsList';
-                task.tags.forEach(tag => {
-                    addElement('li', tag.name, element);
-                });
-                let addTags = addElement('li', 'Add Tags',element);
-                addTags.id = "addTagsToTask";
+                addElement('p', task.description, taskDiv)
+                let taskTagDiv = addElement('div','',taskDiv);
+                taskTagDiv.classList='tagsList';
+                printAllTagsAndForm(task.tags, taskTagDiv, 'task');
             });
             }
-
-            let tagBox = addElement('div','',detailDiv);
-            tagBox.id='tagBox';
-            tagBox.classList='tagsList';
-            let taglist = addElement('ul','',tagBox);
-            taglist.classList='tagsList';
-            data.tags.forEach(tag => {
-                addElement('li', tag.name, taglist);
-            });
-            let addTagsButton = addElement('li', 'Add Tags',taglist);
-            addTagsButton.id = "addTagsToProject";
         }
         // Ensure the div#detail spans the grid properly when we resize.
         let rowSpan = Math.ceil(detailDiv.scrollHeight / 100);
         detailDiv.setAttribute('style',`grid-row: 1 / span ${rowSpan}`);
     });
-    
 }
+
+// Helper function to print all Tags, and add Tag form for Tasks and Projects
+function printAllTagsAndForm(tags, target, type){
+    let tagList= addElement('ul',``,target);
+    tagList.classList='tagsList';
+    tags.forEach(tag => {
+        addElement('li', tag.name, tagList);
+    });
+    let tagDiv = addElement('div','',target);
+    
+    let form = addElement('form','',tagDiv);
+    let addTags = addElement('button', 'Add Tags',form);
+    addTags.type='submit';
+    let tagInput = addElement('input','',form);
+    tagInput.type = 'text';
+    tagInput.setAttribute('placeholder','Add tag');
+    if (type =='task') {
+        tagDiv.id='taskTagAdding';
+        tagInput.id = 'taskTagCloud';
+        tagInput.name = 'taskTagCloud';
+        // set event listener
+        addTags.addEventListener('click', ());
+
+    } else {
+        tagDiv.id='projectTagAdding';
+        tagInput.id = 'projectTagCloud';
+        tagInput.name = 'projectTagCloud';
+        // set event listener
+    }
+
+}
+
 // Helper function to switch which button is selected in the nav bar
 function selectedTypeButtons(selectedType){
     let selectedButton = document.querySelectorAll("button.selected");
@@ -377,11 +408,11 @@ function editTag(tagID, tagName){
     form.id = "editTagForm";
     form.addEventListener('submit', editTagRequest);
 }
-function editTask(taskID, taskName){
-    let form = createEditForm(taskID, taskName);
-    form.id = "editTaskForm";
-    form.addEventListener('submit', editTaskRequest);
-}
+// function editTask(taskID, taskName){
+//     let form = createEditForm(taskID, taskName);
+//     form.id = "editTaskForm";
+//     form.addEventListener('submit', editTaskRequest);
+// }
 
 function deleteProject(id, name){
     const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
@@ -722,7 +753,6 @@ function printAddingForm(dataType){
         default:
     }
     
-
     form.appendChild(button);
 
     addingBox.appendChild(form);

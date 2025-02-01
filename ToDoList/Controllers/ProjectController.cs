@@ -232,7 +232,7 @@ public class ProjectController : ControllerBase
             TimeSpan duration = _projectService.StopTaskTimer(projectId);
             if (duration > TimeSpan.Zero)
             {
-                return Ok($"Time spent was: {duration.ToString(@"hh\:mm\:ss")}");
+                return Ok($"{duration.ToString(@"hh\:mm\:ss")}");
             }
             else
             {
