@@ -67,12 +67,16 @@ public class ProjectController : ControllerBase
 
     // Create
     [HttpPost("addProject")]
-    public IActionResult AddProject([FromForm] string name)
+    public IActionResult AddProject([FromForm] string name, [FromForm] string? description)
     {
         // public IActionResult AddProject(Project frontendProject) {
         // var project = new Project {Name = name, Description = description};
         // }
         var project = new Project { Name = name };
+        if (description != null)
+        {
+            project.Description = description;
+        }
         // By default, initialize project as planning
         project.Status = ToDoStatus.Planning;
         _context.Projects.Add(project);
@@ -82,7 +86,7 @@ public class ProjectController : ControllerBase
   
     // Update
     [HttpPost("updateProject")]
-    public IActionResult UpdateProject(Project frontendProject)
+    public IActionResult UpdateProject(ProjectDto frontendProject)
     {
         string updatedInfo = "";
         var project = GetProject(frontendProject.ProjectId);
@@ -91,16 +95,21 @@ public class ProjectController : ControllerBase
             return NotFound();
         }
         
-        if (frontendProject.Status != project.Status)
+        if ((frontendProject.Status >= 0) && (frontendProject.Status != project.Status))
         {
-            project.Status = frontendProject.Status;
+            project.Status = (ToDoStatus)frontendProject.Status;
             updatedInfo += " Status";
         }
         string oldName = project.Name;
-        if (project.Name != frontendProject.Name)
+        if (!string.IsNullOrEmpty(frontendProject.Name))
         {
             project.Name = frontendProject.Name;
             updatedInfo += " Name";
+        }
+        if (!string.IsNullOrEmpty(frontendProject.Description))
+        {
+            project.Description = frontendProject.Description;
+            updatedInfo += " Description";
         }
         _context.SaveChanges();
         return Ok($"Project ({oldName}) updated with: {updatedInfo}.");
@@ -116,6 +125,11 @@ public class ProjectController : ControllerBase
         if (project == null)
         {
             return NotFound();
+        }
+        // Make sure we delete any running timers
+        if (project.HasTimerRunning)
+        {
+            StopTimer(project.ProjectId);
         }
 
         _context.Tasks.RemoveRange(project.Tasks);
@@ -158,7 +172,7 @@ public class ProjectController : ControllerBase
                 }
             }
             _context.SaveChanges();
-            return Ok();
+            return Ok(project.Tags);
         }
     }
 

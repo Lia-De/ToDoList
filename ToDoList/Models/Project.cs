@@ -9,4 +9,5 @@ public class Project
     public ToDoStatus Status { get; set; }
     public TimeSpan TotalWorkingTime { get; set; } = TimeSpan.Zero;
     public bool HasTimerRunning { get; set; } = false;
+    public string Description { get; set; } = string.Empty;
 }

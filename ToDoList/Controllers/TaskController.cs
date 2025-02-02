@@ -114,17 +114,17 @@ public class TaskController : Controller
         return Ok($"Task {frontendTask.Name} updated with {updatedInfo}");
     }
     // Delete
-    [HttpDelete("deleteTask/{taskId}")]
-    public IActionResult DeleteTask(int taskId)
+    [HttpDelete("deleteTask")]
+    public IActionResult DeleteTask(TaskDto task)
     {
-        var task = _context.Tasks.Find(taskId);
-        if (task == null)
+        var taskToDelete = _context.Tasks.Find(task.TaskId);
+        if (taskToDelete == null)
         {
             return NotFound();
         }
-        _context.Tasks.Remove(task);
+        _context.Tasks.Remove(taskToDelete);
         _context.SaveChanges();
-        return Ok($"Task {taskId} deleted");
+        return Ok($"Task {task.TaskId} deleted");
     }
 
     [HttpPost("addTagsToTask/{taskId}")]
@@ -158,7 +158,7 @@ public class TaskController : Controller
                 }
             }
             _context.SaveChanges();
-            return Ok();
+            return Ok(task.Tags);
         }
     }
 

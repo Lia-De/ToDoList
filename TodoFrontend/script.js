@@ -25,12 +25,11 @@ async function startTimer(piD){
         document.getElementById('timerStop').classList = 'valid';
         showProjects();
 
-
     } catch (error) {
             console.error('Error:', error);
             document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
             clearData();
-            createDataTable(hardcodedData, "projects");
+            // createDataTable(hardcodedData, "projects");
     }
 
 }
@@ -48,17 +47,22 @@ async function stopTimer(prId){
             });
         } 
         response.text().then(data => {
-            // alert(data); 
             let reportedTime = document.createElement('p');
-            reportedTime.innerHTML = `${formatTimeSpan(data)} was added to the Running time of this Project`;
+            reportedTime.innerHTML = ` ${formatTimeSpan(data)} will be added to the running time of this Project`;
             
             reportedTime.classList = "timerReport";
-            let target = document.getElementById('taskTimers');
+            let target=document.getElementById('detail').querySelectorAll('.totalTime')[0];
             target.insertAdjacentElement("afterend", reportedTime);
+                       
 
         });
         document.getElementById('timerStart').classList = '';
         document.getElementById('timerStop').classList = '';
+        document.getElementById(prId).querySelector('.runningTimer').classList.remove('runningTimer');
+        
+        
+
+        
 
     } catch (error) {
             console.error('Error:', error);
@@ -162,17 +166,17 @@ function printAddingFormAndAddListeners (event, dataType) {
     }
 }
 // Show all details on a single item
-function showThisItem(itemID, dataType, event){
-    if ( event.target.classList.contains("selected")) {
+function showThisItem(itemID, dataType, target){
+    if ( target.classList.contains("selected")) {
         // we are already displaying an item card, so clear it and show the adding option
         clearItemCard();
         return
     }
     getSingleItem(itemID, dataType).then( data => {
-        let target = event.target.closest('.itemCard');   
+        // let target = event.target.closest('.itemCard');   
         clearItemCard();
         
-        event.target.classList.add("selected");
+        target.classList.add("selected");
         // build the project card
         let detailDiv = document.createElement('div');
         detailDiv.id='detail';
@@ -213,38 +217,35 @@ function showThisItem(itemID, dataType, event){
             header.classList = 'header';
             let status = data.status;
             let statusElement = addElement('p',statusTexts[status], header);
-            statusElement.classList=`status${status}`;
+            statusElement.classList=`status${status}`;            
             let title = addElement('h2',data.name, header);
             title.id="itemtitle";
+            
+            let editdiv = addElement('div', '', header);
+            editdiv.classList = 'edit';
+            let editButton = addElement('button','',editdiv);
+            editButton.classList="editButton";
+            editButton.addEventListener('click', () => {
+                let oldEdit = document.getElementById("edits");
+                if (oldEdit != null) {
+                    oldEdit.parentNode.removeChild(oldEdit);        
+                } else {
+                    editProject(data.projectId, data.name);
+                }
+            });
+
             let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
             time.classList = 'totalTime';
-            let taskTimers = addElement('div','',header);
-            taskTimers.id='taskTimers';
-            let startButton = addElement('button','',taskTimers);
-            startButton.id = 'timerStart';
-            let stopButton = addElement('button','',taskTimers);
-            stopButton.id = 'timerStop';
-            if (data.hasTimerRunning){
-                startButton.classList = 'running';
-                stopButton.classList = 'valid';
-            }
-            startButton.addEventListener('click', (event) => {
-            if (event.target.classList !='running')
-                startTimer(data.projectId);
-            });
-            
-            stopButton.addEventListener('click', (event) => {
-            let project = event.target.parentNode.parentNode.id;
-            if (event.target.classList == 'valid')
-                stopTimer(data.projectId);
-            });
+            // print timers in header
+            printTimerStartAndStop(target, data);
+            let pDescription = addElement('p',data.description,detailDiv);
             
             let tagBox = addElement('div','',detailDiv);
             tagBox.id='tagBox';
             tagBox.classList='tagsList';
 
             let ptform = printAllTagsAndForm(data.tags, tagBox, 'project');
-            ptform.addEventListener('submit', addTagToProject);
+            ptform.addEventListener('submit', (event) => addTagToProject(event));
 
             // header for Tasks
             header = addElement('div','',detailDiv);
@@ -256,8 +257,17 @@ function showThisItem(itemID, dataType, event){
             // ADD LISTENER TO CREATE TASK FORM for ths
             addButton.id="addTaskButton";
             addButton.addEventListener('click', (event) => {
-                let addingTaskForm = printAddingForm("addTask");
-                addingTaskForm.addEventListener('submit', (event) => addRequest(event, 'task'));
+                    let trg = document.getElementById('addNewItem');
+                    if (trg==null) {
+                        event.target.classList.add('clicked');
+                        let addingTaskForm = printAddingForm("addTask");
+                        addingTaskForm.addEventListener('submit', (event) => addRequest(event, 'task'));
+                    }
+                    else {
+                        trg.parentNode.removeChild(trg);
+                        event.target.classList.remove('clicked');
+                    } 
+                
             });
 
             // Each task:
@@ -271,10 +281,10 @@ function showThisItem(itemID, dataType, event){
                 let statusElement = addElement('p',statusValue, header);
                 statusElement.classList=`status${status}`;
                 let taskname=addElement('h4',task.name, header);
-                taskname.id='name';
+                taskname.id=`task#${task.taskId}`;
                 let deadline = addElement('p','', header);
                 if (task.deadline) {
-                deadline.innerHTML = task.deadline;
+                deadline.innerHTML = formatDateTime(task.deadline);
                 deadline.classList = 'deadline';
                 } else {
                     deadline.classList='noDeadline';
@@ -284,11 +294,13 @@ function showThisItem(itemID, dataType, event){
                 taskTagDiv.classList='tagsList';
                 let form = printAllTagsAndForm(task.tags, taskTagDiv, 'task');
                 let hiddenId = addElement('input','',form);
-                hiddenId.id = 'taskid';
+                // hiddenId.id = 'taskid';
                 hiddenId.type="hidden";
+                hiddenId.name='taskId';
                 hiddenId.value = task.taskId;
+                form.elements["taskTagCloud"].id=`taskTagCloud${task.taskId}`;
                 // set event listener
-                form.addEventListener('submit', addTagToTask);
+                form.addEventListener('submit', (event) => addTagToTask(event));
             });
             }
         }
@@ -315,7 +327,6 @@ function printAllTagsAndForm(tags, target, type){
     tagInput.setAttribute('placeholder','Add tag');
     if (type =='task') {
         tagDiv.id='taskTagAdding';
-        tagInput.id = 'taskTagCloud';
         tagInput.name = 'taskTagCloud';
     } else {
         tagDiv.id='projectTagAdding';
@@ -323,6 +334,30 @@ function printAllTagsAndForm(tags, target, type){
         tagInput.name = 'projectTagCloud';
     }
     return form;
+}
+
+// Helper function to print timers stop and start
+function printTimerStartAndStop(target, data) {
+    let projectTimers = document.createElement('div','');
+    target.firstChild.querySelectorAll('h3')[0].insertAdjacentElement('afterend',projectTimers);
+    projectTimers.id='projectTimers';
+    let startButton = addElement('button','Start',projectTimers);
+    startButton.id = 'timerStart';
+    let stopButton = addElement('button','Stop',projectTimers);
+    stopButton.id = 'timerStop';
+    if (data.hasTimerRunning){
+        startButton.classList = 'running';
+        stopButton.classList = 'valid';
+    }
+    startButton.addEventListener('click', (event) => {
+    if (event.target.classList !='running')
+        startTimer(data.projectId);
+    });
+    
+    stopButton.addEventListener('click', (event) => {
+    if (event.target.classList == 'valid')
+        stopTimer(data.projectId);
+    });
 }
 
 // Helper function to switch which button is selected in the nav bar
@@ -343,47 +378,50 @@ function addElement(elementType, data, target){
 
 // Helper function to clear the data from the contents div ready to be filled anew
 function clearData(){
+    
     document.getElementById("contents").innerHTML = "";
-    clearEdit();
+    clearItemCard();
     clearAddingForm();
 }
 // Helper function to clear the edit and detail form
 function clearEdit(){
-           
-    let oldEdit = document.getElementById("detail");
-    if (oldEdit != null) {
-        oldEdit.parentNode.removeChild(oldEdit);        
+    
+    let oldDetail = document.getElementById("detail");
+
+    if (oldDetail != null) {
+        oldDetail.parentNode.removeChild(oldDetail);        
     }
 
-    oldEdit = document.getElementById("edits");
+    let oldEdit = document.getElementById("edits");
     if (oldEdit != null) {
         oldEdit.parentNode.removeChild(oldEdit);        
     }
-    // reset the selected cell in the data table
-    let selectedDataCell = document.querySelectorAll("div.item.selected");
-    if (selectedDataCell.length != 0) {
-     selectedDataCell[0].classList.remove("selected");
-    }
-    let oldTimers = document.getElementById('taskTimers');
+    // reset the selected cell 
+    let selectedDataCell = document.getElementById('contents').querySelectorAll("div.itemCard.selected");
+    selectedDataCell.forEach(item => item.classList.remove("selected"));
+
+    let oldTimers = document.getElementById('projectTimers');
     if (oldTimers != null){
         oldTimers.parentNode.removeChild(oldTimers);
     }
 }
 // Helper function to clear the add form when we have added an item.
 function clearAddingForm(){
+    
     let oldAddingForm = document.getElementById("addNewItem");
     if (oldAddingForm != null)
         oldAddingForm.parentNode.removeChild(oldAddingForm);
 }
 
 function clearItemCard() {
+    
     //clear the decks for new card
     clearEdit();
-    clearAddingForm();
+
     
     // reset the selected cell in the data table
     let table=document.getElementById('contents');
-    let cells = table.querySelectorAll('item');
+    let cells = table.querySelectorAll('itemCard');
     cells.forEach(cell => { 
         cell.classList.remove("selected");
     });
@@ -404,16 +442,17 @@ function navigationEventListener(e){
  }
 // 3 functions to add and populate edit forms and set event listeners
 function editProject (projectID, clickedProject){
+
     let form = createEditForm(projectID, clickedProject);
     form.id ="editProjectForm";
     form.addEventListener('submit', editProjectRequest);
 };
 
-function editTag(tagID, tagName){
-    let form = createEditForm(tagID, tagName);
-    form.id = "editTagForm";
-    form.addEventListener('submit', editTagRequest);
-}
+// function editTag(tagID, tagName){
+//     let form = createEditForm(tagID, tagName);
+//     form.id = "editTagForm";
+//     form.addEventListener('submit', editTagRequest);
+// }
 function editTask(taskID, taskName){
     let form = createEditForm(taskID, taskName);
     form.id = "editTaskForm";
@@ -471,7 +510,7 @@ async function sendDeleteData(id, data, dataType) {
             fetchUrl = `${config.apiBaseUrl}/Task/deleteTask`;
             deleteData = {
                 taskId: id,
-                Name: data
+                name: data,
             };
             reload = showTasks;
             break;
@@ -522,6 +561,11 @@ function addRequest(event, dataType) {
         formData.append('name', newEntry );
         switch(dataType) {
             case 'project':
+                let pDesc = document.getElementById('description').value;
+                if (pDesc=='') {
+                    pDesc = null;
+                }
+                formData.append('Description', pDesc);
                 sendAddRequest(formData,`${config.apiBaseUrl}/Project/addProject`,"project");
                 break;
             case 'task':
@@ -529,8 +573,12 @@ function addRequest(event, dataType) {
                 if (desc=='') {
                     desc = null;
                 }
-                let deadline = document.getElementById('deadline');
-                if (deadline==null || deadline.value===''){deadline=null;}
+                let deadline = document.getElementById('deadline').value;
+                if (deadline!=null) {
+                    if (deadline=='') {
+                    deadline=null;
+                    }
+                }
                 let projectId= document.getElementById('detail').previousElementSibling.firstElementChild.id;
                 
                 formData ={
@@ -558,9 +606,10 @@ async function sendAddRequest(formData, fetchURL, dataType){
             const response = await fetch(fetchURL, {
                 method: 'POST',
                 headers: {
-                'Content-Type': 'application/json',
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData)});
+                body: JSON.stringify(formData),
+            });
         if (response.ok) {
             showProjects();
         }   
@@ -596,32 +645,38 @@ async function sendAddRequest(formData, fetchURL, dataType){
 function editProjectRequest(event) {
 
     event.preventDefault(); // Prevent the default form submission
-
     // Get input values
-    let id = parseInt(document.getElementById('id').value, 10);
-    let name = document.getElementById('name').value;
-    let inputTags = document.getElementById('projectTagCloud').value;
-    let statusValue =document.querySelector('input[type=radio]:checked').value;
-    let status = parseInt(statusValue, 10);
+    let id = parseInt(document.getElementById('editId').value, 10);
+    let name = document.getElementById('editName').value;
+    let status = document.querySelector('input[name="newStatus"]:checked');
+
+    if (status!=null) {
+        let statusValue =document.querySelector('input[type=radio]:checked').value;
+        status = parseInt(statusValue, 10);
+    }
+    let newDesc = document.getElementById('newDescription');
+    let description=null;
+    if (newDesc!=null){
+        description = newDesc.value;
+    }
+
     if (!isValidInput(name)){
         alert(`You have to enter (some) text`);
     } else {
-        clearEdit();
+        
             // Data to send in the request
+
     let requestData = {
         ProjectId: id,
         Name: name,
-        Status: status
+        Status: status,
+        Description: description
     };
+console.log(requestData);
     sendEditRequest(requestData, `${config.apiBaseUrl}/Project/updateProject`, "project");
-    
-    // also send add tags    
-    let tagArray = inputTags
-                    .split(',')
-                    .map(item => item.trim())
-                    .filter(item => item !== '');
-    addTagsToItem(id, tagArray, 'project');
-
+    // also send add tags
+    // addTagToProject();
+    clearEdit();
 }
 };
 
@@ -634,13 +689,14 @@ function editTagRequest(event) {
     if (!isValidInput(name)){
         alert(`You have to enter (some) text`);
     } else {
-        clearEdit();
+        
     // Data to send in the request
     const requestData = {
         TagId: id,
         Name: name
     };
     sendEditRequest(requestData, `${config.apiBaseUrl}/Tag/updateTag`, "tag");
+    clearEdit();
 }
 };
 
@@ -652,7 +708,8 @@ function editTaskRequest(event) {
     const name = document.getElementById('name').innerText;
     let deadline = document.getElementById('deadline');
     if (deadline==null || deadline.value===''){deadline=null;}
-    let inputTags = document.getElementById('taskTagCloud').value;
+    let desc = document.getElementById('taskCescription');
+    if (desc==null){desc='';}
     let statusChecked = document.querySelector('input[type=radio]:checked');
     let status=null;
     if (statusChecked!=null) {
@@ -661,24 +718,19 @@ function editTaskRequest(event) {
     }
 
     if (!isValidInput(name)){
-        alert(`You have to enter (some) text`);
+        alert(`You have to enter (some) text for the name`);
     } else {
-        clearEdit();
-
     // Data to send in the request
     const requestData = {
         TaskId: id,
         Name: name,
         Status: status,
         Deadline: deadline,
-        Description: ''
+        Description: desc,
     };
     sendEditRequest(requestData, `${config.apiBaseUrl}/Task/updateTask`, "task");
-    let tagArray = inputTags
-    .split(',')
-    .map(item => item.trim())
-    .filter(item => item !== '');
-    addTagsToItem(id, tagArray, 'task');
+    addTagToTask();
+    clearEdit();
 }
 };
 
@@ -718,7 +770,7 @@ async function sendEditRequest(requestData, fetchURL, dataType){
     }
 }
 function printAddingForm(dataType){
-    
+    clearAddingForm();
     let addingBox = document.createElement("div");
     addingBox.id = "addNewItem";
     addingBox.classList.add('shadowbox');
@@ -774,7 +826,6 @@ function printAddingForm(dataType){
             extraInput.name = 'projectId';
             extraInput.value = document.getElementById('contents').querySelector('.selected').id;
             // fill the select field with projects
-
             form.appendChild(extraInput);
             label = addElement('label','Optional Deadline: ', form);
             label.setAttribute('for','deadline');
@@ -782,6 +833,7 @@ function printAddingForm(dataType){
             deadline.type = 'datetime-local';
             deadline.name="deadline";
             deadline.id="deadline";
+            deadline.setAttribute('step','900');
 
             break;
         case "addTag":
@@ -797,9 +849,9 @@ function printAddingForm(dataType){
 
 // function to create and populate an edit form
 function createEditForm(dataID, editableText) {
-    let containerTarget = document.getElementById("container");
         // Check if we have an edit box already
-    clearEdit();
+        // edit to not change selected project?
+    // clearEdit();
 
         // Create the container div
     let editBox = document.createElement('div');
@@ -810,21 +862,21 @@ function createEditForm(dataID, editableText) {
 
         // Create the label for the name input
     let label = addElement('label', 'Name: ', form)
-    label.setAttribute('for', 'name');
+    label.setAttribute('for', 'editName');
     
     // Create the text input for the name
     let inputText = document.createElement('input');
     inputText.type = 'text';
-    inputText.id = 'name';
-    inputText.name = 'name';
+    inputText.id = 'editName';
+    inputText.name = 'editName';
     inputText.value = editableText; // Fill the input 
     form.appendChild(inputText);
        
     // Create the hidden input for the ID
     let inputHidden = document.createElement('input');
     inputHidden.type = 'hidden';
-    inputHidden.id = 'id';
-    inputHidden.name = 'id';
+    inputHidden.id = 'editId';
+    inputHidden.name = 'editId';
     inputHidden.value = dataID; // Set the hidden input value to data.id
 
     // Create the submit button
@@ -861,12 +913,34 @@ function createEditForm(dataID, editableText) {
             tagInput.id = 'tagCloud';
             tagInput.name = 'tagCloud';
             
-            // fill the form with relevant data
+            // fill the form with relevant data. Might not have to go to the db to fetch..
+            let ul = document.getElementById("tagBox").querySelector('.tagsList');
+            let items = ul.querySelectorAll("li");
+            console.log(items);
+            // let list = createEditableTagList(item);
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             getSingleItem(dataID,'project').then(itemData => {
                         
-                  fillItemData(itemData);
+                fillItemData(itemData, form);
+                
             });
+        
             break;
         case "tasksbtn":
                 // Append all elements to the form
@@ -895,7 +969,7 @@ function createEditForm(dataID, editableText) {
 
             getSingleItem(dataID,'task').then(itemData => {
                         
-                fillItemData(itemData);
+                fillItemData(itemData,form);
                 deadline.value=itemData.deadline;
           });
             break;
@@ -914,10 +988,12 @@ function createEditForm(dataID, editableText) {
     let divTarget = document.createElement('div');
     divTarget.appendChild(form);
     editBox.appendChild(divTarget);
-    containerTarget.appendChild(editBox);
-
+    
+    document.getElementById('detail').firstElementChild.insertAdjacentElement('afterend',editBox);
+    
     return form;
 }
+
 
 async function getSingleItem(itemID, dataType) {
     let fetchURL;
@@ -948,7 +1024,8 @@ async function getSingleItem(itemID, dataType) {
     }
 }
 
-function fillItemData(itemData) {
+function fillItemData(itemData, form) {
+    
     let taskCloud = document.getElementById('taskCloud');
     if (taskCloud!= null) {
         let tasks = itemData.tasks.map(task => task.name).join(', ');
@@ -956,11 +1033,13 @@ function fillItemData(itemData) {
     }
 
     let tags = itemData.tags.map(tag => tag.name).join(', ');
+    
     document.getElementById('oldTags').value = tags;
 
     switch (itemData.status) {
         case 0:
-            document.getElementById('statusZero').checked = true;
+            form.elements['statusZero'].checked = true;
+            // document.getElementById('statusZero').checked = true;
             break;
         case 1:
             document.getElementById('statusOne').checked = true;
@@ -1037,18 +1116,11 @@ function createDataCards(data, dataType){
         if (dataPoint.hasTimerRunning) {
             element.classList.add('runningTimer');
         }
-        let editdiv = addElement('div', '', itemCard);
-        editdiv.classList = 'edit';
-        let editButton = addElement('button','',editdiv);
-        editButton.classList="editButton";
-        editButton.addEventListener('click', () => {
-            editProject(dataPoint.projectId, dataPoint.name);
-        });
+        // do not print out edit button
     } else {
         let projectCount = dataPoint.projectCount;
         let taskCount = dataPoint.taskCount;
         addElement('p', `Usage: ${projectCount} (${taskCount})` , itemdiv);
-        
     }
 
 
@@ -1062,7 +1134,9 @@ function createDataCards(data, dataType){
             deleteProject(dataPoint.projectId, dataPoint.name);
         });
         itemdiv.addEventListener('click', (event) => {
-            showThisItem(dataPoint.projectId, 'project', event);
+            if (event.target.parentNode.id!="projectTimers") {
+                showThisItem(dataPoint.projectId, 'project', itemCard);
+            }
         });
     } 
     if (dataType=='tags') {
@@ -1070,8 +1144,8 @@ function createDataCards(data, dataType){
         deleteButton.addEventListener('click', () => {
             deleteTag(dataPoint.tagId, dataPoint.name);
         });
-        itemdiv.addEventListener('click', (event) => {
-            showThisItem(dataPoint.tagId, 'tag', event);
+        itemdiv.addEventListener('click', () => {
+            showThisItem(dataPoint.tagId, 'tag', itemCard);
         });
     }
 });
@@ -1083,158 +1157,95 @@ function createDataCards(data, dataType){
 
 function formatTimeSpan(timeSpanString) {
     // Extract hh:mm:ss from "hh:mm:ss.ffffff"
-    if (timeSpanString == "00:00:00") {
+    if (timeSpanString === "00:00:00") {
         return 'No time recorded';
     }
+
     let [hours, minutes, seconds] = timeSpanString.split(":").map(Number);
 
     // Round seconds to remove microseconds
-    seconds = Math.floor(seconds); 
+    seconds = Math.floor(seconds);
 
-    // Convert hours to days and remaining hours
+    // Convert hours to days and get remaining hours
     let days = Math.floor(hours / 24);
-    hours = hours % 24; // Get remaining hours after extracting days
-    // Format with leading zeros
-    return `${days}${String(hours)}h ${String(minutes)
-            .padStart(2, '0')}m ${String(seconds)
-                .padStart(2, '0')}s`;
-}
+    hours = hours % 24;
 
-// Function to create and populate the table
-function createDataTable(data, dataType) {
-    // Get the table element or create it if it doesn't exist
-    let table = document.getElementById('dataTable');
-
-    if (!table) {
-        table = document.createElement('table');
-        table.id = 'dataTable';
-        document.getElementById('contents').appendChild(table);
-            // Create the colgroup element
-    const colgroup = document.createElement('colgroup');
+    // Build the output dynamically
+    let parts = [];
     
-    const col1 = document.createElement('col');
-    col1.span = 1;
-    colgroup.appendChild(col1);
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (seconds > 0) parts.push(`${seconds}s`);
 
-    const col2 = document.createElement('col');
-    col2.id = 'editAndDelete';
-    col2.span = 2;
-    colgroup.appendChild(col2);
+    return parts.length > 0 ? parts.join(" ") : 'No time recorded';
+}
+function formatDateTime(dateString) {
+    let date = new Date(dateString);
+    let now = new Date();
 
-    table.appendChild(colgroup);
+    // Extract components
+    let year = date.getFullYear();
+    let month = date.toLocaleString('en-US', { month: 'short' }); // "Feb"
+    let day = date.getDate();
+    let hours = date.getHours().toString().padStart(2, '0');
+    let minutes = date.getMinutes().toString().padStart(2, '0'); // Ensure two-digit minutes
 
-    // Create the header row
-    const headerRow = document.createElement('tr');
+    // If the year is the current year, omit it
+    let showYear = year !== now.getFullYear();
+    
+    // Format string based on condition
+    return showYear
+        ? `${month} ${day}, ${year} @ ${hours}:${minutes}`
+        : `${month} ${day} @ ${hours}:${minutes}`;
+}
 
-    const headers = ['Data', 'Edit', 'Delete'];
-    headers.forEach(headerText => {
-        const th = document.createElement('th');
-        th.textContent = headerText;
-        headerRow.appendChild(th);
-    });
-
-    table.appendChild(headerRow);
+function addTagToTask(event){
+    event.preventDefault();
+    let tagCloud = 'taskTagCloud'+event.target.elements["taskId"].value;
+    let inputTags = document.getElementById(tagCloud).value;
+    
+    if (inputTags !=''){
+        addTagToItem(event,'task');
     }
-
-    // Add rows for each project in the data array
-    data.forEach(dataPoint => {
-        const row = document.createElement('tr');
-
-        // Project name column
-        const dataCell = document.createElement('td');
-        dataCell.textContent = dataPoint.name;
-        dataCell.className="data";
-        row.appendChild(dataCell);
-
-        // Edit button column
-        const editCell = document.createElement('td');
-        const editButton = document.createElement('button');
-        editButton.textContent = 'Save';
-        editButton.className="editButton";
-      
-        editCell.appendChild(editButton);
-        row.appendChild(editCell);
-
-        // Delete button column
-        const deleteCell = document.createElement('td');
-        const deleteButton = document.createElement('button');
-        deleteButton.textContent = 'Del';
-        deleteButton.className="deleteButton";
-        deleteCell.appendChild(deleteButton);
-        row.appendChild(deleteCell);
-        
-        // Set type specific listeners and data attributes
-        switch (dataType) {
-            case'projects':
-                editButton.addEventListener('click', () => {
-                    editProject(dataPoint.projectId, dataPoint.name);
-                });
-                deleteButton.addEventListener('click', () => {
-                    deleteProject(dataPoint.projectId, dataPoint.name);
-                });
-                dataCell.addEventListener('click', (event) => {
-                    showThisItem(dataPoint.projectId, 'project', event);
-                });
-                break;
-            case'tasks':
-                editButton.addEventListener('click', () => {
-                    editTask(dataPoint.taskId, dataPoint.name);
-                });
-                deleteButton.addEventListener('click', () => {
-                    deleteTask(dataPoint.taskId, dataPoint.name);
-                });
-                dataCell.addEventListener('click', (event) => {
-                    showThisItem(dataPoint.taskId, 'task', event); 
-                });
-                break;
-            case'tags':
-                editButton.addEventListener('click', () => {
-                    editTag(dataPoint.tagId, dataPoint.name);
-                });
-                deleteButton.addEventListener('click', () => {
-                    deleteTag(dataPoint.tagId, dataPoint.name);
-                });
-                dataCell.addEventListener('click', (event) => {
-                    showThisItem(dataPoint.tagId, 'tag', event);
-                });
-                break;
-            default:
-                console.error(`Unknown datatype: ${dataType}`);
-            }
-
-        table.appendChild(row);
-    });    
 }
-
-function addTagToTask(){
-    addTagToItem('task');
+function addTagToProject(event){
+    event.preventDefault();
+    let inputTags = document.getElementById('projectTagCloud').value;
+    if (inputTags !=''){
+        addTagToItem(event, 'project');
+    } 
+    
 }
-function addTagToProject(){
-    addTagToItem('project');
-}
-async function addTagToItem(dataType){
+async function addTagToItem(event, dataType){
+    event.preventDefault();
     let inputTags;
     let dataid;
     let fetchUrl='';
     switch (dataType){
     case 'project':
         inputTags = document.getElementById('projectTagCloud').value;
-        dataid= document.getElementById('contents').querySelector('.selected').id;
-        console.log(dataid);
+        dataid= document.getElementById('contents').querySelector('.itemCard.selected').firstElementChild.id;
+        if (dataid ==null) {
+            // showProjects();
+            break;
+        }
         fetchUrl = `${config.apiBaseUrl}/Project/addTagsToProject/${dataid}`;
-        console.log(fetchUrl);
         break;
     case 'task':    
-        inputTags = document.getElementById('taskTagCloud').value;
-        dataid = parseInt(document.getElementById('taskid').value,10);
+        let tagCloud = 'taskTagCloud'+event.target.elements["taskId"].value;
+        inputTags = document.getElementById(tagCloud).value;
+        dataid = parseInt(event.target.elements["taskId"].value,10);
         
         fetchUrl = `${config.apiBaseUrl}/Task/addTagsToTask/${dataid}`;    
         break;
     }
+    
     let tagArray = inputTags
     .split(',')
     .map(item => item.trim())
     .filter(item => item !== '');
+    
     const response = await fetch(fetchUrl, {
         method: 'POST',
         headers: {
@@ -1246,6 +1257,148 @@ async function addTagToItem(dataType){
     if (!response.ok) {
         console.log('Something went wrong with adding tags!')
         alert('Something went wrong when adding tags to a project');
-    } 
+    } else {
+        // Update tag list showing
+    
+        response.json().then(tags => {
+            // Clear the input
+            event.target.querySelector('input').value = '';
+            // Select the <ul> element
+            let tagList = event.target.parentNode.previousElementSibling;
+            // Clear existing <li> elements
+            tagList.innerHTML = '';
+    
+            // Add new <li> elements from the returned tags
+            tags.forEach(tag => {
+                let li = document.createElement('li');
+                li.textContent = tag.name; // Assuming the API returns an array of tag names
+                tagList.appendChild(li);
+            });
+        });
+
+    }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Function to create and populate the table used only on Task view
+// function createDataTable(data, dataType) {
+//     // Get the table element or create it if it doesn't exist
+//     let table = document.getElementById('dataTable');
+
+//     if (!table) {
+//         table = document.createElement('table');
+//         table.id = 'dataTable';
+//         document.getElementById('contents').appendChild(table);
+//             // Create the colgroup element
+//     const colgroup = document.createElement('colgroup');
+    
+//     const col1 = document.createElement('col');
+//     col1.span = 1;
+//     colgroup.appendChild(col1);
+
+//     const col2 = document.createElement('col');
+//     col2.id = 'editAndDelete';
+//     col2.span = 2;
+//     colgroup.appendChild(col2);
+
+//     table.appendChild(colgroup);
+
+//     // Create the header row
+//     const headerRow = document.createElement('tr');
+
+//     const headers = ['Data', 'Edit', 'Delete'];
+//     headers.forEach(headerText => {
+//         const th = document.createElement('th');
+//         th.textContent = headerText;
+//         headerRow.appendChild(th);
+//     });
+
+//     table.appendChild(headerRow);
+//     }
+
+//     // Add rows for each project in the data array
+//     data.forEach(dataPoint => {
+//         const row = document.createElement('tr');
+
+//         // Project name column
+//         const dataCell = document.createElement('td');
+//         dataCell.textContent = dataPoint.name;
+//         dataCell.className="data";
+//         row.appendChild(dataCell);
+
+//         // Edit button column
+//         const editCell = document.createElement('td');
+//         const editButton = document.createElement('button');
+//         editButton.textContent = 'Save';
+//         editButton.className="editButton";
+      
+//         editCell.appendChild(editButton);
+//         row.appendChild(editCell);
+
+//         // Delete button column
+//         const deleteCell = document.createElement('td');
+//         const deleteButton = document.createElement('button');
+//         deleteButton.textContent = 'Del';
+//         deleteButton.className="deleteButton";
+//         deleteCell.appendChild(deleteButton);
+//         row.appendChild(deleteCell);
+        
+//         // Set type specific listeners and data attributes
+//         switch (dataType) {
+//             case'projects':
+//                 editButton.addEventListener('click', () => {
+//                     editProject(dataPoint.projectId, dataPoint.name);
+//                 });
+//                 deleteButton.addEventListener('click', () => {
+//                     deleteProject(dataPoint.projectId, dataPoint.name);
+//                 });
+//                 dataCell.addEventListener('click', (event) => {
+//                     showThisItem(dataPoint.projectId, 'project', event);
+//                 });
+//                 break;
+//             case'tasks':
+//                 editButton.addEventListener('click', () => {
+//                     editTask(dataPoint.taskId, dataPoint.name);
+//                 });
+//                 deleteButton.addEventListener('click', () => {
+//                     deleteTask(dataPoint.taskId, dataPoint.name);
+//                 });
+//                 dataCell.addEventListener('click', (event) => {
+//                     showThisItem(dataPoint.taskId, 'task', event); 
+//                 });
+//                 break;
+//             case'tags':
+//                 editButton.addEventListener('click', () => {
+//                     editTag(dataPoint.tagId, dataPoint.name);
+//                 });
+//                 deleteButton.addEventListener('click', () => {
+//                     deleteTag(dataPoint.tagId, dataPoint.name);
+//                 });
+//                 dataCell.addEventListener('click', (event) => {
+//                     showThisItem(dataPoint.tagId, 'tag', event);
+//                 });
+//                 break;
+//             default:
+//                 console.error(`Unknown datatype: ${dataType}`);
+//             }
+
+//         table.appendChild(row);
+//     });    
+// }

@@ -51,6 +51,9 @@ h2 {
 #addingBox>button {  
     padding:0 0.5em;
 }
+#addingBox>button.clicked {
+    background-color: var(--greySelected);
+}
 .header {
     display: flex;
     justify-content: space-between;
@@ -125,7 +128,6 @@ button.selected {
 }
 .deleteButton {
     background-image: url('./img/delete_20dp.png');
-
 }
 #footer {
     grid-column: 2 / 3;
@@ -165,8 +167,6 @@ div.itemCard{
     padding: 0.5em 0.2em;
 }
 div.item {
-
-    
     grid-column: 1/2;
     grid-row: span 2;
     display: flex;
@@ -180,11 +180,12 @@ div.item:hover {
 }
 div.edit {
     grid-column: 2/3;
-    margin:auto;
+    margin:auto auto;
 }
 div.delete {
     grid-column: 2/3;
-    margin:auto;
+    display: grid;
+    align-items: center;
 }
 div#detail {
     background-color: var(--greyMain);
@@ -246,7 +247,7 @@ p.status3 { /* Completed */
     max-height: 1em;
 }
 .item > .totalTime {
-    width: 1.6rem;
+    width: 1.8rem;
 }
 p.deadline {
     background-image: url('./img/calendar_clock_20dp.png');
@@ -285,34 +286,43 @@ p.noDeadline {
     background-repeat: no-repeat;
     overflow: hidden;
     height: 20px;
-    width: 20px;
+    width: 50px;
     padding:1em;
     margin: 1em 0;
 }
-#taskTimers{
+#projectTimers{
     margin-left: 1em;
 }
 #timerStart{
     background-image: url('./img/timer_play_20dp_F5F5F5.png');
     background-color: var(--mainGreen);
+    
 }
 #timerStart.running {
     background-color: var(--greySelected);
     border-color: var(--mainGreen);
+    width: 20px;
 }
 #timerStop{
     background-image: url('./img/timer_off_20dp_F5F5F5.png');
     background-color: var(--greySelected);   
+    width: 20px;
 }
 #timerStop.valid {
     background-color: var(--mainSelected);
+    width: 50px;
 }
 .timerReport {
     display: inline-block;
 }
 p.totalTime.runningTimer {
     background-image: url('./img/timer_play_20dp_223602.png');
-    background-size: 20px;
+    background-size:25px;
+    width: 30px;
+    height: 30px;
+    padding: 5px;
+    color: transparent;
+    
 }
 ul.tagsList  {
     display: flex;
@@ -395,7 +405,7 @@ div.tagsList{
         grid-template-columns: 1fr 1fr;
         grid-auto-rows: minmax(100px, auto); 
     }
-    #taskTimers{
+    #projectTimers{
         margin-left: 0.2em;
     }
     div.itemCard{
@@ -421,20 +431,31 @@ div.tagsList{
 
 @media screen and (max-width: 450px) {
     div.item.selected, .header {
-        display:block;
+        /* display:block; */
+    }
+    .item>h3 {
+        display:flex;
+        height: 100%;
+        align-items:center;
+    }
+    div.header>div.edit {
+        float:right;
+        margin-bottom: 0.5em;
     }
     p[class^="status"] {
         float:left;
         margin-right: 0.5em;
     }
-    p.totalTime {
-        margin-top: 0.5em;
+    #edits {
+        margin-left: -0.5em;
+        margin-right: -0.5em;
+        
+        clear: both;
     }
     #detail {
-        margin-left: 0;
-    }
-    * {
-        word-wrap: break-word;
+        margin-left:0;
+        padding-left:0.5em;
+        margin-top: -0.4em;
     }
     div.tagsList{
         display: block;
@@ -442,10 +463,10 @@ div.tagsList{
     p.totalTime {
         width: 6em;
     }
-    #taskTimers {
+    #projectTimers {
         margin: 0;
     }
-    #taskTimers>button {
+    #projectTimers>button {
         margin-right: 1em;
     }
     ul.tagsList {
