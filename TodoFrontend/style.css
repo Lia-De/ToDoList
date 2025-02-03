@@ -368,6 +368,9 @@ div.tagsList{
 #taskTagAdding>form>input ,#projectTagAdding>form>input {
     max-width: 100px;
 }
+#editProjectForm>#editProjectTaskDiv {
+    grid-column: 2 / 3;
+}
 /* Start styling for Tags page */
 
 
