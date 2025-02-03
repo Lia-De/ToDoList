@@ -9,16 +9,16 @@ the things you do for a project. I might be wanting to sell the results of my wo
 it took.
 
 ### Required features
-- [ ] Adding Projects, with title, some description and a way to add Tags and Tasks.
+- [x] Adding Projects, with title, some description and a way to add Tags and Tasks.
 - [x] Projects should total the time spent on them.
 - [x] Projects should have status: Planning, active, paused or completed.
 - [X] Tags should be universal, available to be applied to any and all projects and sub-tasks.
 - [X] Tasks must belong to a project.
-- [ ] Tasks should have a title and possibly description, status and possibly a deadline and tags.
+- [x] Tasks should have a title and possibly description, status and possibly a deadline and tags.
 - [x] Users should be able to track time per Project.
 - [ ] Front end should be a website done with responsive designed mobile-first.
-   - [ ] Create projects, add tasks and tags
-   - [ ] List all Projects
+   - [x] Create projects, add tasks and tags
+   - [x] List all Projects
      - [X] Name, Description, Status, TimeSpent, Tasks and Tags
      - [X] For Tasks: Name, Description, Status, Deadline, (TimeSpent)
      - [X] For Tags: Name
@@ -30,10 +30,10 @@ it took.
       - [ ] Description
       - [x] Status
    - [ ] Edit fields for Tasks:
-      - [X] Name
+      - [ ] Name
       - [ ] Descriptions
       - [ ] Status
-      - [X] Deadline
+      - [ ] Deadline
    - [x] Edit name for Tags
 
 ### Possible features
@@ -47,17 +47,26 @@ it took.
 Lo-fi prototype: [Find it on Figma](https://www.figma.com/proto/CZhjlhFft9ezpkyJNBcyUX/Crafting-To-Do?node-id=17-78&t=J5iyQDHvTie9OMjz-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=17%3A77)
 
 ~~--------------------------------------------------~~
-### To do 2024-01-30
-* Map js methods for showing editing form
-* Add description options in user input
-* Expand creation of Task with more than name and deadline
+### To Do 2025-02-03
+* After refactoring the javascript into separate files: check over and make sure things are in the right spot
+* Create separate page to show a single project
+  * To enable linking from tags to the project it is used in
+* Edit for tasks: edit options for a single task
+   * enable setting of deadline (editable once set or no?)
+* Editing project: add functionality to delete tasks and remove tags from the project.
+* Work on figma mock-ups for project detail page
+
+### To do 2025-01-30
+* ~~Map js methods for showing editing form~~
+* ~~Add description options in user input~~
+* ~~Expand creation of Task with more than name and deadline~~
 * ~~Re-design and code viewing of Tags~~
 
 ### To do 2025-01-27
 * ~~Added css vars for colours~~ 
 * (design) Expand Figma designs
 * Change to follow re-design:
-  * (frontend) Finish raw html/css styling
+  * ~~(frontend) Finish raw html/css styling~~
   * (backend) Set up timers and total time for Tasks.
   * ~~(backend) Set up methods to total time for a project~~
   * (frontend/backend) User input to add description text to Tasks
