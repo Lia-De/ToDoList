@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crafting To Dos - Project</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,600&display=swap" rel="stylesheet">
+    <script src="/Data/fallback.js"></script>
+</head>
+<body>
+    
+    <script type="module" src="script.js">
+ // Function to get query parameters from URL
+    function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        // Load project details based on the URL parameter
+        function loadProjectDetails() {
+            const projectId = getQueryParam("id");
+            const project = (p => p.id == projectId);
+
+            if (project) {
+                document.getElementById("projectName").textContent = project.name;
+                document.getElementById("projectDescription").textContent = project.description;
+            } else {
+                document.body.innerHTML = "<h2>Project not found</h2>";
+            }
+        }
+
+        loadProjectDetails();
+
+    </script>
+</body>
+</html>
