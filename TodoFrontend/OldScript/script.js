@@ -5,23 +5,22 @@ import { printAddingForm, createEditForm, GetDetailId } from './Components/forma
 import {clearEdit} from './Components/format.js';
 import { addRequest } from './API_Access/fetching.js';
 
-
-showProjects();
 document.getElementById("navigate").addEventListener("click",navigationEventListener);
 document.getElementById('disclaimer').addEventListener('click', unhideDisclaimer);
 
-printAddingPlus();
+// printAddingPlus();
 
-import {showProjects} from './API_Access/fetching.js';
 
 // helper functions to print out the adding form
-function printAddingPlus(){
-    let target = document.getElementById("tagsbtn");
-    let addingBox = document.createElement('button');
-    addingBox.innerText='+ New item';
-    addingBox.id = "addItemButton"
-    target.insertAdjacentElement("afterend", addingBox);
-    addingBox.addEventListener('click', printAddingFormAndAddListeners);
+export function printAddingPlus(){
+    if (!document.getElementById('addItemButton')) {
+        let target = document.getElementById("tagsbtn");
+        let addingBox = document.createElement('button');
+        addingBox.innerText='+ New item';
+        addingBox.id = "addItemButton"
+        target.insertAdjacentElement("afterend", addingBox);
+        addingBox.addEventListener('click', printAddingFormAndAddListeners);
+    }
 
 }
 export function printAddingFormAndAddListeners (event, dataType) {

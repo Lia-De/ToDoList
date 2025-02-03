@@ -15,21 +15,30 @@
         <button id="projectsbtn" class="selected">Projects</button>
         <!-- <button id="tasksbtn">Tasks</button> -->
         <button id="tagsbtn">Tags</button>
+        <p><a href="project.html?id=1">Project 1</a>
+            <a href="project.html?id=2">Project 2</a>
+        </p>
     </div>
     <div id="container">
+        <div class="header">
+            <h2 id="nowShowing">Crafting To Dos</h2>
+        </div>
         
-        <h2 id="nowShowing">Active projects</h2>
-        
+        <div id="contents">
+            <p>Welcome to Crafting To Dos and Timekeepers.</p>
+            <p>Hit the Project button and start adding your 
+                crafting projects and keep track of the time it takes you to create!</p>
         <div id="contents">
 
 
     
     </div>
 
-        
+
 </div>
 <div id="footer">
     <button id='disclaimer'>Show info</button>
+    
     <div id="disclaimers">
         <p class="status1"></p> <p>Active</p>
         <p class="status0"></p> <p>Planning</p>
@@ -43,6 +52,6 @@
         <p class="disclaimer">Tags must be uniquely named and can be used universally.</p>
     </div>
 </div>
-    <script type="module" src="script.js"></script>
+    <script type="module" src="script_project.js">showProjects();</script>
 </body>
 </html>

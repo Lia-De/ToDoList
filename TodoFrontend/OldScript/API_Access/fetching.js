@@ -1,7 +1,8 @@
 import {config } from '../config.js';
 import {clearData, 
         clearAddingForm, 
-        GetDetailId } from '../Components/format.js';
+        GetDetailId,
+        printAddingPlus } from '../Components/format.js';
 import {createDataCards, 
         selectedTypeButtons, 
         formatTimeSpan } from '../Components/format.js';
@@ -18,8 +19,9 @@ export async function showProjects() {
         const data = await response.json();
         document.getElementById("nowShowing").innerHTML = `${data.length} Projects`;
         clearData();
-        createDataCards(data, "projects");
         selectedTypeButtons("projects");
+        createDataCards(data, "projects");
+        printAddingPlus();
     } catch (error) {
         console.error('Error:', error);
         document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
@@ -36,8 +38,9 @@ export async function showTasks(){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tasks`;
             let target = document.getElementById("contents");
             clearData();
-            createDataCards(data, "tasks");
             selectedTypeButtons("tasks");
+            createDataCards(data, "tasks");
+            printAddingPlus();
         });
     } catch (error) {
         console.error('Error:', error);
@@ -52,8 +55,9 @@ export async function showTags(){
             document.getElementById("nowShowing").innerHTML = `Now showing ${data.length} Tags`;
             let target = document.getElementById("contents");    
             clearData();
-            createDataCards(data,'tags');
             selectedTypeButtons("tags");
+            createDataCards(data,'tags');
+            printAddingPlus();
         });
     } catch (error) {
         console.error('Error:', error);

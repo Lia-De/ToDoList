@@ -281,36 +281,37 @@ p.noDeadline {
 [id^=timer] {
     display: inline-block;
     color: transparent;
-    background-size: 20px;
+    /* background-size: 20px; */
+    background-size: 50px;
     background-position: center;
     background-repeat: no-repeat;
     overflow: hidden;
-    height: 20px;
-    width: 50px;
-    padding:1em;
+    /* height: 20px; */
+    height: 50px;
+    width: 80px;
+    padding: 2em;
     margin: 1em 0;
 }
 #projectTimers{
     margin-left: 1em;
 }
 #timerStart{
-    background-image: url('./img/timer_play_20dp_F5F5F5.png');
+    background-image: url('./img/timer_play_50dp_F5F5F5.png');
     background-color: var(--mainGreen);
-    
+    width: 50px;
 }
 #timerStart.running {
-    background-color: var(--greySelected);
-    border-color: var(--mainGreen);
-    width: 20px;
+    background-color: var(--mainSelected);
+    /* border-color: var(--mainGreen); */
 }
 #timerStop{
-    background-image: url('./img/timer_off_20dp_F5F5F5.png');
+    background-image: url('./img/timer_off_50dp_F5F5F5.png');
     background-color: var(--greySelected);   
-    width: 20px;
+    width: 50px;
 }
 #timerStop.valid {
-    background-color: var(--mainSelected);
-    width: 50px;
+    background-color: var(--mainGreen);
+    width: 80px;
 }
 .timerReport {
     display: inline-block;

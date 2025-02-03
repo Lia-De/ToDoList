@@ -6,7 +6,8 @@ import {getSingleItem,
          deleteTag} from '../API_Access/fetching.js';
 import {statusTexts} from '../Data/hardcoded.js';
 import { addTagToTask, 
-        addTagToProject } from '../API_Access/fetching.js';
+        addTagToProject,
+        addRequest } from '../API_Access/fetching.js';
 import {editProject, 
         editTag} from '../script.js';
 import { addTaskListener } from '../EventListeners/eventHandlers.js';
@@ -238,6 +239,7 @@ export function createStatusRadioButtons(form){
     radioButton.name='newStatus';
     radioButton.value=3;
 }
+
 export function createDataCards(data, dataType){
     let timerCount = 0;
     const target = document.getElementById('contents');
@@ -463,15 +465,9 @@ export function createEditForm(dataID, editableText) {
             tagInput.type = 'text';
             tagInput.id = 'tagCloud';
             tagInput.name = 'tagCloud';
-            
-            // fill the form with relevant data. Might not have to go to the db to fetch..
-            // let ul = document.getElementById("tagBox").querySelector('.tagsList');
-            // let items = ul.querySelectorAll("li");
-            // console.log(items);
 
             getSingleItem(dataID,'project').then(itemData => {
                 fillItemData(itemData, form);
-                // populateTaskList(itemData.tasks, delTaskDiv);
             });
         
             break;
@@ -528,29 +524,6 @@ export function createEditForm(dataID, editableText) {
 }
 
 
-//helper to fill in tasks with delete functionality
-function populateTaskList(tasks, trg) {
-    
-    trg.innerHTML = ""; // Clear previous content
-
-    tasks.forEach(task => {
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.id = `task-${task.taskId}`;
-        checkbox.name = "tasks";
-        checkbox.value = task.taskId;
-
-        const label = document.createElement("label");
-        label.htmlFor = checkbox.id;
-        label.textContent = task.name;
-
-
-        trg.appendChild(checkbox);
-        trg.appendChild(label);
-    });
-}
-
-
 // Helper function to clear the data from the contents div ready to be filled anew
 export function clearData(){
     
@@ -599,11 +572,41 @@ export function clearItemCard() {
     });
 
 }
+// helper functions to print out the adding form
+export function printAddingPlus(){
+    if (!document.getElementById('addItemButton')) {
+        let target = document.getElementById("tagsbtn");
+        let addingBox = document.createElement('button');
+        addingBox.innerText='+ New item';
+        addingBox.id = "addItemButton"
+        target.insertAdjacentElement("afterend", addingBox);
+        addingBox.addEventListener('click', printAddingFormAndAddListeners);
+    }
+}
+export function printAddingFormAndAddListeners () {
+    
+    switch (document.getElementById('navigate').querySelector('.selected').id) {
+        case "projectsbtn":
+            let addingPForm = printAddingForm("addProject");
+            addingPForm.addEventListener('submit', (event) => addRequest(event, 'project'));
+            break;
+        case "tasksbtn":
+            // let addingTaskForm = printAddingForm("addTask");
+            // addingTaskForm.addEventListener('submit', (event) => addRequest(event, 'task'));
+            break;
+        case "tagsbtn":
+            let addingTagForm = printAddingForm("addTag");
+            addingTagForm.addEventListener('submit', (event) => addRequest(event, 'tag'));
+            break;
+        default:
+            console.error(`Unknown datatype: ${dataType}`);
+    }
+}
 
 // Helper function to switch which button is selected in the nav bar
 export function selectedTypeButtons(selectedType){
-    let selectedButton = document.querySelectorAll("button.selected");
-    selectedButton[0].classList.remove('selected');
+    let buttons = document.getElementById('navigate').querySelectorAll("button");
+    buttons.forEach(item => item.classList.remove('selected'));
 
     document.getElementById(selectedType+"btn").classList.add("selected");
 }
