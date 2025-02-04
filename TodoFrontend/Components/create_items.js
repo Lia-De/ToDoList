@@ -49,7 +49,7 @@ export function createProjectList() {
         }
         let itemdiv = listHelperSetupCard(dataPoint.projectId);
         itemdiv.addEventListener('click', (event) => {
-            goToPage(`project.html?id=${GetDetailId(event.currentTarget)}`);
+            goToPage(`project.html?id=${parseOutId(event.currentTarget.id)}`);
         }); 
 
         let statuselement = addElement('p',statusTexts[dataPoint.status], itemdiv);
@@ -139,15 +139,22 @@ function printAddingFormAndAddListeners () {
 
 
 // unhideDisclaimer
+import { InfoText } from '../Data/hardcoded.js';
 export function unhideDisclaimer(){
     let disclaimers = document.getElementById('disclaimers');
     
     if (document.getElementById('disclaimer').innerHTML ==="Show info") {
-        disclaimers.classList='visible';
-    document.getElementById('disclaimer').innerHTML = "Hide";
+        InfoText.forEach(line => {
+        let p = document.createElement('p');
+        p.textContent = line;
+        p.classList='disclaimer';
+        disclaimers.insertAdjacentElement('beforeend',p);
+    });
+        document.getElementById('disclaimer').innerHTML = "Hide";
 } else {
     document.getElementById('disclaimer').innerHTML = "Show info";
-    disclaimers.classList='';}
+    document.querySelectorAll('.disclaimer').forEach(el => el.remove());
+    }
 }
 
 export function showThisItem(itemID, dataType, target){
@@ -264,20 +271,20 @@ export function showThisItem(itemID, dataType, target){
                 let statusElement = addElement('p',statusValue, header);
                 statusElement.classList=`status${status}`;
                 let taskname=addElement('h4',task.name, header);
-                taskname.id=`task#${task.taskId}`;
+                taskname.id=`task-${task.taskId}`;
                 let deadline = addElement('p','', header);
                 if (task.deadline) {
                 deadline.innerHTML = formatDateTime(task.deadline);
                 deadline.classList = 'deadline';
                 } else {
                     deadline.classList='noDeadline';
+                    deadline.addEventListener('click',printTaskDeadlinePicker);
                 }
                 addElement('p', task.description, taskDiv)
                 let taskTagDiv = addElement('div','',taskDiv);
                 taskTagDiv.classList='tagsList';
                 let form = printAllTagsAndForm(task.tags, taskTagDiv, 'task');
                 let hiddenId = addElement('input','',form);
-                // hiddenId.id = 'taskid';
                 hiddenId.type="hidden";
                 hiddenId.name='taskId';
                 hiddenId.value = task.taskId;
@@ -663,7 +670,6 @@ export function printAddingForm(dataType){
             deadline.type = 'datetime-local';
             deadline.name="deadline";
             deadline.id="deadline";
-            deadline.setAttribute('step','900');
 
             break;
         case "addTag":
@@ -698,6 +704,43 @@ function addTagToProject(event){
         if (inputTags !=''){
             addTagToItem(event, inputTags, fetchUrl);
         } 
+    }
+}
+function printTaskDeadlinePicker(event){
+    let calendarPicker = event.currentTarget;
+    let headerDiv = calendarPicker.parentNode;
+    let deadlineform = document.getElementById('setDeadlineForm');
+    if (deadlineform) {
+        headerDiv.removeChild(deadlineform)
+    } else {
+        // prevent another click
+        // calendarPicker.removeEventListener('click',editTaskDeadline);
+
+        let taskId= parseOutId(event.target.previousElementSibling.id);
+        // event.target.parentNode.removeChild(event.target);
+        // let element = addElement('p','How does this work',event.target.parentNode);
+        let form = addElement('form','',event.target.parentNode);
+        form.id="setDeadlineForm";
+        let newdeadline= addElement('input','',form);
+        newdeadline.type = 'datetime-local';
+        newdeadline.name="deadline";
+        newdeadline.id="deadline";
+
+        let inputHidden = addElement('input','',form);
+        inputHidden.type = 'hidden';
+        inputHidden.id = 'taskId';
+        inputHidden.name = 'taskId';
+        inputHidden.value = taskId; 
+        
+        let submit = addElement('button','Save',form);
+        submit.type="submit";
+        
+        // Remove the old icon
+        headerDiv.removeChild(calendarPicker);
+        // add it back again after the calendar picker.
+        headerDiv.appendChild(calendarPicker);
+
+        form.addEventListener('submit', editTaskRequest);
     }
 }
 
@@ -754,7 +797,6 @@ async function editTagRequest(event) {
             TagId: id,
             Name: name
         };
-        
         if (await sendEditRequest(requestData, '/Tag/updateTag', "tag")) {
             document.getElementById('nowShowing').innerHTML = name;
             clearEdit();    
@@ -763,24 +805,36 @@ async function editTagRequest(event) {
     }
 };
 
-// Helper function to extract the ID number from the current Detail Div, or the target
-export function GetDetailId(trg){
-    if (trg) {
-        const projectDiv = trg;
-    if (projectDiv){
-    //     const idPart = projectDiv.id.split("-"); // Splits at "-"
-    //     const IDnumber2 = parseInt(idPart[1], 10); // Extracts the second part as an integer
-    //     return IDnumber2;
-        return parseOutId(projectDiv.id);
-    }
+function editTaskRequest(event){
+    event.preventDefault();
+    let form = event.currentTarget;
+    let header = form.parentNode;
+    let id=event.currentTarget.elements["taskId"].value;
+    let deadline = event.currentTarget.elements["deadline"].value;
+    if (deadline=='') {
+        alert('You have to enter a date, or dismiss the picker');
     } else {
-    const detailDiv = document.querySelector("[id^='detail-']");
-    if (detailDiv) {
-        // const idParts = detailDiv.id.split("-"); // Splits at "-"
-        // const IDnumber = parseInt(idParts[1], 10); // Extracts the second part as an integer
-        return parseOutId(detailDiv.id);
+        console.log(id, deadline);
+        let formData = {
+            taskId: id,
+            Deadline: deadline
+        }
+        sendEditRequest(formData, '/Task/updateTask').then((data)=>{
+            header.removeChild(form);
+            header.removeChild(header.lastElementChild);
+            let deadline = addElement('p','', header);
+            deadline.innerHTML = 'Deadline set'
+            deadline.classList = 'deadline';
+        });
     }
 }
+
+// Helper function to extract the ID number from the current Detail Div, or the target
+export function GetDetailId(){
+    const detailDiv = document.querySelector("[id^='detail-']");
+    if (detailDiv) {
+        return parseOutId(detailDiv.id);
+    }
 }
 // Helper function to split out an ID following a descriptor and -
 function parseOutId(input){

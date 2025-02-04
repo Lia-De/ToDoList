@@ -80,38 +80,34 @@ public class TaskController : Controller
     [HttpPost("updateTask")]
     public IActionResult UpdateTask(ToDoList.Models.TaskDto frontendTask)
     {
-        string updatedInfo = "";
         var task = _context.Tasks.FirstOrDefault(t => t.TaskId == frontendTask.TaskId);
         if (task == null)
         {
             return NotFound();
         }
-        string oldName = task.Name;
-        if (oldName != frontendTask.Name)
+        
+        if (!string.IsNullOrEmpty(frontendTask.Name))
         {
-            task.Name = frontendTask.Name;
-            updatedInfo += " Name";
+            if (!task.Name.Equals(frontendTask.Name))
+                task.Name = frontendTask.Name;
         }
 
-        if (frontendTask.Status != task.Status)
+        if ((frontendTask.Status!=null) && (frontendTask.Status!=task.Status))
         {
             task.Status = frontendTask.Status;
-            updatedInfo += " Status";
         }
 
-        if (!frontendTask.Deadline.Equals(task.Deadline))
+        if (frontendTask.Deadline!= task.Deadline)
         {
             task.Deadline = frontendTask.Deadline;
-            updatedInfo += " Deadline";
         }
-        if (frontendTask.Description != null)
+        if (frontendTask.Description != null && !frontendTask.Description.Equals(task.Description))
         {
             task.Description = frontendTask.Description;
-            updatedInfo += " Description";
         }
 
         _context.SaveChanges();
-        return Ok($"Task {frontendTask.Name} updated with {updatedInfo}");
+        return Ok(task);
     }
     // Delete
     [HttpDelete("deleteTask")]

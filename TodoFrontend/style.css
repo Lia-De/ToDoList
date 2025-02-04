@@ -91,7 +91,6 @@ form {
     grid-template-columns: 100px auto;
     grid-auto-rows: auto;
     align-items: center;
-
 }
 form > button, form > input, form > select {
     grid-column: 2/3;
@@ -105,6 +104,10 @@ form > input[type="radio"] {
     margin-left: 1em;
     margin-right:auto;
 }
+#setDeadlineForm {
+    grid-template-columns: auto;
+}
+
 button {
     padding: 0.5em 1em;
     color: white;
@@ -157,12 +160,10 @@ button.selected {
 }
 #disclaimers >p.disclaimer {
     font-size: 0.8em;
-    display:none;
+    
     
 }
-#disclaimers.visible >p.disclaimer{
-    display:block;
-}
+
 
 #edits, #detail {
     border: 1px solid var(--greyBorder);
