@@ -150,7 +150,7 @@ export function unhideDisclaimer(){
 export function showThisItem(itemID, dataType, target){
     clearEdit();
     getSingleItem(itemID, dataType).then( data => {
-        // clearEdit();
+        
         if (!target) {
             target = document.getElementById('contents');
         }
@@ -175,19 +175,14 @@ export function showThisItem(itemID, dataType, target){
         detailDiv.id='detail-'+itemID;
         // display count of useages for tags, or status and all tags for the others
         if (dataType==='tag'){
-            let header = addElement('div','',detailDiv);
-            header.classList.add('header');
-            addElement('h3', `${data.name}`, header);
-            let editthisTag = addElement('div','',header);
-            editthisTag.classList="edit";
-            let tagEditButton = addElement('button','',editthisTag);
-            tagEditButton.classList="editButton";
+            document.getElementById('nowShowing').innerHTML = data.name;
+            let tagEditButton = listHelperCreateEdit();
             tagEditButton.addEventListener('click', () => {
                 let oldEdit = document.getElementById("edits");
                 if (oldEdit != null) {
                     oldEdit.parentNode.removeChild(oldEdit);        
                 } else {
-                    editTag(data.tagId, data.name);
+                    editTag(data.tagId, 'tag');
                 }
             });
 
@@ -230,9 +225,6 @@ export function showThisItem(itemID, dataType, target){
                 }
             });
 
-            // let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
-            // time.setAttribute('data',data.totalWorkingTime);
-            // time.classList = 'totalTime';
             // print timers in Detail header only if we are not completed
             if (data.status != 3) {
                 printTimerStartAndStop(null, data);
@@ -381,16 +373,20 @@ function printAllTagsAndForm(tags, target, type){
 
 
 // 3 functions to add and populate edit forms and set event listeners
-export function editProject (projectID){
+function editProject (projectID){
 
     let form = createEditForm(projectID, 'project');
     form.id ="editProjectForm";
     form.addEventListener('submit', editProjectRequest);
 };
-
+function editTag(tagId){
+    let form = createEditForm(tagId, 'tag');
+    form.id = 'editTagForm';
+    form.addEventListener('submit', editTagRequest);
+}
 
 // function to create and populate an edit form
-export function createEditForm(dataID, type) {
+function createEditForm(dataID, type) {
         // Check if we have an edit box already
         // edit to not change selected project?
 
@@ -410,7 +406,7 @@ export function createEditForm(dataID, type) {
     inputText.type = 'text';
     inputText.id = 'editName';
     inputText.name = 'editName';
-    inputText.value = document.getElementById('itemtitle').innerHTML; // Fill the input 
+    inputText.value = document.getElementById('nowShowing').innerHTML; // Fill the input 
     form.appendChild(inputText);
        
     // Create the hidden input for the ID
@@ -710,6 +706,31 @@ async function editProjectRequest(event) {
 };
 
 
+async function editTagRequest(event) {
+    event.preventDefault(); // Prevent the default form submission
+
+    // Get input values
+    // needs fixing?
+    const id = GetDetailId();
+    // probably needs fixing
+    const name = document.getElementById('editName').value;
+    if (!isValidInput(name)){
+        alert(`You have to enter (some) text`);
+    } else {
+        // Data to send in the request
+        const requestData = {
+            TagId: id,
+            Name: name
+        };
+        
+        if (await sendEditRequest(requestData, '/Tag/updateTag', "tag")) {
+            document.getElementById('nowShowing').innerHTML = name;
+            clearEdit();    
+        }
+        
+    }
+};
+
 // Helper function to extract the ID number from the current Detail Div
 export function GetDetailId(event){
     if (event) {
@@ -788,15 +809,12 @@ export function clearData(){
 }
 // Helper function to clear the edit and detail form
 export function clearEdit(){
-    let oldDetail = document.querySelector("[id^='detail']");
-    if (oldDetail != null) {    oldDetail.parentNode.removeChild(oldDetail);}
+    // let oldDetail = document.querySelector("[id^='detail']");
+    // if (oldDetail != null) {    oldDetail.parentNode.removeChild(oldDetail);}
 
     let oldEdit = document.getElementById("edits");
     if (oldEdit != null) {      oldEdit.parentNode.removeChild(oldEdit);}
     
-    let selectedDataCell = document.getElementById('contents').querySelectorAll("div.itemCard.selected");
-    selectedDataCell.forEach(item => item.classList.remove("selected"));
-
     let oldTimers = document.getElementById('projectTimers');
     if (oldTimers != null){ oldTimers.parentNode.removeChild(oldTimers);}
 }
