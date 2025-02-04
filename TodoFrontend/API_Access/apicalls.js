@@ -66,21 +66,21 @@ export function deleteProject(id, name){
     const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
             
     if (confirmDelete) {
-        sendDeleteData(id, name, "project");
+        return sendDeleteData(id, name, "project");
     }
 }
 export function deleteTag(id, name){
     const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
             
     if (confirmDelete) {
-        sendDeleteData(id, name, "tag");
+        return sendDeleteData(id, name, "tag");
     }
 }
 export function deleteTask(id, desc){
     const confirmDelete = confirm(`Are you sure you want to delete "${desc}"?`);
             
     if (confirmDelete) {
-        sendDeleteData(id, desc, "task");
+        return sendDeleteData(id, desc, "task");
     }
 }
 
@@ -88,7 +88,6 @@ export function deleteTask(id, desc){
 async function sendDeleteData(id, data, dataType) {
     let fetchUrl;
     let deleteData;
-    let reload;
     switch (dataType) {
         case  "project":
             // set vars
@@ -97,7 +96,7 @@ async function sendDeleteData(id, data, dataType) {
                 projectId: id,
                 name: data
             };
-            reload = createProjectList;
+            
             break;
         case "tag":
             // set vars
@@ -106,7 +105,7 @@ async function sendDeleteData(id, data, dataType) {
                 tagId: id,
                 Name: data
             };
-            reload = createTagList;
+            
             break;
         case "task":
             // set vars
@@ -115,7 +114,6 @@ async function sendDeleteData(id, data, dataType) {
                 taskId: id,
                 name: data,
             };
-            // reload = showTasks;
             
             break;
         default:
@@ -131,11 +129,12 @@ async function sendDeleteData(id, data, dataType) {
         });
     
             if (response.ok) {
-                reload();
+                return true;
     
             } else {
                 const error = await response.json();
                 alert(`Failed to update project: ${error.message}`);
+                return false;
             }
         } catch (error) {
             console.error(`Error:${error.message}`, error);
@@ -201,11 +200,9 @@ export async function sendEditRequest(requestData, fetchURL){
     }
 }
 
-
-
 export async function sendAddRequest(formData, fetchURL){
     try {
-        const response = await fetch(`${config.apiBaseUrl}${fetchURL}`, {
+        const response = await fetch(config.apiBaseUrl+fetchURL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -221,29 +218,7 @@ export async function sendAddRequest(formData, fetchURL){
     }
 }
 
-export function addTagToTask(event){
-    event.preventDefault();
-    let tagCloud = 'taskTagCloud'+event.target.elements["taskId"].value;
-    let inputTags = document.getElementById(tagCloud).value;
-    let dataid = parseInt(event.target.elements["taskId"].value,10);
-    
-    let fetchUrl = `${config.apiBaseUrl}/Task/addTagsToTask/${dataid}`;    
 
-    if (inputTags !=''){
-        addTagToItem(event,inputTags, fetchUrl);
-    }
-}
-export function addTagToProject(event){
-    event.preventDefault();
-    let inputTags = document.getElementById('projectTagCloud').value;
-    let dataid = GetDetailId();
-    let fetchUrl=`${config.apiBaseUrl}/Project/addTagsToProject/${dataid}`;
-    if (dataid !=null) {      
-        if (inputTags !=''){
-            addTagToItem(event, inputTags, fetchUrl);
-        } 
-    }
-}
 
 export async function addTagToItem(event, inputTags, fetchUrl){
     let tagArray = inputTags
@@ -252,7 +227,7 @@ export async function addTagToItem(event, inputTags, fetchUrl){
     .filter(item => item !== '');
     event.preventDefault();
     
-    const response = await fetch(fetchUrl, {
+    const response = await fetch(config.apiBaseUrl+fetchUrl, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -279,4 +254,31 @@ export async function addTagToItem(event, inputTags, fetchUrl){
             });
         });
     }
+}
+
+// Removing tags from projects and tasks
+export async function removeTagFromProject(projectID, tagID){
+    let fetchURL =`${config.apiBaseUrl}/Project/removeTag/${projectID}/${tagID}`
+    // requestData = { projectId: projectID, tagId: tagID};
+    try {
+        const response = await fetch(fetchURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            // body: JSON.stringify(requestData),
+        });
+    
+            if (response.ok) {
+                return true;
+    
+            } else {
+                const error = await response.json();
+                alert(`Failed to remove tag from project: ${error.message}`);
+                return false;
+            }
+        } catch (error) {
+            console.error(`Error:${error.message}`, error);
+            alert(`An unexpected error occurred trying to remove a tag.`);
+        }
 }
