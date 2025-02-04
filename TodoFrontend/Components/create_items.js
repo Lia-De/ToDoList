@@ -1,82 +1,139 @@
 
 import { statusTexts } from '../Data/hardcoded.js';
-import {config} from '../config.js';
-import { deleteProject, 
+import { deleteProject, deleteTag,
         fetchAllProjects, fetchAllTags, getSingleItem, 
         startProjectTimer, stopProjectTimer,
         addTagToProject, addTagToTask,
-        sendAddRequest } from '../API_Access/apiCalls.js';
-import { editToggle, goToPage, addTaskListener } from '../EventListeners/eventListeners.js';
+        sendAddRequest, sendEditRequest } from '../API_Access/apiCalls.js';
+import { goToPage, addTaskListener } from '../EventListeners/eventListeners.js';
+
+function listHelperSetupCard(id){
+    let itemCard = addElement('div','',document.getElementById('contents'));
+    itemCard.classList="itemCard";
+
+    let itemdiv = addElement('div','', itemCard);
+    itemdiv.classList = 'item';
+    itemdiv.id = `detail-${id}`;
+    return itemdiv;
+}
+function listHelperDeleteButton(trg){
+    let deldiv = addElement('div','',trg);
+    deldiv.classList = 'delete';
+    let deleteButton=addElement('button','',deldiv);
+    deleteButton.classList = 'deleteButton';
+    return deleteButton;
+}
+function listHelperCreateEdit(){
+    let trg = document.getElementById('nowShowing').parentNode;
+    let editdiv = addElement('div', '', trg);
+    editdiv.classList = 'edit';
+    let editButton = addElement('button','',editdiv);
+    editButton.classList="editButton";
+    return editButton;
+}
+// function getItemCard(){ return document.querySelector('[id^="detail"]');}
 
 export function createProjectList() {
+    clearData();
     fetchAllProjects().then(data => {
     document.getElementById("nowShowing").innerHTML = `${data.length} Projects`;
-    clearData();
     let timerCount = 0;
     const target = document.getElementById('contents');
 
-    printAddingPlus();
+    printAddNewItemButton();
 
     data.forEach(dataPoint => {
         if (dataPoint.hasTimerRunning) {
             timerCount +=1;
         }
-        let itemCard = addElement('div','',target);
-        itemCard.classList="itemCard";
-    
-        let itemdiv = addElement('div','', itemCard);
-        itemdiv.classList = 'item';
-        itemdiv.id = `project-${dataPoint.projectId}`;
+        let itemdiv = listHelperSetupCard(dataPoint.projectId);
+        itemdiv.addEventListener('click', (event) => {
+            console.log(event);
+            goToPage(`project.html?id=${GetDetailId(event)}`);
+        }); 
 
         let statuselement = addElement('p',statusTexts[dataPoint.status], itemdiv);
         statuselement.classList.add(`status${dataPoint.status}`);
         let element= addElement('h3',dataPoint.name, itemdiv);
         element = addElement('p',formatTimeSpan(dataPoint.totalWorkingTime), itemdiv);
+        element.setAttribute('data',dataPoint.totalWorkingTime);
         element.classList = 'totalTime';
         if (dataPoint.hasTimerRunning) {
             element.classList.add('runningTimer');
         }
-        let deldiv = addElement('div','',itemCard);
-        deldiv.classList = 'delete';
-        let deleteButton=addElement('button','',deldiv);
-        deleteButton.classList = 'deleteButton';
-            
+        let deleteButton = listHelperDeleteButton(itemdiv.parentNode);            
         deleteButton.addEventListener('click', () => {
             deleteProject(dataPoint.projectId, dataPoint.name);
         });
-        itemdiv.addEventListener('click', (event) => {
-            goToPage(`project.html?id=${GetDetailId(event)}`);
-        }); 
     });
     document.getElementById("nowShowing")
     .innerHTML += ` ${timerCount} timer(s) running`;
-    // printAddingPlus();
+    
     });
 }
 
 export function createTagList() {
-    
+    clearData();
     fetchAllTags().then(data => {
         document.getElementById("nowShowing").innerHTML = `${data.length} Tags`;
+        let contentDiv= document.getElementById('contents');
+        contentDiv.classList.add('listAllTags');
+        data.forEach(dataPoint => {
+            let itemdiv = listHelperSetupCard(data.tagId);
+            itemdiv.addEventListener('click', () => {
+                goToPage('tag.html?id='+dataPoint.tagId)
+            });
 
+            addElement('h3',dataPoint.name, itemdiv);
+            let projectCount = dataPoint.projectCount;
+            let taskCount = dataPoint.taskCount;
+            addElement('p', `Usage: ${projectCount} (${taskCount})` , itemdiv);
+            let deleteButton = listHelperDeleteButton(itemdiv.parentNode);            
+           deleteButton.addEventListener('click', () => {
+               deleteTag(dataPoint.tagId, dataPoint.name);
+           });
+
+        });
      });
-    // clearData();
-    
-    // createDataCards(data, "tags");
-    // printAddingPlus();
+
+     printAddNewItemButton();
 }
 
 // helper functions to print out the adding form
-export function printAddingPlus(){
+export function printAddNewItemButton(){
     if (!document.getElementById('addItemButton')) {
         let target = document.getElementById("tagsbtn");
         let addingBox = document.createElement('button');
         addingBox.innerText='+Create new';
         addingBox.id = "addItemButton"
         target.insertAdjacentElement("afterend", addingBox);
-        // addingBox.addEventListener('click', printAddingFormAndAddListeners);
+        addingBox.addEventListener('click', printAddingFormAndAddListeners);
     }
 }
+
+function printAddingFormAndAddListeners () {
+    // IF I have a form already, clear it.
+    if (clearAddingForm()){
+        return;
+    }
+    switch (document.getElementById('navigate').querySelector('.selected').id) {
+        case "projectsbtn":
+            let addingPForm = printAddingForm("addProject");
+            addingPForm.addEventListener('submit', (event) => addRequest(event, 'project'));
+            break;
+        case "tasksbtn":
+            // let addingTaskForm = printAddingForm("addTask");
+            // addingTaskForm.addEventListener('submit', (event) => addRequest(event, 'task'));
+            break;
+        case "tagsbtn":
+            let addingTagForm = printAddingForm("addTag");
+            addingTagForm.addEventListener('submit', (event) => addRequest(event, 'tag'));
+            break;
+        default:
+            console.error(`Unknown datatype: ${dataType}`);
+    }
+}
+
 
 // unhideDisclaimer
 export function unhideDisclaimer(){
@@ -126,20 +183,21 @@ export function showThisItem(itemID, dataType, target){
             let tagEditButton = addElement('button','',editthisTag);
             tagEditButton.classList="editButton";
             tagEditButton.addEventListener('click', () => {
-                editToggle(editTag(data.tagId, data.name));
-                // let oldEdit = document.getElementById("edits");
-                // if (oldEdit != null) {
-                //     oldEdit.parentNode.removeChild(oldEdit);        
-                // } else {
-                //     editTag(data.tagId, data.name);
-                // }
+                let oldEdit = document.getElementById("edits");
+                if (oldEdit != null) {
+                    oldEdit.parentNode.removeChild(oldEdit);        
+                } else {
+                    editTag(data.tagId, data.name);
+                }
             });
 
             if (data.projects.length > 0) {
                 let allProjects = addElement('p', `Used in <b>${data.projects.length}</b> projects:`, detailDiv);
                 let list = addElement('ul','',detailDiv);
                 data.projects.forEach(project => {
-                    addElement('li',project.name, list);
+                    let listitem=addElement('li','', list);
+                    let link = addElement('a',project.name, listitem);
+                    link.href="project.html?id="+project.projectId;
                 });
             } else {addElement('p','Not used in any project.',detailDiv);}
             if (data.tasks.length > 0) {        
@@ -157,10 +215,12 @@ export function showThisItem(itemID, dataType, target){
             let title = addElement('h2',data.name, header);
             title.id="itemtitle";
             
-            let editdiv = addElement('div', '', header);
-            editdiv.classList = 'edit';
-            let editButton = addElement('button','',editdiv);
-            editButton.classList="editButton";
+            let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
+            time.setAttribute('data',data.totalWorkingTime);
+            time.classList = 'totalTime';
+
+            // Try adding to the page header instead of 'header'
+            let editButton = listHelperCreateEdit();
             editButton.addEventListener('click', () => {
                 let oldEdit = document.getElementById("edits");
                 if (oldEdit != null) {
@@ -170,10 +230,13 @@ export function showThisItem(itemID, dataType, target){
                 }
             });
 
-            let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
-            time.classList = 'totalTime';
-            // print timers in Detail header
-            printTimerStartAndStop(null, data);
+            // let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
+            // time.setAttribute('data',data.totalWorkingTime);
+            // time.classList = 'totalTime';
+            // print timers in Detail header only if we are not completed
+            if (data.status != 3) {
+                printTimerStartAndStop(null, data);
+            }
             let pDescription = addElement('p',data.description,detailDiv);
             
             let tagBox = addElement('div','',detailDiv);
@@ -281,18 +344,13 @@ function startTimer(projectId){
 
 function stopTimer(prId){
     stopProjectTimer(prId).then(data => {
-        let reportedTime = document.createElement('p');
-        reportedTime.innerHTML = ` ${formatTimeSpan(data)} will be added to the running time of this Project`;
-        
-        reportedTime.classList = "timerReport";
-        let target=document.querySelector("[id^='detail']").querySelectorAll('.totalTime')[0];
-        target.insertAdjacentElement("afterend", reportedTime);
-
+        let trg=document.querySelector("[id^='detail']").querySelector('.totalTime');
+        trg.innerHTML += ' + '+formatTimeSpan(data);
+        console.log(trg);
         document.getElementById('timerStart').classList = '';
         document.getElementById('timerStop').classList = '';
     });
 }
-
 
 
 // Helper function to print all Tags, and add Tag form for Tasks and Projects
@@ -537,7 +595,6 @@ function createStatusRadioButtons(form){
 
 
 export function printAddingForm(dataType){
-    clearAddingForm();
     let addingBox = document.createElement("div");
     addingBox.id = "addNewItem";
     addingBox.classList.add('shadowbox');
@@ -616,7 +673,7 @@ export function printAddingForm(dataType){
 
 
 
-function editProjectRequest(event) {
+async function editProjectRequest(event) {
     event.preventDefault(); // Prevent the default form submission
     // Get input values
     let id = GetDetailId();
@@ -643,7 +700,10 @@ function editProjectRequest(event) {
             Status: status,
             Description: description
         };
-        sendEditRequest(requestData, `${config.apiBaseUrl}/Project/updateProject`, "project");
+        
+        if (await sendEditRequest(requestData, `/Project/updateProject`)) {
+            window.location.replace(window.location.href); // ✅ Reload page only if successful
+        }
         // also send add tags to delete?
         clearEdit();
     }
@@ -652,19 +712,21 @@ function editProjectRequest(event) {
 
 // Helper function to extract the ID number from the current Detail Div
 export function GetDetailId(event){
+    if (event) {
+        const projectDiv = event.target;
+    if (projectDiv){
+        const idPart = projectDiv.id.split("-"); // Splits at "-"
+        const IDnumber2 = parseInt(idPart[1], 10); // Extracts the second part as an integer
+        return IDnumber2;
+    }
+    } else {
     const detailDiv = document.querySelector("[id^='detail-']");
     if (detailDiv) {
         const idParts = detailDiv.id.split("-"); // Splits at "-"
         const IDnumber = parseInt(idParts[1], 10); // Extracts the second part as an integer
     return IDnumber;
-    } else {
-        const projectDiv = event.target;
-        if (projectDiv){
-            const idPart = projectDiv.id.split("-"); // Splits at "-"
-            const IDnumber2 = parseInt(idPart[1], 10); // Extracts the second part as an integer
-            return IDnumber2;
-        }
     }
+}
 }
 // Helper function to create single elements, adding them to a target and returning the new element
 export function addElement(elementType, data, target){
@@ -741,8 +803,11 @@ export function clearEdit(){
 // Helper function to clear the add form when we have added an item.
 export function clearAddingForm(){
     let oldAddingForm = document.getElementById("addNewItem");
-    if (oldAddingForm != null)
+    if (oldAddingForm != null) {
         oldAddingForm.parentNode.removeChild(oldAddingForm);
+        return true;
+    } 
+    return false;
 }
 
 export function getQueryParam(param) {
@@ -764,21 +829,24 @@ export function isValidInput(input) {
 export function addRequest(event, dataType) {
     event.preventDefault(); 
     let newEntry = document.getElementById('newName').value;
-    
+    let formData = new FormData();
     if (!isValidInput(newEntry)){
         alert(`You have to enter (some) text`);
     } else {
         
-        let formData = new FormData();
-        formData.append('name', newEntry );
+
         switch(dataType) {
             case 'project':
                 let pDesc = document.getElementById('description').value;
                 if (pDesc=='') {
                     pDesc = null;
                 }
-                formData.append('Description', pDesc);
-                sendAddRequest(formData,`${config.apiBaseUrl}/Project/addProject`,"project");
+                formData = {
+                    Name: newEntry,
+                    Description: pDesc
+                }
+
+                sendAddRequest(formData,'/Project/addProject',"project");
                 break;
             case 'task':
                 let desc = document.getElementById('description').value;
@@ -799,10 +867,13 @@ export function addRequest(event, dataType) {
                     Deadline: deadline
                 };
                 
-                sendAddRequest(formData,`${config.apiBaseUrl}/Task/addTask`,"task");
+                sendAddRequest(formData,'/Task/addTask',"task");
                 break;
             case 'tag':
-                sendAddRequest(formData,`${config.apiBaseUrl}/Tag/addTag`,"tag");
+                formData = {
+                    Name: newEntry
+                }
+                sendAddRequest(formData,'/Tag/addTag',"tag");
                 break;
             default:
                 console.error(`Unknown datatype: ${dataType}`);

@@ -8,6 +8,6 @@ if ( window.location.href.includes("index.html")) {
     createProjectList();
 } else {
     // show detail
-    const projectId = getQueryParam("id");
+    let projectId = getQueryParam("id");
     showThisItem(projectId, 'project');
 }

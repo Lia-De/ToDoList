@@ -14,7 +14,6 @@
     <h1>To Do List</h1>
     <div id="navigate">
         <button id="projectsbtn" class="selected">Projects</button>
-        <!-- <button id="tasksbtn">Tasks</button> -->
         <button id="tagsbtn">Tags</button>
     </div>
     <div id="container">
@@ -38,30 +37,6 @@
         <p class="disclaimer">Tags must be uniquely named and can be used universally.</p>
     </div>
 </div>
-    
-    
-    <script type="module" src="script_project.js">
- // Function to get query parameters from URL
-    function getQueryParam(param) {
-            const urlParams = new URLSearchParams(window.location.search);
-            return urlParams.get(param);
-        }
-
-        // Load project details based on the URL parameter
-        function loadProjectDetails() {
-            const projectId = getQueryParam("id");
-            const project = (p => p.id == projectId);
-
-            if (project) {
-                document.getElementById("projectName").textContent = project.name;
-                document.getElementById("projectDescription").textContent = project.description;
-            } else {
-                document.body.innerHTML = "<h2>Project not found</h2>";
-            }
-        }
-
-        loadProjectDetails();
-
-    </script>
+    <script type="module" src="script_project.js"></script>
 </body>
 </html>

@@ -25,14 +25,6 @@ export function navigationEventListener(e){
 
     }
  }
-export function editToggle(fun){
-        let oldEdit = document.getElementById("edits");
-    if (oldEdit != null) {
-        oldEdit.parentNode.removeChild(oldEdit);        
-    } else {
-        fun;
-    }
-}
 
 export function addTaskListener(event) {
     let trg = document.getElementById('addNewItem');

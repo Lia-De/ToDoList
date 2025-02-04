@@ -173,7 +173,7 @@ export async function stopProjectTimer(prId){
                 alert(data); 
             });
         } 
-        return response.text();
+        return response.json();
 
     } catch (error) {
             console.error('Error:', error);
@@ -181,43 +181,43 @@ export async function stopProjectTimer(prId){
 }
 
 // EDIT FUNCTIONS
-
-
-export async function sendAddRequest(formData, fetchURL, dataType){
-    if (dataType==="task"){
-        try {
-            const response = await fetch(fetchURL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-        if (response.ok) {
-            window.location.replace(window.location.href);
-        }   
-        } catch (error) {
-            console.error('Error:', error);
-            alert('An unexpected error occurred.');
-        }
-    } else { 
+export async function sendEditRequest(requestData, fetchURL){
     try {
-        const response = await fetch(fetchURL, {
+        // Send the POST request to the updateProject endpoint
+        const response = await fetch(config.apiBaseUrl+fetchURL, {
             method: 'POST',
-            body: formData, 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
         });
-    
-            if (response.ok) {
-                window.location.replace(window.location.href);
-            } else {
-                const error = await response.json();
-                alert(`Failed to add ${dataType}: ${error.message}`);
-            }
-            
-        } catch (error) {
-            console.error('Error:', error);
-            alert('An unexpected error occurred.');
-        }
+       
+        if (response.ok) {
+            return true;
+        } return false;
+        
+    } catch (error) {
+        console.log('send edit request'+error.message);
+    }
+}
+
+
+
+export async function sendAddRequest(formData, fetchURL){
+    try {
+        const response = await fetch(`${config.apiBaseUrl}${fetchURL}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        });
+    if (response.ok) {
+        window.location.replace(window.location.href);
+    }   
+    } catch (error) {
+        console.error('Error:', error);
+        alert('An unexpected error occurred.');
     }
 }
 
