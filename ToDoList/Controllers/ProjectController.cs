@@ -67,28 +67,32 @@ public class ProjectController : ControllerBase
 
     // Create
     [HttpPost("addProject")]
-    public IActionResult AddProject([FromForm] string name, [FromForm] string? description)
+    public IActionResult AddProject(ProjectDto frontendProject)
     {
-        // public IActionResult AddProject(Project frontendProject) {
-        // var project = new Project {Name = name, Description = description};
-        // }
-        var project = new Project { Name = name };
-        if (description != null)
+        string? newName = frontendProject.Name;
+        if (string.IsNullOrEmpty(newName))
         {
-            project.Description = description;
+            return BadRequest();
         }
+        var project = new Project { Name = newName };
+        if (frontendProject.Description != null)
+        {
+            project.Description = frontendProject.Description;
+        }
+        
         // By default, initialize project as planning
         project.Status = ToDoStatus.Planning;
         _context.Projects.Add(project);
         _context.SaveChanges();
-        return Ok($"Project {name} added");
+        return Ok(project);
     }
   
     // Update
     [HttpPost("updateProject")]
     public IActionResult UpdateProject(ProjectDto frontendProject)
     {
-        string updatedInfo = "";
+        
+        
         var project = GetProject(frontendProject.ProjectId);
         if (project == null)
         {
@@ -98,21 +102,23 @@ public class ProjectController : ControllerBase
         if ((frontendProject.Status >= 0) && (frontendProject.Status != project.Status))
         {
             project.Status = (ToDoStatus)frontendProject.Status;
-            updatedInfo += " Status";
+            
         }
         string oldName = project.Name;
         if (!string.IsNullOrEmpty(frontendProject.Name))
         {
             project.Name = frontendProject.Name;
-            updatedInfo += " Name";
+            
         }
         if (!string.IsNullOrEmpty(frontendProject.Description))
         {
             project.Description = frontendProject.Description;
-            updatedInfo += " Description";
+            
         }
         _context.SaveChanges();
-        return Ok($"Project ({oldName}) updated with: {updatedInfo}.");
+        
+        return Ok(project);
+        
     }
 
 
@@ -251,7 +257,8 @@ public class ProjectController : ControllerBase
             TimeSpan duration = _projectService.StopTaskTimer(projectId);
             if (duration > TimeSpan.Zero)
             {
-                return Ok($"{duration.ToString(@"hh\:mm\:ss")}");
+                //return Ok($"{duration.ToString(@"hh\:mm\:ss")}");
+                return Ok(duration);
             }
             else
             {

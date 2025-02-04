@@ -41,16 +41,16 @@ public class TagController : ControllerBase
     }
     //Create 
     [HttpPost("addTag")]
-    public IActionResult AddTag([FromForm] string name)
+    public IActionResult AddTag(TagDto newTag)
     {
-        if (_context.Tags.Any(t => t.Name == name))
+        if (_context.Tags.Any(t => t.Name == newTag.Name))
         {
             return BadRequest("Tag already exists");
         }
-        var tag = new Tag { Name = name };
+        var tag = new Tag { Name = newTag.Name };
         _context.Tags.Add(tag);
         _context.SaveChanges();
-        return Ok($"Tag {name} added");
+        return Ok(tag);
     }
     // Update
     [HttpPost("updateTag")]
@@ -68,7 +68,7 @@ public class TagController : ControllerBase
     }
     // Delete
     [HttpDelete("deleteTag")]
-    public IActionResult DeleteTag(Tag frontendTag)
+    public IActionResult DeleteTag(TagDto frontendTag)
     {
         var tag = _context.Tags.Find(frontendTag.TagId);
         if (tag == null)
