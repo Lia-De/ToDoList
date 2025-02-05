@@ -29,10 +29,10 @@ it took.
       - [x] Name
       - [x] Description
       - [x] Status
-   - [ ] Edit fields for Tasks:
-      - [ ] Name
-      - [ ] Descriptions
-      - [ ] Status
+   - [x] Edit fields for Tasks:
+      - [x] Name
+      - [x] Descriptions
+      - [x] Status
       - [x] Deadline
    - [x] Edit name for Tags
 
@@ -55,11 +55,11 @@ Lo-fi prototype: [Find it on Figma](https://www.figma.com/proto/CZhjlhFft9ezpkyJ
 * Start and stop timer and total time per project.
 * List all projects in order of Running timers first, then Status, then name
 * Can edit all fields of Project.
-- [ ]  Editing of Tasks:
+- [x]  Editing of Tasks:
   - [x] Deadline
-  - [ ] Name
-  - [ ] Description
-  - [ ] Status
+  - [x] Name
+  - [x] Description
+  - [x] Status
 - [ ] Add time worked on a project manually (after the fact registration)
 - [ ] Add fields for StartDate and CompleteDate for Projects and Tasks to be set when you change project to Active and Completed respectively.
 
