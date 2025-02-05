@@ -1,14 +1,28 @@
 # To Do List app
 Created 2025-01-08 as part of Lexicon course, fullstack C# developer.
 
-## Design Considerations going forward (29/1 2024)
+## Next version Going forward (5 Feb, 2025) - Version 0.5
+Adding timers for tasks, reworking deadline, and working on adding the possible features:
+- [ ] Login for users
+- [ ] Ability to start timer on the each task
+- [ ] Sorting projects by: Name, Status, Hours Worked, Tag
+    - [x] Sort by status
+- [ ] Keeping time per Task as well as for whole Project
+- [ ] Keep a history of DateTime stamps for each time you worked on a Task
+- [ ] Manually add time spent
+- [ ] Fields for StartDate and CompleteDate For total time of project.
+   - Maybe a list of all changes of status { Status, DateTime } to keep track of that.
+
+--------------------------------------------------
+
+## Design Considerations going forward (29/1 2024) - [Version 0.4](https://github.com/Lia-De/ToDoList/tree/ToDo_v4)
 This will be an app to keep track of time and processes for craft projects. Textile, wood, or whatever else needs a user to keep track of their time.
 
 Often when I make a textile item I get asked: "How long did that take you to make?" and I rarely know, because who has time to write down times for all
 the things you do for a project. I might be wanting to sell the results of my work, but I don't know what to charge, because I don't know how much time
 it took.
 
-### Required features
+### Required features for Version 0.4
 - [x] Adding Projects, with title, some description and a way to add Tags and Tasks.
 - [x] Projects should total the time spent on them.
 - [x] Projects should have status: Planning, active, paused or completed.
@@ -49,7 +63,6 @@ it took.
 
 Lo-fi prototype: [Find it on Figma](https://www.figma.com/proto/CZhjlhFft9ezpkyJNBcyUX/Crafting-To-Do?node-id=17-78&t=J5iyQDHvTie9OMjz-1&scaling=min-zoom&content-scaling=fixed&page-id=0%3A1&starting-point-node-id=17%3A77)
 
---------------------------------------------------
 ### To Do 2025-02-05 - Version 0.4
 * App can now add and remove tasks from project, add and remove tags from projects and tasks.
 * Start and stop timer and total time per project.
@@ -72,7 +85,7 @@ Lo-fi prototype: [Find it on Figma](https://www.figma.com/proto/CZhjlhFft9ezpkyJ
 * ~~Editing project: add functionality to delete tasks and remove tags from the project.~~
 * Work on figma mock-ups for project detail page
 
-### To do 2025-01-30
+### To do 2025-01-30 [Version 0.3](https://github.com/Lia-De/ToDoList/tree/ToDo_v3)
 * ~~Map js methods for showing editing form~~
 * ~~Add description options in user input~~
 * ~~Expand creation of Task with more than name and deadline~~
