@@ -1,6 +1,7 @@
-import { createProjectList, createTagList, GetDetailId } from '../Components/create_items.js';
 import {config } from '../config.js';
-
+// ********************************************************************************/
+//           FETCHING DB INFO
+// ********************************************************************************/
 export async function fetchAllProjects() {
     try {
         const response = await fetch(`${config.apiBaseUrl}/Project`);
@@ -11,7 +12,8 @@ export async function fetchAllProjects() {
         return data;
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
+        document.getElementById("nowShowing").innerHTML =`Database is unreachable`;
+
     }
 }
 
@@ -25,10 +27,9 @@ export async function fetchAllTags() {
         return data;
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById("nowShowing").innerHTML =`Database is unreachable: Showing backup-data`;
+        document.getElementById("nowShowing").innerHTML =`Database is unreachable`;
     }
 }
-
 
 export async function getSingleItem(itemID, dataType) {
     let fetchURL;
@@ -58,34 +59,10 @@ export async function getSingleItem(itemID, dataType) {
         return null;
     }
 }
-
-
-
-// DELETE FUNCTIONS
-export function deleteProject(id, name){
-    const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
-            
-    if (confirmDelete) {
-        return sendDeleteData(id, name, "project");
-    }
-}
-export function deleteTag(id, name){
-    const confirmDelete = confirm(`Are you sure you want to delete "${name}"?`);
-            
-    if (confirmDelete) {
-        return sendDeleteData(id, name, "tag");
-    }
-}
-export function deleteTask(id, desc){
-    const confirmDelete = confirm(`Are you sure you want to delete "${desc}"?`);
-            
-    if (confirmDelete) {
-        return sendDeleteData(id, desc, "task");
-    }
-}
-
-// async function to request to delete data from the database
-async function sendDeleteData(id, data, dataType) {
+// ********************************************************************************/
+//           REMOVING DATA
+// ********************************************************************************/
+export async function sendDeleteData(id, data, dataType) {
     let fetchUrl;
     let deleteData;
     switch (dataType) {
@@ -143,8 +120,9 @@ async function sendDeleteData(id, data, dataType) {
 
 }
 
-
-// Removing tags from projects and tasks
+// ********************************************************************************/
+//           UPDATING DATA
+// ********************************************************************************/
 export function removeTagFromProject(projectID, tagID){
     let fetchURL =`${config.apiBaseUrl}/Project/removeTag/${projectID}/${tagID}`;
     return removeTagFromItem(fetchURL, 'project');
@@ -176,45 +154,8 @@ async function removeTagFromItem(fetchURL, type){
         }
 }
 
-export async function startProjectTimer(piD){
-    try {
-        const response = await fetch(`${config.apiBaseUrl}/Project/startTimer/${piD}`, {
-            method: 'POST',
-            body: piD, 
-        });
-        if (!response.ok) {
-            return response.text();
-        } else {
-            return '';
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
-export async function stopProjectTimer(prId){
-    try {
-        const response = await fetch(`${config.apiBaseUrl}/Project/stopTimer/${prId}`, {
-            method: 'POST',
-            body: prId, 
-        });
-        if (!response.ok) {
-            response.text()
-            .then(data => {
-                alert(data); 
-            });
-        } 
-        return response.json();
-
-    } catch (error) {
-            console.error('Error:', error);
-    }
-}
-
-// EDIT FUNCTIONS
 export async function sendEditRequest(requestData, fetchURL){
     try {
-        // Send the POST request to the updateProject endpoint
         const response = await fetch(config.apiBaseUrl+fetchURL, {
             method: 'POST',
             headers: {
@@ -232,22 +173,44 @@ export async function sendEditRequest(requestData, fetchURL){
     }
 }
 
-export async function setTaskStatus(taskId, status){
-    let fetchURL = config.apiBaseUrl+'Task/setStatus/'+taskId+'/'+status;
+export async function startProjectTimer(projectId){
     try {
-        const response = await fetch(fetchURL);
+        const response = await fetch(`${config.apiBaseUrl}/Project/startTimer/${projectId}`, {
+            method: 'POST',
+            body: projectId, 
+        });
         if (!response.ok) {
-            console.error('Failed to set status:', response.statusText);
-            return null;
+            return response.text();
+        } else {
+            return '';
         }
-        return true;
     } catch (error) {
-        console.error('Error setting status:', error);
-        return null;
+        console.error('Error:', error);
     }
 }
 
-// ADD FUNCTIONS
+export async function stopProjectTimer(projectId){
+    try {
+        const response = await fetch(`${config.apiBaseUrl}/Project/stopTimer/${projectId}`, {
+            method: 'POST',
+            body: projectId, 
+        });
+        if (!response.ok) {
+            response.text()
+            .then(data => {
+                alert(data); 
+            });
+        } 
+        return response.json();
+
+    } catch (error) {
+            console.error('Error:', error);
+    }
+}
+
+// ********************************************************************************/
+//           ADDING NEW DATA
+// ********************************************************************************/
 export async function sendAddRequest(formData, fetchURL){
     try {
         const response = await fetch(config.apiBaseUrl+fetchURL, {
@@ -266,15 +229,12 @@ export async function sendAddRequest(formData, fetchURL){
     }
 }
 
-
-
 export async function addTagToItem(event, inputTags, fetchUrl){
-    let tagArray = inputTags
-    .split(',')
-    .map(item => item.trim())
-    .filter(item => item !== '');
+    let tagArray = inputTags.split(',')
+                    .map(item => item.trim())
+                    .filter(item => item !== '');
     event.preventDefault();
-    
+
     const response = await fetch(config.apiBaseUrl+fetchUrl, {
         method: 'POST',
         headers: {
@@ -284,22 +244,10 @@ export async function addTagToItem(event, inputTags, fetchUrl){
     });
 
     if (!response.ok) {
-        console.log('Something went wrong with adding tags!')
+        console.error('Something went wrong with adding tags!');
     } else {
-        // Update tag list showing
-        response.json().then(tags => {
-            // Clear the input
-            event.target.querySelector('input').value = '';
-            // Select the <ul> element
-            let tagList = event.target.parentNode.previousElementSibling;
-            // Clear existing <li> elements
-            tagList.innerHTML = '';
-            // Add new <li> elements from the returned tags
-            tags.forEach(tag => {
-                let li = document.createElement('li');
-                li.textContent = tag.name; // Assuming the API returns an array of tag names
-                tagList.appendChild(li);
-            });
-        });
+        // Return the new taglist to update the page
+        return response.json();
+
     }
 }

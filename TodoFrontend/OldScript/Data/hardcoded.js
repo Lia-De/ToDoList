@@ -1,1 +1,0 @@
-export const statusTexts = ["Planning", "Active", "Inactive", "Complete"];

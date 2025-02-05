@@ -1,17 +1,14 @@
 
-import { statusTexts } from '../Data/hardcoded.js';
-import { deleteProject, deleteTag, deleteTask,
-        fetchAllProjects, fetchAllTags, getSingleItem, 
+import { statusTexts, InfoText } from '../Data/hardcoded.js';
+import { fetchAllProjects, fetchAllTags, getSingleItem, 
         startProjectTimer, stopProjectTimer,
         addTagToItem, sendAddRequest, 
-        sendEditRequest, 
-        removeTagFromProject, removeTagFromTask} from '../API_Access/apiCalls.js';
-import { goToPage, addTaskListener, editListener } from '../EventListeners/eventListeners.js';
+        sendEditRequest, removeTagFromProject, removeTagFromTask} from '../API_Access/apiCalls.js';
+import {deleteProject, deleteTag, deleteTask, goToPage, addTaskListener, editListener } from '../EventListeners/eventListeners.js';
 
 function listHelperSetupCard(id){
     let itemCard = addElement('div','',document.getElementById('contents'));
     itemCard.classList="itemCard";
-
     let itemdiv = addElement('div','', itemCard);
     itemdiv.classList = 'item';
     itemdiv.id = `detail-${id}`;
@@ -34,6 +31,13 @@ function listHelperCreateEditButton(trg){
     trg.insertAdjacentElement('afterbegin',editdiv)
     return editButton;
 }
+// ********************************************************************************/
+// Fetch all projects from the database and display them in a list.
+// Displays: Name, Status, TimeSpent 
+//           Event Listeners: Go to detail page, Delete Project
+//
+// Uses helper functions to print items that we re-use (itemCard, deleteButton)
+// ********************************************************************************/
 
 export function createProjectList() {
     clearData();
@@ -41,8 +45,6 @@ export function createProjectList() {
     document.getElementById("nowShowing").innerHTML = `${data.length} Projects`;
     let timerCount = 0;
     const target = document.getElementById('contents');
-
-    printAddNewItemButton();
 
     data.forEach(dataPoint => {
         if (dataPoint.hasTimerRunning) {
@@ -60,7 +62,6 @@ export function createProjectList() {
         element.classList = 'totalTime';
         if (dataPoint.hasTimerRunning) {
             element.classList.add('runningTimer');
-            
         }
         let deleteButton = listHelperDeleteButton(itemdiv.parentNode);            
         deleteButton.addEventListener('click', () => {
@@ -74,6 +75,13 @@ export function createProjectList() {
     });
 }
 
+// ********************************************************************************/
+// // Fetch all tags from the database and display them in a cloud.
+// Displays: Name, Usage
+//           Event Listeners: Go to detail page, Delete Project
+//
+// Uses helper functions to print items that we re-use (itemCard, deleteButton)
+// ********************************************************************************/
 export function createTagList() {
     clearData();
     fetchAllTags().then(data => {
@@ -98,48 +106,152 @@ export function createTagList() {
 
         });
      });
-
-     printAddNewItemButton();
 }
 
-// helper functions to print out the adding form
-export function printAddNewItemButton(){
-    if (!document.getElementById('addItemButton')) {
-        let target = document.getElementById("tagsbtn");
-        let addingBox = document.createElement('button');
-        addingBox.innerText='+Create new';
-        addingBox.id = "addItemButton"
-        target.insertAdjacentElement("afterend", addingBox);
-        addingBox.addEventListener('click', printAddingFormAndAddListeners);
-    }
+// ********************************************************************************/
+//   The main display of all details for a single tag, or Project.
+//      Creates document structure and sets classes for styling.
+//      Removes all previous content, and inserts the data in div#contents. 
+// 
+//  Tag:
+//        Display: Name, Usage in projects and tasks.
+//        Links to all projects that uses the tag.
+//      * Event listeners: Edit -> opens form to edit tag-name.
+//
+// Project:
+//     Display: Name, Status, Description, Timer, Recorded Time, +Tags, +Tasks
+//          Tags: Name => link to tag.html
+//          Tasks: Name, Status, Deadline, Description, Tags
+//    * Event listeners: Edit Project
+//                       Start/Stop timer
+//                       Add Tag
+//                       Add Task
+//                            Set Deadline if not set
+//                            Add Tag to Task
+// 
+// ********************************************************************************/
+export function showThisItem(itemID, dataType){
+    clearEdit();
+    getSingleItem(itemID, dataType).then( data => {
+        let target = document.getElementById('contents');
+        
+        // Set title and print edit button
+        document.getElementById('nowShowing').innerHTML = data.name;
+        let editButton = listHelperCreateEditButton();
+
+        // build the project card
+        let detailDiv = addElement('div','',target)
+        let itemID;
+        switch (dataType){
+            case 'project': itemID = data.projectId;
+                break;
+            case 'tag': itemID = data.tagId;
+                break;
+            default:
+                itemID = 0;
+        }
+        detailDiv.id='detail-'+itemID;
+        
+        if (dataType==='tag'){
+            // Set listener for edit button
+            editButton.addEventListener('click', ()=> editListener(data.tagId,'tag'));
+
+            if (data.projects.length > 0) {
+                addElement('p', `Used in <b>${data.projects.length}</b> projects:`, detailDiv);
+                let list = addElement('ul','',detailDiv);
+                data.projects.forEach(project => {
+                    let listitem=addElement('li','', list);
+                    let link = addElement('a',project.name, listitem);
+                    link.href="project.html?id="+project.projectId;
+                });
+            } else {                 addElement('p','Not used in any project.',detailDiv);             }
+            if (data.tasks.length > 0) {        
+                addElement('p', `Also used in <b>${data.tasks.length}</b> tasks`, detailDiv);
+            } else {                 addElement('p', `Not used in any task.`, detailDiv);             }
+        } 
+        if (dataType === 'project'){
+            // Set listener for edit button
+            editButton.addEventListener('click',()=> editListener(data.projectId,'project'));
+            
+            let header = addElement('div','',detailDiv);
+            header.classList = 'header';
+            let status = data.status;
+            let statusElement = addElement('p',statusTexts[status], header);
+            statusElement.classList=`status${status}`;                        
+            let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
+            time.setAttribute('data',data.totalWorkingTime);
+            time.classList = 'totalTime';
+            //        Print timer only if we are not Status = Completed          //
+            if (data.status != 3) {
+                printTimerStartAndStop(data);
+            }
+
+            addElement('p',data.description,detailDiv);
+            
+            let tagBox = addElement('div','',detailDiv);
+            tagBox.id='tagBox';
+            tagBox.classList='tagsList';
+            let ptform = printAllTagsAndForm(data.tags, tagBox, 'project');
+            ptform.addEventListener('submit', (event) => addTagToProject(event));
+
+            //              Header for Tasks                //
+            header = addElement('div','',detailDiv);
+            header.classList = 'header';
+            addElement('h3', 'Tasks', header);
+            let element = addElement('p','',header);
+            element.id='addingBox';
+            let addButton = addElement('button','+', element);
+            addButton.id="addTaskButton";
+            addButton.addEventListener('click', (event) => addTaskListener(event) );
+
+            //            Display info for each task of the project          //
+            data.tasks.forEach(task => {
+                let taskDiv = addElement('div','',detailDiv);
+                taskDiv.classList='detailTask shadowbox';
+                header = addElement('div','',taskDiv);
+                header.classList = 'header';
+
+                // inserting edit button
+                let editButton = listHelperCreateEditButton(header);
+                editButton.addEventListener('click',()=> editListener(task.taskId,'task'));
+
+                let status = task.status;
+                let statusValue=statusTexts[status];
+                let statusElement = addElement('p',statusValue, header);
+                statusElement.classList=`status${status}`;
+                let taskname=addElement('h4',task.name, header);
+                taskname.id=`task-${task.taskId}`;
+                let deadline = addElement('p','', header);
+                if (task.deadline) {
+                deadline.innerHTML = formatDateTime(task.deadline);
+                deadline.classList = 'deadline';
+                } else {
+                    deadline.classList='noDeadline';
+                    deadline.addEventListener('click',printTaskDeadlinePicker);
+                }
+
+                addElement('p', task.description, taskDiv)
+                
+                let taskTagDiv = addElement('div','',taskDiv);
+                taskTagDiv.classList='tagsList';
+                let form = printAllTagsAndForm(task.tags, taskTagDiv, 'task');
+                let hiddenId = addElement('input','',form);
+                hiddenId.type="hidden";
+                hiddenId.name='taskId';
+                hiddenId.value = task.taskId;
+                form.elements["taskTagCloud"].id=`taskTagCloud${task.taskId}`;
+                //                 set event listener to Add new Tags to the Task             //
+                form.addEventListener('submit', (event) => { addTagToTask(event); });
+            }); //      END Each Task                                       //
+        }       //      if type = project                                   //
+    });         //     END FETCH SINGLE ITEM                                //
 }
 
-function printAddingFormAndAddListeners () {
-    // IF I have a form already, clear it.
-    if (clearAddingForm()){
-        return;
-    }
-    switch (document.getElementById('navigate').querySelector('.selected').id) {
-        case "projectsbtn":
-            let addingPForm = printAddingForm("addProject");
-            addingPForm.addEventListener('submit', (event) => addRequest(event, 'project'));
-            break;
-        case "tasksbtn":
-            // let addingTaskForm = printAddingForm("addTask");
-            // addingTaskForm.addEventListener('submit', (event) => addRequest(event, 'task'));
-            break;
-        case "tagsbtn":
-            let addingTagForm = printAddingForm("addTag");
-            addingTagForm.addEventListener('submit', (event) => addRequest(event, 'tag'));
-            break;
-        default:
-            console.error(`Unknown datatype: ${dataType}`);
-    }
-}
-
-
-// unhideDisclaimer
-import { InfoText } from '../Data/hardcoded.js';
+// ********************************************************************************/
+// Adds Information from hardcoded to the page.
+//
+//          Toggle functionality
+// ********************************************************************************/
 export function unhideDisclaimer(){
     let disclaimers = document.getElementById('disclaimers');
     
@@ -156,181 +268,46 @@ export function unhideDisclaimer(){
     document.querySelectorAll('.disclaimer').forEach(el => el.remove());
     }
 }
-
-export function showThisItem(itemID, dataType, target){
-    clearEdit();
-    getSingleItem(itemID, dataType).then( data => {
-        
-        if (!target) {
-            target = document.getElementById('contents');
-        }
-        target.classList.add("selected");
-        // build the project card
-        let detailDiv = document.createElement('div');
-        target.insertAdjacentElement("afterend", detailDiv);
-
-        // Create the header row
-        let itemID;
-        switch (dataType){
-            case 'project': itemID = data.projectId;
-                break;
-            case 'task': itemID = data.taskId;
-                break;
-            case 'tag': itemID = data.tagId;
-                break;
-            default:
-                itemID = 0;
-        }
-        // Set the detail div ID to include the selected item ID
-        detailDiv.id='detail-'+itemID;
-        // display count of useages for tags, or status and all tags for the others
-        if (dataType==='tag'){
-            document.getElementById('nowShowing').innerHTML = data.name;
-            let tagEditButton = listHelperCreateEditButton();
-            tagEditButton.addEventListener('click', ()=> editListener(data.tagId,'tag'));
-
-            if (data.projects.length > 0) {
-                let allProjects = addElement('p', `Used in <b>${data.projects.length}</b> projects:`, detailDiv);
-                let list = addElement('ul','',detailDiv);
-                data.projects.forEach(project => {
-                    let listitem=addElement('li','', list);
-                    let link = addElement('a',project.name, listitem);
-                    link.href="project.html?id="+project.projectId;
-                });
-            } else {addElement('p','Not used in any project.',detailDiv);}
-            if (data.tasks.length > 0) {        
-                addElement('p', `Also used in <b>${data.tasks.length}</b> tasks`, detailDiv);
-            } else {
-                addElement('p', `Not used in any task.`, detailDiv);
-            }
-        } else {
-            if (dataType === 'project'){
-            document.getElementById('nowShowing').innerHTML = data.name;
-            let header = addElement('div','',detailDiv);
-            header.classList = 'header';
-            let status = data.status;
-            let statusElement = addElement('p',statusTexts[status], header);
-            statusElement.classList=`status${status}`;            
-                        
-            let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
-            time.setAttribute('data',data.totalWorkingTime);
-            time.classList = 'totalTime';
-
-            let editButton = listHelperCreateEditButton();
-            editButton.addEventListener('click',()=> editListener(data.projectId,'project'));
-
-            // print timers in Detail header only if we are not completed
-            if (data.status != 3) {
-                printTimerStartAndStop(null, data);
-            }
-            let pDescription = addElement('p',data.description,detailDiv);
-            
-            let tagBox = addElement('div','',detailDiv);
-            tagBox.id='tagBox';
-            tagBox.classList='tagsList';
-
-            let ptform = printAllTagsAndForm(data.tags, tagBox, 'project');
-            ptform.addEventListener('submit', (event) => addTagToProject(event));
-
-            // header for Tasks
-            header = addElement('div','',detailDiv);
-            header.classList = 'header';
-            addElement('h3', 'Tasks', header);
-            let element = addElement('p','',header);
-            element.id='addingBox';
-            let addButton = addElement('button','+', element);
-            
-            addButton.id="addTaskButton";
-            addButton.addEventListener('click', (event) => { addTaskListener(event) });
-
-            // Each task for the project:
-            data.tasks.forEach(task => {
-                let taskDiv = addElement('div','',detailDiv);
-                taskDiv.classList='detailTask shadowbox';
-                header = addElement('div','',taskDiv);
-                header.classList = 'header';
-
-
-                // inserting edit button
-                let editButton = listHelperCreateEditButton(header);
-                editButton.addEventListener('click',()=> editListener(task.taskId,'task'));
-
-
-
-
-
-                let status = task.status;
-                let statusValue=statusTexts[status];
-                let statusElement = addElement('p',statusValue, header);
-                statusElement.classList=`status${status}`;
-                let taskname=addElement('h4',task.name, header);
-                taskname.id=`task-${task.taskId}`;
-                let deadline = addElement('p','', header);
-                if (task.deadline) {
-                deadline.innerHTML = formatDateTime(task.deadline);
-                deadline.classList = 'deadline';
-                } else {
-                    deadline.classList='noDeadline';
-                    deadline.addEventListener('click',printTaskDeadlinePicker);
-                }
-                addElement('p', task.description, taskDiv)
-                let taskTagDiv = addElement('div','',taskDiv);
-                taskTagDiv.classList='tagsList';
-                let form = printAllTagsAndForm(task.tags, taskTagDiv, 'task');
-                let hiddenId = addElement('input','',form);
-                hiddenId.type="hidden";
-                hiddenId.name='taskId';
-                hiddenId.value = task.taskId;
-                form.elements["taskTagCloud"].id=`taskTagCloud${task.taskId}`;
-                // set event listener
-                form.addEventListener('submit', (event) => { addTagToTask(event); });
-            });
-            }
-        }
-        // Ensure the div#detail spans the grid properly when we resize.
-        let rowSpan = Math.ceil(detailDiv.scrollHeight / 100);
-        detailDiv.setAttribute('style',`grid-row: 1 / span ${rowSpan}`);
-    });
-}
-
-// Helper function to add Timer start and stop buttons after the Page header
-export function printTimerStartAndStop(target, data) {
-
-    let projectTimers = document.createElement('div','');
-    if (!target) {
-        document.getElementById('nowShowing').insertAdjacentElement('afterend',projectTimers);
-    } else {
-        target.appendChild(projectTimers);
-    }
+// ********************************************************************************/
+//   Helper function to put the timer Start button on the page. 
+//       Sets event listener: Toggle timer to start or stop.
+// ********************************************************************************/
+export function printTimerStartAndStop({hasTimerRunning, projectId}) {
+    let projectTimers = document.createElement('div','');  
+    document.getElementById('nowShowing').insertAdjacentElement('afterend',projectTimers);
     projectTimers.id='projectTimers';
     let startButton = addElement('button','Start',projectTimers);
     startButton.id = 'timerStart';
-
-    if (data.hasTimerRunning){
+    if (hasTimerRunning){
         startButton.classList = 'running';
     }
+    
     startButton.addEventListener('click', (event) => {
-    if (event.target.classList !='running')
-       {
-        startTimer(data.projectId);
-       } else {
-        stopTimer(data.projectId);
-       }
+        if (event.target.classList !='running')
+        {
+            startTimer(projectId);
+        } else {
+            stopTimer(projectId);
+        }
     });
 }
-
+// ********************************************************************************/
+//    startTimer - Sets a timer in the backend
+// ********************************************************************************/
 function startTimer(projectId){
     startProjectTimer(projectId).then(data => {
         if (data ==='') {
             let button = document.getElementById('timerStart');
             button.classList.add('running');
-            // document.getElementById('timerStop').classList = 'valid';
         } else {
             alert(data);
         }
     });
 }
-
+// ********************************************************************************/
+//    stopTimer - Removes a timer in the backend which returns a TimeSpan.
+//                Displays how much time was added on the page.
+// ********************************************************************************/
 function stopTimer(prId){
     stopProjectTimer(prId).then(data => {
         let trg=document.querySelector("[id^='detail']").querySelector('.totalTime');
@@ -339,8 +316,14 @@ function stopTimer(prId){
     });
 }
 
-
-// Helper function to print all Tags, and add Tag form for Tasks and Projects
+// ********************************************************************************/
+//    Helper function to print all Tags in a list
+//           Add form to add new tag to the list.
+//          Returns the form - for setting listeners.
+//   tags = <List>Tag, 
+//   target = HTML element, 
+//   type = 'project'/'task'
+// ********************************************************************************/
 function printAllTagsAndForm(tags, target, type){
     let tagList= addElement('ul',``,target);
     tagList.classList='tagsList';
@@ -350,7 +333,7 @@ function printAllTagsAndForm(tags, target, type){
         item.href=`tag.html?id=${tag.tagId}`;
     });
     let tagDiv = addElement('div','',target);
-    
+
     let form = addElement('form','',tagDiv);
     let addTags = addElement('button', 'Add Tags',form);
     addTags.type='submit';
@@ -360,7 +343,8 @@ function printAllTagsAndForm(tags, target, type){
     if (type =='task') {
         tagDiv.id='taskTagAdding';
         tagInput.name = 'taskTagCloud';
-    } else {
+    } 
+    if (type == 'project') {
         tagDiv.id='projectTagAdding';
         tagInput.id = 'projectTagCloud';
         tagInput.name = 'projectTagCloud';
@@ -368,8 +352,10 @@ function printAllTagsAndForm(tags, target, type){
     return form;
 }
 
-
-// function to create and populate an edit form
+// ********************************************************************************/
+//   Create and populate an edit form given an object ID and type
+// type = 'tag' / 'task' / 'project'
+// ********************************************************************************/
 export function createEditForm(dataID, type) {
         // Create the container div
     let editBox = document.createElement('div');
@@ -390,9 +376,8 @@ export function createEditForm(dataID, type) {
     if (type=='task') {
         inputText.value = document.querySelector("#task-"+dataID).innerHTML
     } else {
-        inputText.value = document.getElementById('nowShowing').innerHTML; // Fill the input 
+        inputText.value = document.getElementById('nowShowing').innerHTML;  
     }
-       
     // Create the hidden input for the ID
     let inputHidden = document.createElement('input');
     inputHidden.type = 'hidden';
@@ -404,30 +389,28 @@ export function createEditForm(dataID, type) {
     let button = document.createElement('button');
     button.type = 'submit';
     button.textContent = 'Save';
+    
+    //      Common edit fields for project and tags below      //
+    if (type!='tag') {     
+        label = addElement('label','Description:', form);
+        label.setAttribute('for','description');
+        let textarea = addElement('textarea','',form);
+        textarea.id='description';
+        textarea.name='description';
+        textarea.setAttribute('rows','3');
 
-    // Print out all the other stuff for Project/Task switching on the active type.
-    // switch (type) {
-    //     case "project":
-            // <textarea id="message" name="message" rows="4" cols="50"></textarea>
-            label = addElement('label','Description:', form);
-            label.setAttribute('for','description');
-            let textarea = addElement('textarea','',form);
-            textarea.id='description';
-            textarea.name='description';
-            textarea.setAttribute('rows','3');
+        createStatusRadioButtons(form);
 
-            createStatusRadioButtons(form);
         if (type=='project') {
-            // Print tasks for a project
+            
             addElement('label','Current Tasks:',form);
             let delTaskDiv = addElement('div','',form);
             delTaskDiv.id='editProjectTasks';
         }
-            label = addElement('label','Current tags:',form);
-            let delTagsDiv = addElement('div','All Tags Go Here',form);
-            delTagsDiv.name='tagCloud';
-            
-
+        label = addElement('label','Current tags:',form);
+        let delTagsDiv = addElement('div','All Tags Go Here',form);
+        delTagsDiv.name='tagCloud';
+        
         if (type=='task'){
             label = addElement('label','Deadline: ',form);
             label.setAttribute('for','deadline');
@@ -436,38 +419,44 @@ export function createEditForm(dataID, type) {
             deadline.id = 'deadline';
             deadline.type='datetime-local';
             
+            delTagsDiv.id='editTaskTags'; 
+
             getSingleItem(dataID,'task').then(itemData => {      
                 fillItemData(itemData,form);
                 deadline.value=itemData.deadline;
             });
-            delTagsDiv.id='editTaskTags'; // set in fillitemData
         }
         if (type=='project') {
-            delTagsDiv.id='editProjectTags'; // set in fillitemData
+            delTagsDiv.id='editProjectTags';
+
             getSingleItem(dataID,'project').then(itemData => {
                 fillItemData(itemData, form);
             });
         }
- 
+    }
     form.appendChild(inputHidden);
     form.appendChild(button);
         // Place it in the right spot on the page
     let divTarget = document.createElement('div');
     divTarget.appendChild(form);
     editBox.appendChild(divTarget);
-    if (type!='task') {
-        document.querySelector("[id^='detail-']").insertAdjacentElement('afterbegin',editBox);
-    } else {
+
+    if (type=='task') {
         document.querySelector("#task-"+dataID).parentNode.insertAdjacentElement('afterend',editBox);
+    } else  {
+        document.querySelector("[id^='detail-']").insertAdjacentElement('afterbegin',editBox);
     }
     return form;
 }
 
 
+// ********************************************************************************/
+//   Gets the full item data to fill in the Edit form with ids, and set listeners
+//        Given the ObjectData and the form.
+// ********************************************************************************/
 function fillItemData(itemData, form) {
-
     // Fill in the description
-    if (form.elements['description']) 
+    if (form.elements['description'])  
         form.elements['description'].value=itemData.description;
     // Check the box for the current status of the project.
     switch (itemData.status) {
@@ -481,20 +470,18 @@ function fillItemData(itemData, form) {
             break;
         }
 
-    // print out the tasks -- change from checkboxes!
+    // Fill in the tasks, if the container exists
     let trg = document.getElementById('editProjectTasks');
     if (trg) {
         trg.innerHTML = ""; // Clear previous content
         itemData.tasks.forEach(task => {
-            
-            // <p class="deleteTask" id="task-${task.taskId}">task.name</p>
             let telement = addElement('p',task.name, trg);
             telement.id = `task-${task.taskId}`;
             telement.classList = 'deleteTask';
             telement.addEventListener('click', removeTask);
-            
         });
     }
+    // Fill in all project tags, if the container exists
     trg = document.getElementById('editProjectTags');
     if  (trg) {
         trg.innerHTML = "";
@@ -505,6 +492,7 @@ function fillItemData(itemData, form) {
             telement.addEventListener('click', removeTag);
         });
     }
+    // Fill in all Task tags, if the container exists
     trg = document.getElementById('editTaskTags');
     if  (trg) {
         trg.innerHTML = "";
@@ -517,6 +505,51 @@ function fillItemData(itemData, form) {
     }
 }
 
+// ********************************************************************************/
+// Helper function to print out the button to add new Project or Tag
+//          Does not print if it already is present on the page.
+// ********************************************************************************/
+export function printAddNewItemButton(){
+    if (!document.getElementById('addItemButton')) {
+        let target = document.getElementById("tagsbtn");
+        let addingBox = document.createElement('button');
+        addingBox.innerText='+';
+        addingBox.id = "addItemButton"
+        target.insertAdjacentElement("afterend", addingBox);
+        addingBox.addEventListener('click', printAddingFormAndAddListeners);
+    }
+}
+
+// ********************************************************************************/
+// Helper function to set up the adding form for new items, and set
+// event listeners to send add request to the backend.
+// 
+//       Print Project/Tag form based on Navigation Button Selected
+//       Toggle functionality 
+// ********************************************************************************/
+function printAddingFormAndAddListeners () {
+    // If I have a form already, clear it, don't print out a new one.
+    if (clearAddingForm()){
+        return;
+    }
+    switch (document.getElementById('navigate').querySelector('.selected').id) {
+        case "projectsbtn":
+            let addingPForm = printAddingForm("addProject");
+            addingPForm.addEventListener('submit', (event) => addRequest(event, 'project'));
+            break;
+        case "tagsbtn":
+            let addingTagForm = printAddingForm("addTag");
+            addingTagForm.addEventListener('submit', (event) => addRequest(event, 'tag'));
+            break;
+        default:
+            console.error(`Unknown datatype: ${dataType}`);
+    }
+}
+
+// ********************************************************************************/
+//       Sets the task and project ID from the event/page, and sends to the backend
+//       If deletion was OK - remove the Task from the visible list
+// ********************************************************************************/
 function removeTask(event){
     let taskId = parseOutId(event.target.id);
     let result = deleteTask(taskId, event.target.innerText);
@@ -524,6 +557,11 @@ function removeTask(event){
         event.target.parentNode.removeChild(event.target);
     }
 }
+
+// ********************************************************************************/
+//       Sets the tag and project ID from the event/page, and sends to the backend
+//       If deletion was OK - remove the tag from the visible list
+// ********************************************************************************/
 function removeTag(event){
     let tagID=parseOutId(event.target.id);
     let projectID = GetDetailId();
@@ -534,6 +572,10 @@ function removeTag(event){
     }
 }
 
+// ********************************************************************************/
+//       Sets the tag and task ID from the event/form, and sends to the backend
+//       If deletion was OK - remove the tag from the visible list
+// ********************************************************************************/
 function removeTagFromThisTask(event){
     let tagID = parseOutId(event.currentTarget.id);
     let taskID = document.querySelector('#editTaskForm').elements['editId'].value;
@@ -545,6 +587,10 @@ function removeTagFromThisTask(event){
     }
 }
 
+// ********************************************************************************/
+//    Prints out Labels+Radio buttons for Status setting in a form.
+//         Sets text-content from hardcoded Status struct. Update to match backend.
+// ********************************************************************************/
 function createStatusRadioButtons(form){
     let radioLabel = addElement('label', statusTexts[0],form);
     radioLabel.setAttribute('for','statusZero');
@@ -562,7 +608,7 @@ function createStatusRadioButtons(form){
     radioButton.name='newStatus';
     radioButton.value=1;
 
-    radioLabel =  addElement('label', 'Inactive',form);
+    radioLabel =  addElement('label', statusTexts[2],form);
     radioLabel.setAttribute('for','statusTwo');
     radioButton = addElement('input','',form);
     radioButton.type='radio';
@@ -570,7 +616,7 @@ function createStatusRadioButtons(form){
     radioButton.name='newStatus';
     radioButton.value=2;
 
-    radioLabel =  addElement('label', 'Completed',form);
+    radioLabel =  addElement('label', statusTexts[3],form);
     radioLabel.setAttribute('for','statusThree');
     radioButton = addElement('input','',form);
     radioButton.type='radio';
@@ -579,14 +625,15 @@ function createStatusRadioButtons(form){
     radioButton.value=3;
 }
 
-
-
+// ********************************************************************************/
+//      printAddingForm ( datatype = 'addTask' /'addTag' / 'addProject' )
+//            Header row followed by custom form
+// ********************************************************************************/
 export function printAddingForm(dataType){
     let addingBox = document.createElement("div");
     addingBox.id = "addNewItem";
     addingBox.classList.add('shadowbox');
-    if (dataType != "addTask")
-    {
+    if (dataType != "addTask") {
         let title = dataType=='addProject' ? 'project': 'tag';
         addElement('h4',`Add ${title}`,addingBox);
         let target = document.getElementById("contents");
@@ -595,7 +642,6 @@ export function printAddingForm(dataType){
         let target = document.getElementById('addingBox').parentNode;
         target.insertAdjacentElement('afterend',addingBox);
     }
-    
     let form = document.createElement("form");
     form.id = dataType;
    // Create the text input for the name
@@ -629,32 +675,31 @@ export function printAddingForm(dataType){
             inputText.name='description';
             inputText.type='text';
 
-            let extraInput = document.createElement('input');
+            let extraInput = addElement('input','',form);
             extraInput.type='hidden';
             extraInput.id = 'projectId';
             extraInput.name = 'projectId';
             extraInput.value = GetDetailId();
-            // fill the select field with projects
-            form.appendChild(extraInput);
+            
             label = addElement('label','Optional Deadline: ', form);
             label.setAttribute('for','deadline');
             let deadline= addElement('input','',form);
             deadline.type = 'datetime-local';
             deadline.name="deadline";
             deadline.id="deadline";
-
-            break;
-        case "addTag":
             break;
         default:
     }
-    
     form.appendChild(button);
-
     addingBox.appendChild(form);
     return form;
 }
 
+// ********************************************************************************/
+//            addTagToTask
+//  Helper function to get input from user to set new tags for a task
+//  After receiving input from the backend, update taglist on the page
+// ********************************************************************************/
 function addTagToTask(event){
     event.preventDefault();
     let tagCloud = 'taskTagCloud'+event.target.elements["taskId"].value;
@@ -664,9 +709,17 @@ function addTagToTask(event){
     let fetchUrl = `/Task/addTagsToTask/${dataid}`;    
 
     if (inputTags !=''){
-        addTagToItem(event,inputTags, fetchUrl);
+        addTagToItem(event,inputTags, fetchUrl)
+        .then(tags=>{
+            updateTagsOnPage(event, tags);
+        });
     }
 }
+// ********************************************************************************/
+//            addTagToProject
+//  Helper function to get input from user to set new tags for a project
+//  After receiving input from the backend, update taglist on the page
+// ********************************************************************************/
 function addTagToProject(event){
     event.preventDefault();
     let inputTags = document.getElementById('projectTagCloud').value;
@@ -674,10 +727,34 @@ function addTagToProject(event){
     let fetchUrl=`/Project/addTagsToProject/${dataid}`;
     if (dataid !=null) {      
         if (inputTags !=''){
-            addTagToItem(event, inputTags, fetchUrl);
+            addTagToItem(event, inputTags, fetchUrl)
+            .then(tags=>{
+                updateTagsOnPage(event, tags);
+            });
         } 
     }
 }
+
+// ********************************************************************************/
+//      updateTagsOnPage ( event , tags )
+//   Updates the taglist with updated information sent from the backend on the page
+// ********************************************************************************/
+function updateTagsOnPage(event, tags){
+    event.target.querySelector('input').value = '';
+    let tagList = event.target.parentNode.previousElementSibling;
+    tagList.innerHTML = '';
+    tags.forEach(tag => {
+        let li = document.createElement('li');
+        li.textContent = tag.name; // Assuming the API returns an array of tag names
+        tagList.appendChild(li);
+    });
+}
+
+// ********************************************************************************/
+//      printTaskDeadlinePicker ( event  )
+// Helper function to print out the form to set a new deadline for a project.
+//          Toggle functionality
+// ********************************************************************************/
 function printTaskDeadlinePicker(event){
     let calendarPicker = event.currentTarget;
     let headerDiv = calendarPicker.parentNode;
@@ -685,12 +762,7 @@ function printTaskDeadlinePicker(event){
     if (deadlineform) {
         headerDiv.removeChild(deadlineform)
     } else {
-        // prevent another click
-        // calendarPicker.removeEventListener('click',editTaskDeadline);
-
         let taskId= parseOutId(event.target.previousElementSibling.id);
-        // event.target.parentNode.removeChild(event.target);
-        // let element = addElement('p','How does this work',event.target.parentNode);
         let form = addElement('form','',event.target.parentNode);
         form.id="setDeadlineForm";
         let newdeadline= addElement('input','',form);
@@ -715,7 +787,10 @@ function printTaskDeadlinePicker(event){
         form.addEventListener('submit', editTaskRequest);
     }
 }
-
+// ********************************************************************************/
+//          Edit functions - Project
+//    Fills variables from page input, Updates info on page if successful
+// ********************************************************************************/
 export async function editProjectRequest(event) {
     event.preventDefault(); // Prevent the default form submission
     // Get input values
@@ -736,30 +811,25 @@ export async function editProjectRequest(event) {
     if (!isValidInput(name)){
         alert(`You have to enter (some) text`);
     } else {
-            // Data to send in the request
         let requestData = {
             ProjectId: id,
             Name: name,
             Status: status,
             Description: description
         };
-        
         if (await sendEditRequest(requestData, `/Project/updateProject`)) {
             window.location.replace(window.location.href); // Reload page only if successful
         }
-        // also send add tags to delete?
         clearEdit();
     }
 };
 
-
+// ********************************************************************************/
+//          Edit functions - Tag
+// ********************************************************************************/
 export async function editTagRequest(event) {
     event.preventDefault(); // Prevent the default form submission
-
-    // Get input values
-    // needs fixing?
     const id = GetDetailId();
-    // probably needs fixing
     const name = document.getElementById('editName').value;
     if (!isValidInput(name)){
         alert(`You have to enter (some) text`);
@@ -772,11 +842,14 @@ export async function editTagRequest(event) {
         if (await sendEditRequest(requestData, '/Tag/updateTag', "tag")) {
             document.getElementById('nowShowing').innerHTML = name;
             clearEdit();    
-        }
-        
+        }   
     }
 };
 
+// ********************************************************************************/
+//          Edit functions - Task
+//   Sets deadline       Or      Edits full task details
+// ********************************************************************************/
 export function editTaskRequest(event){
     event.preventDefault();
     let id=event.currentTarget.elements["editId"].value;
@@ -785,17 +858,13 @@ export function editTaskRequest(event){
     let deadline = form.elements["deadline"].value;
     let formData;
     if (form.id=='setDeadlineForm'){
-        
         if (deadline=='') {
             alert('You have to enter a date, or dismiss the picker');
             return;
         } else {
-
-                // Have to send along status, because I allow it to be null in the backend
-            
+            // Have to send along status, because I allow it to be null in the backend
             let statusElement = header.querySelector("[class^='status']").classList;
             let status = extractStatus(statusElement.value);
-            
             formData = {
                 taskId: id,
                 Deadline: deadline,
@@ -803,14 +872,11 @@ export function editTaskRequest(event){
             }
         }
      } else {
-        console.log('we have a full task form');
         let status = document.querySelector('input[name="newStatus"]:checked');
-
         if (status!=null) {
             let statusValue =document.querySelector('input[type=radio]:checked').value;
             status = parseInt(statusValue, 10);
         }
-
         formData = {
             taskId: id,
             Deadline: deadline,
@@ -818,7 +884,6 @@ export function editTaskRequest(event){
             Name: form.elements['editName'].value,
             Status: status
         }
-        console.log(formData);
     }
     sendEditRequest(formData, '/Task/updateTask').then(()=>{
         if (form.id=='setDeadlineForm') {
@@ -832,94 +897,98 @@ export function editTaskRequest(event){
         }
     });
 }
-    
+// ********************************************************************************/
+//              Helper functions - get status value from classList
+// ********************************************************************************/
 function extractStatus(statusValue) {
     const match = statusValue.replace(/^status/, ""); // Remove 'status'
     return /^\d+$/.test(match) ? match : null; // Return digit or null
 }
-// Helper function to extract the ID number from the current Detail Div, or the target
+// ********************************************************************************/
+//              Helper functions - get ID set on the Detail div
+// ********************************************************************************/
 export function GetDetailId(){
     const detailDiv = document.querySelector("[id^='detail-']");
     if (detailDiv) {
         return parseOutId(detailDiv.id);
     }
 }
-// Helper function to split out an ID following a descriptor and -
+// ********************************************************************************/
+//              Helper functions - get ID given a string of "text-ID"
+// ********************************************************************************/
 function parseOutId(input){
     const idPart = input.split("-"); // Splits at "-"
     const IDnumber = parseInt(idPart[1], 10); // Extracts the second part as an integer
     return IDnumber;
 }
-// Helper function to create single elements, adding them to a target and returning the new element
+// ********************************************************************************/
+//              Helper functions - Create element and append it to target
+// ********************************************************************************/
 export function addElement(elementType, data, target){
     let newElement = document.createElement(elementType);
     newElement.innerHTML = data;
     target.appendChild(newElement);
     return newElement;
 }
-
-
+// ********************************************************************************/
+//              Helper functions - formats TimeSpan to human readable form
+// ********************************************************************************/
 function formatTimeSpan(timeSpanString) {
     // Extract hh:mm:ss from "hh:mm:ss.ffffff"
     if (timeSpanString === "00:00:00") {
         return 'No time recorded';
     }
-
     let [hours, minutes, seconds] = timeSpanString.split(":").map(Number);
-
     // Round seconds to remove microseconds
     seconds = Math.floor(seconds);
-
     // Convert hours to days and get remaining hours
     let days = Math.floor(hours / 24);
     hours = hours % 24;
-
     // Build the output dynamically
-    let parts = [];
-    
+    let parts = [];   
     if (days > 0) parts.push(`${days}d`);
     if (hours > 0) parts.push(`${hours}h`);
     if (minutes > 0) parts.push(`${minutes}m`);
     if (seconds > 0) parts.push(`${seconds}s`);
-
     return parts.length > 0 ? parts.join(" ") : 'No time recorded';
 }
-
+// ********************************************************************************/
+//              Helper functions - formats DateTime Deadline to human readable form
+// ********************************************************************************/
 function formatDateTime(dateString) {
     let date = new Date(dateString);
     let now = new Date();
-
-    // Extract components
     let year = date.getFullYear();
-    let month = date.toLocaleString('en-US', { month: 'short' }); // "Feb"
+    let month = date.toLocaleString('en-US', { month: 'short' }); 
     let day = date.getDate();
-    let hours = date.getHours().toString().padStart(2, '0');
-    let minutes = date.getMinutes().toString().padStart(2, '0'); // Ensure two-digit minutes
-
+    let hours = date.getHours().toString().padStart(2, '0'); // Ensure two-digits
+    let minutes = date.getMinutes().toString().padStart(2, '0'); // Ensure two-digits
     // If the year is the current year, omit it
     let showYear = year !== now.getFullYear();
-    
     // Format string based on condition
     return showYear
         ? `${month} ${day}, ${year} @ ${hours}:${minutes}`
         : `${month} ${day} @ ${hours}:${minutes}`;
 }
-
+// ********************************************************************************/
+//              Helper functions - clears out main div#contents
+// ********************************************************************************/
 export function clearData(){
     document.getElementById("contents").innerHTML = "";
 }
-// Helper function to clear the edit and detail form
+// ********************************************************************************/
+//              Helper functions - clears out editforms
+// ********************************************************************************/
 export function clearEdit(){
-    // let oldDetail = document.querySelector("[id^='detail']");
-    // if (oldDetail != null) {    oldDetail.parentNode.removeChild(oldDetail);}
-
     let oldEdit = document.getElementById("edits");
-    if (oldEdit != null) {      oldEdit.parentNode.removeChild(oldEdit);}
-    
-    let oldTimers = document.getElementById('projectTimers');
-    if (oldTimers != null){ oldTimers.parentNode.removeChild(oldTimers);}
+    if (oldEdit != null) {
+        oldEdit.parentNode.removeChild(oldEdit);
+    }
 }
-// Helper function to clear the add form when we have added an item.
+// ********************************************************************************/
+//              Helper functions - clears out addingform
+//          Toggle functionality
+// ********************************************************************************/
 export function clearAddingForm(){
     let oldAddingForm = document.getElementById("addNewItem");
     if (oldAddingForm != null) {
@@ -928,12 +997,16 @@ export function clearAddingForm(){
     } 
     return false;
 }
-
+// ********************************************************************************/
+//              Helper functions - Gets the ID set on the url
+// ********************************************************************************/
 export function getQueryParam(param) {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get(param);
 }
-
+// ********************************************************************************/
+//              Helper functions - Checks the input is text and max 30 letters
+// ********************************************************************************/
 export function isValidInput(input) {
     // Example validation: the input should not be empty and must not contain special characters
     const regex = /^[a-zA-Z0-9\s]+$/; // Only letters, numbers, and spaces are allowed
@@ -944,7 +1017,10 @@ export function isValidInput(input) {
     return onlyLetters && nullValues && lengthMax;
 }
 
-
+// ********************************************************************************/
+//              Helper functions 
+// Populates variables from input form and sends to backend to add new Items
+// ********************************************************************************/
 export function addRequest(event, dataType) {
     event.preventDefault(); 
     let newEntry = document.getElementById('newName').value;
@@ -952,19 +1028,16 @@ export function addRequest(event, dataType) {
     if (!isValidInput(newEntry)){
         alert(`You have to enter (some) text`);
     } else {
-        
-
         switch(dataType) {
             case 'project':
                 let pDesc = document.getElementById('description').value;
                 if (pDesc=='') {
-                    pDesc = null;
+                    pDesc = null; 
                 }
                 formData = {
                     Name: newEntry,
                     Description: pDesc
                 }
-
                 sendAddRequest(formData,'/Project/addProject',"project");
                 break;
             case 'task':
@@ -985,7 +1058,6 @@ export function addRequest(event, dataType) {
                     Description: desc,
                     Deadline: deadline
                 };
-                
                 sendAddRequest(formData,'/Task/addTask',"task");
                 break;
             case 'tag':
