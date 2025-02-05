@@ -1,5 +1,6 @@
 
-import { createProjectList, createTagList, unhideDisclaimer, 
+import { createProjectList, createTagList, createEditForm,
+        unhideDisclaimer, editProjectRequest, editTagRequest, editTaskRequest,
         printAddingForm, addRequest} from "../Components/create_items.js";
 
 
@@ -26,6 +27,30 @@ export function navigationEventListener(e){
     }
  }
 
+export function editListener(data, type){
+    
+    let oldEdit = document.getElementById("edits");
+    if (oldEdit != null) {
+        oldEdit.parentNode.removeChild(oldEdit);        
+    } else {
+        if (type=='tag') {
+            let form = createEditForm(data, 'tag');
+            form.id = 'editTagForm';
+            form.addEventListener('submit', editTagRequest);
+        }
+        if (type=='project'){
+            let form = createEditForm(data, 'project');
+            form.id ="editProjectForm";
+            form.addEventListener('submit', editProjectRequest);
+        }
+        if (type=='task') {
+            let form=createEditForm(data,'task');
+            form.id = "editTaskForm";
+            form.addEventListener('submit', editTaskRequest)
+        }
+    }
+}
+
 export function addTaskListener(event) {
     let trg = document.getElementById('addNewItem');
     if (trg==null) {
@@ -40,7 +65,7 @@ export function addTaskListener(event) {
 }
 
  export function goToPage(trg) {
-        window.location.href = trg;  // Redirects to tags.html
+        window.location.href = trg;
 } 
 
 export function printAddingFormAndAddListeners () {
@@ -49,10 +74,6 @@ export function printAddingFormAndAddListeners () {
         case "projectsbtn":
             let addingPForm = printAddingForm("addProject");
             addingPForm.addEventListener('submit', (event) => addRequest(event, 'project'));
-            break;
-        case "tasksbtn":
-            // let addingTaskForm = printAddingForm("addTask");
-            // addingTaskForm.addEventListener('submit', (event) => addRequest(event, 'task'));
             break;
         case "tagsbtn":
             let addingTagForm = printAddingForm("addTag");

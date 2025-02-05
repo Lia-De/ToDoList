@@ -5,8 +5,8 @@ import { deleteProject, deleteTag, deleteTask,
         startProjectTimer, stopProjectTimer,
         addTagToItem, sendAddRequest, 
         sendEditRequest, 
-        removeTagFromProject} from '../API_Access/apiCalls.js';
-import { goToPage, addTaskListener } from '../EventListeners/eventListeners.js';
+        removeTagFromProject, removeTagFromTask} from '../API_Access/apiCalls.js';
+import { goToPage, addTaskListener, editListener } from '../EventListeners/eventListeners.js';
 
 function listHelperSetupCard(id){
     let itemCard = addElement('div','',document.getElementById('contents'));
@@ -27,10 +27,11 @@ function listHelperDeleteButton(trg){
 function listHelperCreateEditButton(trg){
     if (trg==null)
         trg = document.getElementById('nowShowing').parentNode;
-    let editdiv = addElement('div', '', trg);
+    let editdiv = document.createElement('div');
     editdiv.classList = 'edit';
     let editButton = addElement('button','',editdiv);
     editButton.classList="editButton";
+    trg.insertAdjacentElement('afterbegin',editdiv)
     return editButton;
 }
 
@@ -56,7 +57,6 @@ export function createProjectList() {
         statuselement.classList.add(`status${dataPoint.status}`);
         let element= addElement('h3',dataPoint.name, itemdiv);
         element = addElement('p',formatTimeSpan(dataPoint.totalWorkingTime), itemdiv);
-        element.setAttribute('data',dataPoint.totalWorkingTime);
         element.classList = 'totalTime';
         if (dataPoint.hasTimerRunning) {
             element.classList.add('runningTimer');
@@ -187,14 +187,7 @@ export function showThisItem(itemID, dataType, target){
         if (dataType==='tag'){
             document.getElementById('nowShowing').innerHTML = data.name;
             let tagEditButton = listHelperCreateEditButton();
-            tagEditButton.addEventListener('click', () => {
-                let oldEdit = document.getElementById("edits");
-                if (oldEdit != null) {
-                    oldEdit.parentNode.removeChild(oldEdit);        
-                } else {
-                    editTag(data.tagId, 'tag');
-                }
-            });
+            tagEditButton.addEventListener('click', ()=> editListener(data.tagId,'tag'));
 
             if (data.projects.length > 0) {
                 let allProjects = addElement('p', `Used in <b>${data.projects.length}</b> projects:`, detailDiv);
@@ -223,16 +216,8 @@ export function showThisItem(itemID, dataType, target){
             time.setAttribute('data',data.totalWorkingTime);
             time.classList = 'totalTime';
 
-            // Try adding to the page header instead of 'header'
-            let editButton = listHelperCreateEditButton(header);
-            editButton.addEventListener('click', () => {
-                let oldEdit = document.getElementById("edits");
-                if (oldEdit != null) {
-                    oldEdit.parentNode.removeChild(oldEdit);        
-                } else {
-                    editProject(data.projectId);
-                }
-            });
+            let editButton = listHelperCreateEditButton();
+            editButton.addEventListener('click',()=> editListener(data.projectId,'project'));
 
             // print timers in Detail header only if we are not completed
             if (data.status != 3) {
@@ -256,9 +241,7 @@ export function showThisItem(itemID, dataType, target){
             let addButton = addElement('button','+', element);
             
             addButton.id="addTaskButton";
-            addButton.addEventListener('click', (event) => {
-                addTaskListener(event)
-            });
+            addButton.addEventListener('click', (event) => { addTaskListener(event) });
 
             // Each task for the project:
             data.tasks.forEach(task => {
@@ -266,6 +249,16 @@ export function showThisItem(itemID, dataType, target){
                 taskDiv.classList='detailTask shadowbox';
                 header = addElement('div','',taskDiv);
                 header.classList = 'header';
+
+
+                // inserting edit button
+                let editButton = listHelperCreateEditButton(header);
+                editButton.addEventListener('click',()=> editListener(task.taskId,'task'));
+
+
+
+
+
                 let status = task.status;
                 let statusValue=statusTexts[status];
                 let statusElement = addElement('p',statusValue, header);
@@ -290,9 +283,7 @@ export function showThisItem(itemID, dataType, target){
                 hiddenId.value = task.taskId;
                 form.elements["taskTagCloud"].id=`taskTagCloud${task.taskId}`;
                 // set event listener
-                form.addEventListener('submit', (event) => {
-                    addTagToTask(event);
-                });
+                form.addEventListener('submit', (event) => { addTagToTask(event); });
             });
             }
         }
@@ -314,27 +305,19 @@ export function printTimerStartAndStop(target, data) {
     projectTimers.id='projectTimers';
     let startButton = addElement('button','Start',projectTimers);
     startButton.id = 'timerStart';
-    // let stopButton = addElement('button','Stop',projectTimers);
-    // stopButton.id = 'timerStop';
+
     if (data.hasTimerRunning){
         startButton.classList = 'running';
-        // stopButton.classList = 'valid';
     }
     startButton.addEventListener('click', (event) => {
     if (event.target.classList !='running')
        {
         startTimer(data.projectId);
-       } else{
+       } else {
         stopTimer(data.projectId);
        }
     });
-    
-    // stopButton.addEventListener('click', (event) => {
-    // if (event.target.classList == 'valid')
-    //     stopTimer(data.projectId);
-    // });
 }
-
 
 function startTimer(projectId){
     startProjectTimer(projectId).then(data => {
@@ -353,7 +336,6 @@ function stopTimer(prId){
         let trg=document.querySelector("[id^='detail']").querySelector('.totalTime');
         trg.innerHTML += ' + '+formatTimeSpan(data);
         document.getElementById('timerStart').classList = '';
-        // document.getElementById('timerStop').classList = '';
     });
 }
 
@@ -387,24 +369,8 @@ function printAllTagsAndForm(tags, target, type){
 }
 
 
-// 3 functions to add and populate edit forms and set event listeners
-function editProject (projectID){
-
-    let form = createEditForm(projectID, 'project');
-    form.id ="editProjectForm";
-    form.addEventListener('submit', editProjectRequest);
-};
-function editTag(tagId){
-    let form = createEditForm(tagId, 'tag');
-    form.id = 'editTagForm';
-    form.addEventListener('submit', editTagRequest);
-}
-
 // function to create and populate an edit form
-function createEditForm(dataID, type) {
-        // Check if we have an edit box already
-        // edit to not change selected project?
-
+export function createEditForm(dataID, type) {
         // Create the container div
     let editBox = document.createElement('div');
     editBox.id = 'edits'; 
@@ -417,12 +383,15 @@ function createEditForm(dataID, type) {
     label.setAttribute('for', 'editName');
     
     // Create the text input for the name
-    let inputText = document.createElement('input');
+    let inputText = addElement('input','',form);
     inputText.type = 'text';
     inputText.id = 'editName';
     inputText.name = 'editName';
-    inputText.value = document.getElementById('nowShowing').innerHTML; // Fill the input 
-    form.appendChild(inputText);
+    if (type=='task') {
+        inputText.value = document.querySelector("#task-"+dataID).innerHTML
+    } else {
+        inputText.value = document.getElementById('nowShowing').innerHTML; // Fill the input 
+    }
        
     // Create the hidden input for the ID
     let inputHidden = document.createElement('input');
@@ -437,8 +406,8 @@ function createEditForm(dataID, type) {
     button.textContent = 'Save';
 
     // Print out all the other stuff for Project/Task switching on the active type.
-    switch (type) {
-        case "project":
+    // switch (type) {
+    //     case "project":
             // <textarea id="message" name="message" rows="4" cols="50"></textarea>
             label = addElement('label','Description:', form);
             label.setAttribute('for','description');
@@ -448,70 +417,49 @@ function createEditForm(dataID, type) {
             textarea.setAttribute('rows','3');
 
             createStatusRadioButtons(form);
-            // Removing the taskCloud
+        if (type=='project') {
+            // Print tasks for a project
             addElement('label','Current Tasks:',form);
             let delTaskDiv = addElement('div','',form);
             delTaskDiv.id='editProjectTasks';
-
+        }
             label = addElement('label','Current tags:',form);
-            // let oldTags = addElement('input','',form);
-            // oldTags.type='text';
-            // oldTags.name='tagCloud';
-            // oldTags.id='oldTags';
-            // oldTags.disabled = true;
             let delTagsDiv = addElement('div','All Tags Go Here',form);
-            delTagsDiv.id='editProjectTags';
+            delTagsDiv.name='tagCloud';
+            
 
+        if (type=='task'){
+            label = addElement('label','Deadline: ',form);
+            label.setAttribute('for','deadline');
+            let deadline = addElement('input','',form);
+            deadline.name='deadline';
+            deadline.id = 'deadline';
+            deadline.type='datetime-local';
+            
+            getSingleItem(dataID,'task').then(itemData => {      
+                fillItemData(itemData,form);
+                deadline.value=itemData.deadline;
+            });
+            delTagsDiv.id='editTaskTags'; // set in fillitemData
+        }
+        if (type=='project') {
+            delTagsDiv.id='editProjectTags'; // set in fillitemData
             getSingleItem(dataID,'project').then(itemData => {
                 fillItemData(itemData, form);
             });
-        
-            break;
-        case "task":
-                // Append all elements to the form
-        //     createStatusRadioButtons(form);
-            
-        //     label = addElement('label','Current tags:',form);
-        //     let oldTasks = addElement('input','',form);
-        //     oldTasks.type='text';
-        //     oldTasks.id='oldTags';
-        //     oldTasks.disabled = true;
-
-        //     label = addElement('label','Add new tags: ',form);
-        //     label.setAttribute('for','tagCloud');
-        //     label.id='tagLabel';
-        //     let taskTagInput = addElement('input','',form);
-        //     taskTagInput.type = 'text';
-        //     taskTagInput.id = 'tagCloud';
-        //     taskTagInput.name = 'tagCloud';
-
-        //     label = addElement('label','Deadline: ',form);
-        //     label.setAttribute('for','deadline');
-        //     let deadline = addElement('input','',form);
-        //     deadline.name='deadline';
-        //     deadline.id = 'deadline';
-        //     deadline.type='datetime-local';
-
-        //     getSingleItem(dataID,'task').then(itemData => {
-                        
-        //         fillItemData(itemData,form);
-        //         deadline.value=itemData.deadline;
-        //   });
-            break;
-        case "tag": 
-        // No extra input for editing tags
-            break;
-        default:
-            console.error(`Unknown source of edit: ${dataType}`);
-    }
+        }
  
     form.appendChild(inputHidden);
     form.appendChild(button);
-
+        // Place it in the right spot on the page
     let divTarget = document.createElement('div');
     divTarget.appendChild(form);
     editBox.appendChild(divTarget);
-    document.querySelector("[id^='detail-']").firstElementChild.insertAdjacentElement('afterend',editBox);
+    if (type!='task') {
+        document.querySelector("[id^='detail-']").insertAdjacentElement('afterbegin',editBox);
+    } else {
+        document.querySelector("#task-"+dataID).parentNode.insertAdjacentElement('afterend',editBox);
+    }
     return form;
 }
 
@@ -535,24 +483,38 @@ function fillItemData(itemData, form) {
 
     // print out the tasks -- change from checkboxes!
     let trg = document.getElementById('editProjectTasks');
-    trg.innerHTML = ""; // Clear previous content
-    itemData.tasks.forEach(task => {
-        
-        // <p class="deleteTask" id="task-${task.taskId}">task.name</p>
-        let telement = addElement('p',task.name, trg);
-        telement.id = `task-${task.taskId}`;
-        telement.classList = 'deleteTask';
-        telement.addEventListener('click', removeTask);
-        
-    });
+    if (trg) {
+        trg.innerHTML = ""; // Clear previous content
+        itemData.tasks.forEach(task => {
+            
+            // <p class="deleteTask" id="task-${task.taskId}">task.name</p>
+            let telement = addElement('p',task.name, trg);
+            telement.id = `task-${task.taskId}`;
+            telement.classList = 'deleteTask';
+            telement.addEventListener('click', removeTask);
+            
+        });
+    }
     trg = document.getElementById('editProjectTags');
-    trg.innerHTML = "";
-    itemData.tags.forEach(tag => {
-        let telement = addElement('p',tag.name, trg);
-        telement.id = `tag-${tag.tagId}`;
-        telement.classList = 'deleteTag';
-        telement.addEventListener('click', removeTag);
-    });
+    if  (trg) {
+        trg.innerHTML = "";
+        itemData.tags.forEach(tag => {
+            let telement = addElement('p',tag.name, trg);
+            telement.id = `tag-${tag.tagId}`;
+            telement.classList = 'deleteTag';
+            telement.addEventListener('click', removeTag);
+        });
+    }
+    trg = document.getElementById('editTaskTags');
+    if  (trg) {
+        trg.innerHTML = "";
+        itemData.tags.forEach(tag => {
+            let telement = addElement('p',tag.name, trg);
+            telement.id = `tag-${tag.tagId}`;
+            telement.classList = 'deleteTag';
+            telement.addEventListener('click', removeTagFromThisTask);
+        });
+    }
 }
 
 function removeTask(event){
@@ -571,6 +533,18 @@ function removeTag(event){
         }
     }
 }
+
+function removeTagFromThisTask(event){
+    let tagID = parseOutId(event.currentTarget.id);
+    let taskID = document.querySelector('#editTaskForm').elements['editId'].value;
+    if (confirm("Are you sure you want to remove this tag from the task?")) {
+        if (removeTagFromTask(taskID, tagID)) {
+            document.querySelector("#editTaskTags").removeChild(event.currentTarget);
+            
+        }
+    }
+}
+
 function createStatusRadioButtons(form){
     let radioLabel = addElement('label', statusTexts[0],form);
     radioLabel.setAttribute('for','statusZero');
@@ -637,9 +611,7 @@ export function printAddingForm(dataType){
     button.type = 'submit';
     button.textContent = 'Add';
     
-    
     // Create special inputs for each case
-    
     switch(dataType) {
         case "addProject":
             label = addElement('label','Description', form);
@@ -728,8 +700,8 @@ function printTaskDeadlinePicker(event){
 
         let inputHidden = addElement('input','',form);
         inputHidden.type = 'hidden';
-        inputHidden.id = 'taskId';
-        inputHidden.name = 'taskId';
+        inputHidden.id = 'editId';
+        inputHidden.name = 'editId';
         inputHidden.value = taskId; 
         
         let submit = addElement('button','Save',form);
@@ -744,7 +716,7 @@ function printTaskDeadlinePicker(event){
     }
 }
 
-async function editProjectRequest(event) {
+export async function editProjectRequest(event) {
     event.preventDefault(); // Prevent the default form submission
     // Get input values
     let id = GetDetailId();
@@ -773,7 +745,7 @@ async function editProjectRequest(event) {
         };
         
         if (await sendEditRequest(requestData, `/Project/updateProject`)) {
-            window.location.replace(window.location.href); // ✅ Reload page only if successful
+            window.location.replace(window.location.href); // Reload page only if successful
         }
         // also send add tags to delete?
         clearEdit();
@@ -781,7 +753,7 @@ async function editProjectRequest(event) {
 };
 
 
-async function editTagRequest(event) {
+export async function editTagRequest(event) {
     event.preventDefault(); // Prevent the default form submission
 
     // Get input values
@@ -805,34 +777,60 @@ async function editTagRequest(event) {
     }
 };
 
-function editTaskRequest(event){
+export function editTaskRequest(event){
     event.preventDefault();
+    let id=event.currentTarget.elements["editId"].value;
     let form = event.currentTarget;
-    let header = form.parentNode;
-    let deadline = event.currentTarget.elements["deadline"].value;
-    if (deadline=='') {
-        alert('You have to enter a date, or dismiss the picker');
-    } else {
-            // Have to send along status, because I allow it to be null in the backend
-        let statusElement = header.querySelector("[class^='status']").classList;
-        let status = extractStatus(statusElement.value);
-        let id=event.currentTarget.elements["taskId"].value;
+    let header = document.querySelector('#task-'+id).parentNode;
+    let deadline = form.elements["deadline"].value;
+    let formData;
+    if (form.id=='setDeadlineForm'){
+        
+        if (deadline=='') {
+            alert('You have to enter a date, or dismiss the picker');
+            return;
+        } else {
 
-    
-        let formData = {
+                // Have to send along status, because I allow it to be null in the backend
+            
+            let statusElement = header.querySelector("[class^='status']").classList;
+            let status = extractStatus(statusElement.value);
+            
+            formData = {
+                taskId: id,
+                Deadline: deadline,
+                Status: status
+            }
+        }
+     } else {
+        console.log('we have a full task form');
+        let status = document.querySelector('input[name="newStatus"]:checked');
+
+        if (status!=null) {
+            let statusValue =document.querySelector('input[type=radio]:checked').value;
+            status = parseInt(statusValue, 10);
+        }
+
+        formData = {
             taskId: id,
             Deadline: deadline,
+            Description: form.elements['description'].value,
+            Name: form.elements['editName'].value,
             Status: status
         }
-        
-        sendEditRequest(formData, '/Task/updateTask').then(()=>{
+        console.log(formData);
+    }
+    sendEditRequest(formData, '/Task/updateTask').then(()=>{
+        if (form.id=='setDeadlineForm') {
             header.removeChild(form);
             header.removeChild(header.lastElementChild);
             let deadline = addElement('p','', header);
             deadline.innerHTML = 'Deadline set'
             deadline.classList = 'deadline';
-        });
-    }
+        } else {
+            window.location.replace(window.location.href); // Reload page only if successful
+        }
+    });
 }
     
 function extractStatus(statusValue) {

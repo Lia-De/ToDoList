@@ -144,6 +144,38 @@ async function sendDeleteData(id, data, dataType) {
 }
 
 
+// Removing tags from projects and tasks
+export function removeTagFromProject(projectID, tagID){
+    let fetchURL =`${config.apiBaseUrl}/Project/removeTag/${projectID}/${tagID}`;
+    return removeTagFromItem(fetchURL, 'project');
+}
+
+export function removeTagFromTask(taskID, tagID){
+    let fetchURL = `${config.apiBaseUrl}/Task/removeTag/${taskID}/${tagID}`;
+    return removeTagFromItem(fetchURL, 'task');
+}
+
+async function removeTagFromItem(fetchURL, type){
+    try {
+        const response = await fetch(fetchURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+            if (response.ok) {
+                return true;
+            } else {
+                const error = await response.json();
+                alert(`Failed to remove tag from ${type}: ${error.message}`);
+                return false;
+            }
+        } catch (error) {
+            console.error(`Error:${error.message}`, error);
+            alert(`An unexpected error occurred trying to remove a tag.`);
+        }
+}
+
 export async function startProjectTimer(piD){
     try {
         const response = await fetch(`${config.apiBaseUrl}/Project/startTimer/${piD}`, {
@@ -270,31 +302,4 @@ export async function addTagToItem(event, inputTags, fetchUrl){
             });
         });
     }
-}
-
-// Removing tags from projects and tasks
-export async function removeTagFromProject(projectID, tagID){
-    let fetchURL =`${config.apiBaseUrl}/Project/removeTag/${projectID}/${tagID}`
-    // requestData = { projectId: projectID, tagId: tagID};
-    try {
-        const response = await fetch(fetchURL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            // body: JSON.stringify(requestData),
-        });
-    
-            if (response.ok) {
-                return true;
-    
-            } else {
-                const error = await response.json();
-                alert(`Failed to remove tag from project: ${error.message}`);
-                return false;
-            }
-        } catch (error) {
-            console.error(`Error:${error.message}`, error);
-            alert(`An unexpected error occurred trying to remove a tag.`);
-        }
 }

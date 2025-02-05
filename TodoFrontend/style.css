@@ -53,8 +53,7 @@ h2 {
     margin: 0.5em;
 }
 #addingBox {
-    margin:auto 0;
-    float: right;
+    margin:auto auto auto 1em;
 }
 #addingBox>button {  
     padding:0 0.5em;
@@ -76,12 +75,16 @@ h2 {
     margin-left: 0.4em;
 }
 
-#edits > h3, #edits >p {
+/* #edits > h3, #edits >p {
     display: inline-block;
+} */
+#edits > h3 {
+text-align: center;
 }
 #edits > p {
     margin-left: 2em;
 }
+
 form > input {
     margin: 0 0.1em 0.5em 0;
     
@@ -124,7 +127,7 @@ button.selected {
 }
 
 .editButton, .deleteButton {
-    background-color: var(--mainGreen);
+    background-color: var(--greySelected);
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -159,17 +162,15 @@ button.selected {
     margin-right: 80px;
 }
 #disclaimers >p.disclaimer {
-    font-size: 0.8em;
-    
-    
+    font-size: 0.8em;   
 }
 
-
-#edits, #detail {
+/* #edits, #detail { */
+#edits {
     border: 1px solid var(--greyBorder);
     box-shadow: 0 0 5px var(--greyShadow);
     border-radius: 5px;
-    margin: 0 0 1em 2em;
+    margin: 0 0 1em -0.5em;
     padding: 0 0.5em 1.5em 1em;
     overflow: hidden; /* or overflow: auto; */
 }

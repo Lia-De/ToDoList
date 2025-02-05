@@ -110,6 +110,33 @@ public class TaskController : Controller
         _context.SaveChanges();
         return Ok(task);
     }
+
+    [HttpPost("removeTag/{taskId}/{tagId}")]
+    public IActionResult RemoveTag(int taskId, int tagId)
+    {
+        var task = _context.Tasks.Include(t=>t.Tags).FirstOrDefault(t => t.TaskId == taskId);
+        if (task == null)
+        {
+            return BadRequest($"Task object with ID: {taskId} not found.");
+        }
+        else
+        {
+            Tag? tag = _context.Tags.Include(t=>t.Tasks).FirstOrDefault(t=> t.TagId==tagId);
+            if (tag == null)
+            {
+                return BadRequest($"Tag object with ID: {tagId} not found.");
+            }
+            else
+            {
+                // remove the tag from the task, and the task from the tag.
+                task.Tags.Remove(tag);
+                
+                _context.SaveChanges();
+                return Ok();
+            }
+        }
+    }
+
     // Delete
     [HttpDelete("deleteTask")]
     public IActionResult DeleteTask(TaskDto task)

@@ -183,7 +183,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpPost("removeTag/{projectId}/{tagId}")]
-    public IActionResult RemoveTagFromProject(int projectId, int tagId)
+    public IActionResult removeTag(int projectId, int tagId)
     {
         Project? project = GetProject(projectId);
         if (project == null)
