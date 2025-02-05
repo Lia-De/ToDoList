@@ -809,17 +809,23 @@ function editTaskRequest(event){
     event.preventDefault();
     let form = event.currentTarget;
     let header = form.parentNode;
-    let id=event.currentTarget.elements["taskId"].value;
     let deadline = event.currentTarget.elements["deadline"].value;
     if (deadline=='') {
         alert('You have to enter a date, or dismiss the picker');
     } else {
-        console.log(id, deadline);
+            // Have to send along status, because I allow it to be null in the backend
+        let statusElement = header.querySelector("[class^='status']").classList;
+        let status = extractStatus(statusElement.value);
+        let id=event.currentTarget.elements["taskId"].value;
+
+    
         let formData = {
             taskId: id,
-            Deadline: deadline
+            Deadline: deadline,
+            Status: status
         }
-        sendEditRequest(formData, '/Task/updateTask').then((data)=>{
+        
+        sendEditRequest(formData, '/Task/updateTask').then(()=>{
             header.removeChild(form);
             header.removeChild(header.lastElementChild);
             let deadline = addElement('p','', header);
@@ -828,7 +834,11 @@ function editTaskRequest(event){
         });
     }
 }
-
+    
+function extractStatus(statusValue) {
+    const match = statusValue.replace(/^status/, ""); // Remove 'status'
+    return /^\d+$/.test(match) ? match : null; // Return digit or null
+}
 // Helper function to extract the ID number from the current Detail Div, or the target
 export function GetDetailId(){
     const detailDiv = document.querySelector("[id^='detail-']");

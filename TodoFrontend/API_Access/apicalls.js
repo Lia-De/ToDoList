@@ -200,6 +200,22 @@ export async function sendEditRequest(requestData, fetchURL){
     }
 }
 
+export async function setTaskStatus(taskId, status){
+    let fetchURL = config.apiBaseUrl+'Task/setStatus/'+taskId+'/'+status;
+    try {
+        const response = await fetch(fetchURL);
+        if (!response.ok) {
+            console.error('Failed to set status:', response.statusText);
+            return null;
+        }
+        return true;
+    } catch (error) {
+        console.error('Error setting status:', error);
+        return null;
+    }
+}
+
+// ADD FUNCTIONS
 export async function sendAddRequest(formData, fetchURL){
     try {
         const response = await fetch(config.apiBaseUrl+fetchURL, {

@@ -92,8 +92,9 @@ public class TaskController : Controller
                 task.Name = frontendTask.Name;
         }
 
-        if ((frontendTask.Status!=null) && (frontendTask.Status!=task.Status))
+        if (frontendTask.Status!=task.Status)
         {
+            // Task.Status may be null
             task.Status = frontendTask.Status;
         }
 
