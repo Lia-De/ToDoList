@@ -188,7 +188,6 @@ div.itemCard{
 }
 div.item {
     grid-column: 1/2;
-    grid-row: span 2;
     display: flex;
     flex-direction: row;
 }
@@ -199,7 +198,6 @@ div.item:hover {
     border-radius: 5px;
 }
 div.edit {
-    grid-column: 2/3;
     margin:auto 1em auto 1em;
 }
 div.delete {
@@ -406,7 +404,7 @@ div.tagsList{
     flex-wrap: wrap;
 }
 p.deleteTask, p.deleteTag {
-    background-image: url('./img/tag-minus.png');
+    background-image: url('./img/tag-remove.png');
     background-repeat: no-repeat;
     background-position: left center;
     background-size: 20px;
@@ -420,7 +418,7 @@ p.deleteTask, p.deleteTag {
     border-radius: 3px;
 }
 p.deleteTag {
-    background-image: url('./img/tag-minus-outline.png');
+    background-image: url('./img/tag-remove-outline.png');
 }
 
 
@@ -433,6 +431,21 @@ p.deleteTag {
     flex-basis: 100%;
     width: 100%;
     margin-bottom: 1em;
+}
+.listAllTags > div.itemCard {
+    justify-items: center;
+}
+.listAllTags> div.itemCard > div[id^="detail"]{
+    flex-direction: column;
+    align-items: center;
+    margin-right: 0.3em;
+
+}
+h3.tagName {
+    font-size: 1em;
+}
+p.usage {
+    font-size: 0.8em;
 }
 
 /*******************************************************/
@@ -493,36 +506,54 @@ p.deleteTag {
 }
 
 
-
 /*******************************************************/
 /*******************************************************/
 
 /*******************************************************/
 /*******************************************************/
 @media screen and (max-width: 450px) {
-     .item>h3 {
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    #site-container {
+        width: 100%;
+    }
+    #container {
+        width: 99%;
+        margin: 0 auto;
+    }
+    
+    div#contents {
+        margin: 0.1em;
+    }
+    #editTaskForm {
+        grid-template-columns: auto auto;
+    } 
+    .item>h3 {
         display:flex;
         height: 100%;
         align-items:center;
-    }
-    div.header>div.edit {
-        float:right;
-        margin-bottom: 0.5em;
     }
     p[class^="status"] {
         float:left;
         margin-right: 0.5em;
     }
-    #edits {
-        margin-left: -0.5em;
+    div#taskDetail>#edits {
+        margin-top: 0.2em;
+         margin-left: -0.5em;
         margin-right: -0.5em;
         
-        clear: both;
+        /* clear: both; */
+        
+        padding: 0;
     }
-    #detail {
+    div[id^="detail"] {
         margin-left:0;
         padding-left:0.5em;
-        margin-top: -0.4em;
+    }
+    div.detailTask {
+        margin-right: 0.2em;
     }
     div.tagsList{
         display: block;
@@ -537,4 +568,5 @@ p.deleteTag {
         padding-left: 0;
         margin-top: 0;
     }
+
 }

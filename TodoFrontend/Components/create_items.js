@@ -69,8 +69,7 @@ export function createProjectList() {
             .then(()=> createProjectList());
         });
     });
-    document.getElementById("nowShowing")
-    .innerHTML += ` ${timerCount} timer(s) running`;
+    document.getElementById("nowShowing").innerHTML += ((timerCount>0)? ` ${timerCount} timer(s) running`: '');
     
     });
 }
@@ -89,15 +88,17 @@ export function createTagList() {
         let contentDiv= document.getElementById('contents');
         contentDiv.classList.add('listAllTags');
         data.forEach(dataPoint => {
-            let itemdiv = listHelperSetupCard(data.tagId);
+            let itemdiv = listHelperSetupCard(dataPoint.tagId);
             itemdiv.addEventListener('click', () => {
                 goToPage('tag.html?id='+dataPoint.tagId)
             });
 
-            addElement('h3',dataPoint.name, itemdiv);
+            let tagName=addElement('h3',dataPoint.name, itemdiv);
+            tagName.classList.add('tagName');
             let projectCount = dataPoint.projectCount;
             let taskCount = dataPoint.taskCount;
-            addElement('p', `Usage: ${projectCount} (${taskCount})` , itemdiv);
+            let usageText=addElement('p', `${projectCount} (${taskCount})` , itemdiv);
+            usageText.classList.add('usage');
             let deleteButton = listHelperDeleteButton(itemdiv.parentNode);            
            deleteButton.addEventListener('click', () => {
                deleteTag(dataPoint.tagId, dataPoint.name)
@@ -392,7 +393,7 @@ export function createEditForm(dataID, type) {
     
     //      Common edit fields for project and tags below      //
     if (type!='tag') {     
-        label = addElement('label','Description:', form);
+        label = addElement('label','About:', form);
         label.setAttribute('for','description');
         let textarea = addElement('textarea','',form);
         textarea.id='description';
@@ -403,7 +404,7 @@ export function createEditForm(dataID, type) {
 
         if (type=='project') {
             
-            addElement('label','Current Tasks:',form);
+            addElement('label','Tasks: (click to remove)',form);
             let delTaskDiv = addElement('div','',form);
             delTaskDiv.id='editProjectTasks';
         }
