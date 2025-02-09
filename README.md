@@ -1,6 +1,9 @@
 # To Do List app
 Created 2025-01-08 as part of Lexicon course, fullstack C# developer.
 
+## New Figma prototype for Craft in Time
+[Figma To Do v5](https://www.figma.com/proto/CZhjlhFft9ezpkyJNBcyUX/Crafting-To-Do?node-id=60-821&t=eeJg3f9Wd046Ypaz-1&scaling=scale-down&content-scaling=fixed&page-id=59%3A141&starting-point-node-id=60%3A821)
+
 ## Next version Going forward (5 Feb, 2025) - Version 0.5
 Adding timers for tasks, reworking deadline, and working on adding the possible features:
 - [ ] Login for users
