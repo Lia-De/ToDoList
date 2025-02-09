@@ -135,7 +135,7 @@ public class ProjectController : ControllerBase
         // Make sure we delete any running timers
         if (project.HasTimerRunning)
         {
-            StopTimer(project.ProjectId);
+            StopTimer(project.ProjectId,-1);
         }
 
         _context.Tasks.RemoveRange(project.Tasks);
@@ -249,15 +249,22 @@ public class ProjectController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
-    [HttpPost("stopTimer/{projectId}")]
-    public IActionResult StopTimer(int projectId)
+    [HttpPost("stopTimer/{projectId}/{taskId}")]
+    public IActionResult StopTimer(int projectId, int taskId)
     {
         try
         {
-            TimeSpan duration = _projectService.StopTaskTimer(projectId);
+            TimeSpan duration;
+            if (taskId < 0)
+            {
+                duration =_projectService.StopTaskTimer(projectId);
+            }
+            else
+            {
+                duration = _projectService.StopTaskTimer(projectId, taskId);
+            }
             if (duration > TimeSpan.Zero)
             {
-                //return Ok($"{duration.ToString(@"hh\:mm\:ss")}");
                 return Ok(duration);
             }
             else

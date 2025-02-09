@@ -1,4 +1,5 @@
-﻿using ToDoList.Models;
+﻿using Microsoft.EntityFrameworkCore;
+using ToDoList.Models;
 
 namespace ToDoList.Services;
 
@@ -10,27 +11,26 @@ public class ProjectService
         _context = context;
     }
 
-
-    // Method to give us the total working time of a Project, calculated from it's Tasks
-    //public TimeSpan TotalActiveTime(Project project)
-    //{
-    //    TimeSpan result = TimeSpan.Zero;
-    //    List<Models.Task> tasks = project.Tasks;
-    //    if (tasks.Count == 0) {
-    //        return TimeSpan.Zero;
-    //    }
-    //    foreach (var task in tasks) {
-    //        if (task.TimeSpent != TimeSpan.Zero)
-    //            result += (TimeSpan)task.TimeSpent;
-    //    }
-    //    project.TotalWorkingTime = result;
-    //    return result;
-    //}
+    // Method to give us the total working time of a Project, calculated from it's Tasks and unassigned working hours
+    public TimeSpan TotalActiveTime(Project project)
+    {
+        TimeSpan result = project.TotalWorkingTime;
+        List<Models.Task> tasks = project.Tasks;
+        if (tasks.Count == 0)
+        {
+            return result;
+        }
+        foreach (var task in tasks)
+        {
+                result += (TimeSpan)task.TimeSpent;
+        }
+        return result;
+    }
     public DateTime StartTaskTimer(int projectId)
     {
         DateTime startTime = DateTime.Now;
-        // is there a timer for the project already?
-        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti=> ti.ProjectId==projectId);
+        // is there a running timer for the project already?
+        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti=> ti.ProjectId==projectId && ti.EndDate == null);
         if (timer != null) 
         {
             throw new Exception("This project already has a timer running");
@@ -60,11 +60,51 @@ public class ProjectService
                 {
                     project.TotalWorkingTime += result;
                     project.HasTimerRunning = false;
+                    timer.EndDate = stopTime;
+                    project.Timers.Add(timer);
+                    _context.ProjectTimers.Remove(timer);
                 }
-                _context.ProjectTimers.Remove(timer);
+                
                 _context.SaveChanges();
             }
 
+            return result;
+        }
+    }
+    public TimeSpan StopTaskTimer(int projectId, int taskId)
+    {
+        DateTime stopTime = DateTime.Now;
+        TimeSpan result = TimeSpan.Zero;
+        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti => ti.ProjectId == projectId);
+        if (timer == null)
+        {
+            throw new Exception($"No timers found for project {projectId}");
+        }
+        else
+        {
+            result = stopTime - timer.StartDate;
+            if (result > TimeSpan.Zero)
+            {
+              Project? project =  _context.Projects.Include(t => t.Tasks).FirstOrDefault(p => p.ProjectId == projectId);
+                if (project != null)
+                {
+                    Models.Task? task = project.Tasks.FirstOrDefault(t => t.TaskId == taskId);
+                    if (task != null)
+                    {
+                        timer.TaskId = task.TaskId;
+                        task.TimeSpent += result;
+                        timer.EndDate = stopTime;
+                    } else
+                    {
+                        // IF for some reason the task id is incorrect, still add this duration to the Project overall time
+                        project.TotalWorkingTime += result;
+                    }
+                    project.HasTimerRunning = false;
+                    project.Timers.Add(timer);
+                    _context.ProjectTimers.Remove(timer);
+                }
+                _context.SaveChanges();
+            }
             return result;
         }
     }
