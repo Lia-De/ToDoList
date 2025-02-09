@@ -14,5 +14,6 @@ public class Task
     public ToDoStatus? Status { get; set; }
     public string? Description { get; set; }
     public TimeSpan TimeSpent { get; set; } = TimeSpan.Zero;
+    public bool IsDeleted { get; set; } = false;
     
 }

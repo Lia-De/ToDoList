@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Data.SqlTypes;
 using ToDoList.Models;
 
 namespace ToDoList.Services;
@@ -11,20 +12,26 @@ public class ProjectService
         _context = context;
     }
 
-    // Method to give us the total working time of a Project, calculated from it's Tasks and unassigned working hours
-    public TimeSpan TotalActiveTime(Project project)
+    // Method to give us the total working time of a Project, calculated from it's Tasks and unassigned working hours. Including soft-deleted tasks.
+    public TimeSpan TotalActiveTime(int projectId)
     {
-        TimeSpan result = project.TotalWorkingTime;
-        List<Models.Task> tasks = project.Tasks;
-        if (tasks.Count == 0)
-        {
+        Project? project = _context.Projects.Include(t => t.Tasks).IgnoreQueryFilters().FirstOrDefault(ti => ti.ProjectId == projectId);
+        if (project!=null) { 
+            TimeSpan result = project.TotalWorkingTime;
+            List<Models.Task> tasks = project.Tasks;
+            if (tasks.Count == 0)
+            {
+                return result;
+            }
+            foreach (var task in tasks)
+            {
+                    result += (TimeSpan)task.TimeSpent;
+            }
             return result;
-        }
-        foreach (var task in tasks)
+        } else
         {
-                result += (TimeSpan)task.TimeSpent;
+            throw new Exception("Could not find the project");
         }
-        return result;
     }
     public DateTime StartTaskTimer(int projectId)
     {

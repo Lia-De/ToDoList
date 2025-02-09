@@ -878,6 +878,7 @@ export function editTaskRequest(event){
             let statusValue =document.querySelector('input[type=radio]:checked').value;
             status = parseInt(statusValue, 10);
         }
+        deadline = deadline == ''? null: deadline;
         formData = {
             taskId: id,
             Deadline: deadline,

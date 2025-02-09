@@ -146,9 +146,9 @@ public class TaskController : Controller
         {
             return NotFound();
         }
-        _context.Tasks.Remove(taskToDelete);
+        taskToDelete.IsDeleted = true;
         _context.SaveChanges();
-        return Ok($"Task {task.TaskId} deleted");
+        return Ok();
     }
 
     [HttpPost("addTagsToTask/{taskId}")]

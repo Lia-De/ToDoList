@@ -155,6 +155,7 @@ async function removeTagFromItem(fetchURL, type){
 }
 
 export async function sendEditRequest(requestData, fetchURL){
+    console.log(requestData);
     try {
         const response = await fetch(config.apiBaseUrl+fetchURL, {
             method: 'POST',
@@ -191,7 +192,8 @@ export async function startProjectTimer(projectId){
 
 export async function stopProjectTimer(projectId){
     try {
-        const response = await fetch(`${config.apiBaseUrl}/Project/stopTimer/${projectId}`, {
+        let taskId=-1;
+        const response = await fetch(`${config.apiBaseUrl}/Project/stopTimer/${projectId}/${taskId}`, {
             method: 'POST',
             body: projectId, 
         });
