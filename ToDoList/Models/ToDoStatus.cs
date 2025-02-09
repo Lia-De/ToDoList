@@ -6,5 +6,4 @@ public enum ToDoStatus
     Active,
     Inactive,
     Completed
-    // YAGNI--Additional possible future status: Planning, Completed. 
 }
