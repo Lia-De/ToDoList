@@ -296,7 +296,9 @@ export function printTimerStartAndStop({hasTimerRunning, projectId}) {
 //    startTimer - Sets a timer in the backend
 // ********************************************************************************/
 function startTimer(projectId){
-    startProjectTimer(projectId).then(data => {
+    let date = Date.now();
+    console.log(date);
+    startProjectTimer(projectId, date).then(data => {
         if (data ==='') {
             let button = document.getElementById('timerStart');
             button.classList.add('running');
@@ -308,9 +310,14 @@ function startTimer(projectId){
 // ********************************************************************************/
 //    stopTimer - Removes a timer in the backend which returns a TimeSpan.
 //                Displays how much time was added on the page.
+
+// Updated functionality : Should also ask if timer should be applied to a particular task
+
 // ********************************************************************************/
 function stopTimer(prId){
-    stopProjectTimer(prId).then(data => {
+    let date = Date.now();
+    console.log(date);
+    stopProjectTimer(prId, date).then(data => {
         let trg=document.querySelector("[id^='detail']").querySelector('.totalTime');
         trg.innerHTML += ' + '+formatTimeSpan(data);
         document.getElementById('timerStart').classList = '';

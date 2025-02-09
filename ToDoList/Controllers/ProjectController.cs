@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Diagnostics.Eventing.Reader;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Intrinsics.X86;
@@ -135,7 +136,11 @@ public class ProjectController : ControllerBase
         // Make sure we delete any running timers
         if (project.HasTimerRunning)
         {
-            StopTimer(project.ProjectId,-1);
+            var timer = _context.ProjectTimers.FirstOrDefault(timer => timer.ProjectId == project.ProjectId && timer.EndDate == null);
+            if ( timer != null)
+            {
+                timer.EndDate = DateTime.Now;
+            }
         }
 
         _context.Tasks.RemoveRange(project.Tasks);
@@ -236,11 +241,14 @@ public class ProjectController : ControllerBase
     }
 
     [HttpPost("startTimer/{projectId}")]
-    public IActionResult StartTimer(int projectId)
+    public IActionResult StartTimer(TimerRequest request)
     {
         try
         {
-            DateTime result = _projectService.StartTaskTimer(projectId);
+            DateTime startTime = DateTimeOffset.FromUnixTimeMilliseconds(request.Timestamp).UtcDateTime;
+            Console.WriteLine("----------->StartTime is : "+startTime);
+            Console.WriteLine(request.ProjectID + request.TaskId + request.Timestamp);
+            DateTime result = _projectService.StartTaskTimer(request.ProjectID, startTime);
 
             return Ok();
         }
@@ -250,18 +258,19 @@ public class ProjectController : ControllerBase
         }
     }
     [HttpPost("stopTimer/{projectId}/{taskId}")]
-    public IActionResult StopTimer(int projectId, int taskId)
+    public IActionResult StopTimer(TimerRequest request)
     {
         try
         {
+            DateTime endTime = DateTimeOffset.FromUnixTimeMilliseconds(request.Timestamp).UtcDateTime;
             TimeSpan duration;
-            if (taskId < 0)
+            if (request.TaskId < 0)
             {
-                duration =_projectService.StopTaskTimer(projectId);
+                duration =_projectService.StopTaskTimer(request.ProjectID, endTime);
             }
             else
             {
-                duration = _projectService.StopTaskTimer(projectId, taskId);
+                duration = _projectService.StopTaskTimer(request.ProjectID, request.TaskId, endTime);
             }
             if (duration > TimeSpan.Zero)
             {

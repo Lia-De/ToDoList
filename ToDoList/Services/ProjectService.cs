@@ -33,26 +33,26 @@ public class ProjectService
             throw new Exception("Could not find the project");
         }
     }
-    public DateTime StartTaskTimer(int projectId)
+    public DateTime StartTaskTimer(int projectId, DateTime date)
     {
-        DateTime startTime = DateTime.Now;
+        //DateTime startTime = DateTime.Now;
+        DateTime startTime = date;
         // is there a running timer for the project already?
-        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti=> ti.ProjectId==projectId && ti.EndDate == null);
+        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti=> ti.ProjectId==projectId && ti.EndDate==null);
         if (timer != null) 
         {
             throw new Exception("This project already has a timer running");
         }
         Project? project = _context.Projects.FirstOrDefault(ti => ti.ProjectId==projectId);
         if (project != null) project.HasTimerRunning = true;
-        _context.ProjectTimers.Add(new ProjectTimer() { ProjectId= projectId, StartDate = startTime });
+        _context.ProjectTimers.Add(new ProjectTimer() { ProjectId= projectId, StartDate = startTime, TaskId= null });
         _context.SaveChanges();
         return startTime;
     }
-    public TimeSpan StopTaskTimer(int projectId)
+    public TimeSpan StopTaskTimer(int projectId, DateTime stopTime)
     {
-        DateTime stopTime = DateTime.Now;
         TimeSpan result = TimeSpan.Zero;
-        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti => ti.ProjectId == projectId); 
+        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti => ti.ProjectId == projectId && ti.EndDate == null); 
         if (timer == null)
         {
             throw new Exception($"No timers found for project {projectId}");
@@ -69,20 +69,20 @@ public class ProjectService
                     project.HasTimerRunning = false;
                     timer.EndDate = stopTime;
                     project.Timers.Add(timer);
-                    _context.ProjectTimers.Remove(timer);
+                    //_context.ProjectTimers.Remove(timer);
+                    _context.SaveChanges();
                 }
                 
-                _context.SaveChanges();
             }
 
             return result;
         }
     }
-    public TimeSpan StopTaskTimer(int projectId, int taskId)
+    public TimeSpan StopTaskTimer(int projectId, int taskId, DateTime stopTime)
     {
-        DateTime stopTime = DateTime.Now;
+
         TimeSpan result = TimeSpan.Zero;
-        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti => ti.ProjectId == projectId);
+        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti => ti.ProjectId == projectId && ti.EndDate == null);
         if (timer == null)
         {
             throw new Exception($"No timers found for project {projectId}");
@@ -108,7 +108,7 @@ public class ProjectService
                     }
                     project.HasTimerRunning = false;
                     project.Timers.Add(timer);
-                    _context.ProjectTimers.Remove(timer);
+                    //_context.ProjectTimers.Remove(timer);
                 }
                 _context.SaveChanges();
             }

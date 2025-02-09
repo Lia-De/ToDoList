@@ -174,11 +174,18 @@ export async function sendEditRequest(requestData, fetchURL){
     }
 }
 
-export async function startProjectTimer(projectId){
+export async function startProjectTimer(projectId, date){
+    console.log(projectId, date);
     try {
         const response = await fetch(`${config.apiBaseUrl}/Project/startTimer/${projectId}`, {
             method: 'POST',
-            body: projectId, 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                    projectID: projectId,
+                    timestamp: date
+                }),
         });
         if (!response.ok) {
             return response.text();
@@ -190,12 +197,19 @@ export async function startProjectTimer(projectId){
     }
 }
 
-export async function stopProjectTimer(projectId){
+export async function stopProjectTimer(projectId, date){
     try {
         let taskId=-1;
         const response = await fetch(`${config.apiBaseUrl}/Project/stopTimer/${projectId}/${taskId}`, {
             method: 'POST',
-            body: projectId, 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                    projectID: projectId,
+                    taskId: taskId,
+                    timestamp: date
+                }),
         });
         if (!response.ok) {
             response.text()
