@@ -69,7 +69,6 @@ public class ProjectService
                     project.HasTimerRunning = false;
                     timer.EndDate = stopTime;
                     project.Timers.Add(timer);
-                    //_context.ProjectTimers.Remove(timer);
                     _context.SaveChanges();
                 }
                 
@@ -108,7 +107,6 @@ public class ProjectService
                     }
                     project.HasTimerRunning = false;
                     project.Timers.Add(timer);
-                    //_context.ProjectTimers.Remove(timer);
                 }
                 _context.SaveChanges();
             }

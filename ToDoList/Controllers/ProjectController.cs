@@ -246,8 +246,6 @@ public class ProjectController : ControllerBase
         try
         {
             DateTime startTime = DateTimeOffset.FromUnixTimeMilliseconds(request.Timestamp).UtcDateTime;
-            Console.WriteLine("----------->StartTime is : "+startTime);
-            Console.WriteLine(request.ProjectID + request.TaskId + request.Timestamp);
             DateTime result = _projectService.StartTaskTimer(request.ProjectID, startTime);
 
             return Ok();

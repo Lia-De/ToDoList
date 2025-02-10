@@ -180,7 +180,7 @@ export function showThisItem(itemID, dataType){
             let statusElement = addElement('p',statusTexts[status], header);
             statusElement.classList=`status${status}`;                        
             let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
-            time.setAttribute('data',data.totalWorkingTime);
+            // time.setAttribute('data',data.totalWorkingTime);
             time.classList = 'totalTime';
             //        Print timer only if we are not Status = Completed          //
             if (data.status != 3) {
@@ -230,7 +230,8 @@ export function showThisItem(itemID, dataType){
                     deadline.classList='noDeadline';
                     deadline.addEventListener('click',printTaskDeadlinePicker);
                 }
-
+                let element = addElement('p',formatTimeSpan(task.timeSpent),taskDiv);
+                element.classList.add('totalTime')
                 addElement('p', task.description, taskDiv)
                 
                 let taskTagDiv = addElement('div','',taskDiv);
@@ -297,7 +298,6 @@ export function printTimerStartAndStop({hasTimerRunning, projectId}) {
 // ********************************************************************************/
 function startTimer(projectId){
     let date = Date.now();
-    console.log(date);
     startProjectTimer(projectId, date).then(data => {
         if (data ==='') {
             let button = document.getElementById('timerStart');
@@ -310,18 +310,49 @@ function startTimer(projectId){
 // ********************************************************************************/
 //    stopTimer - Removes a timer in the backend which returns a TimeSpan.
 //                Displays how much time was added on the page.
-
-// Updated functionality : Should also ask if timer should be applied to a particular task
+// Updated functionality : Prints out a form to choose which task to apply the time to
 
 // ********************************************************************************/
 function stopTimer(prId){
     let date = Date.now();
-    console.log(date);
-    stopProjectTimer(prId, date).then(data => {
-        let trg=document.querySelector("[id^='detail']").querySelector('.totalTime');
-        trg.innerHTML += ' + '+formatTimeSpan(data);
-        document.getElementById('timerStart').classList = '';
+    document.getElementById('timerStart').classList = '';
+    let trg = document.getElementById('projectTimers');
+    let allTasks = document.querySelectorAll("[id^='task-']");
+    let form = addElement('form','',trg);
+    form.id='chooseTaskForm';
+    addElement('p','If the timer applies to a particular task, pick the right one here',form);
+    let radioLabel = addElement('label', 'Apply to project',form);
+    radioLabel.setAttribute('for',0);
+    let radioButton = addElement('input','',form);
+    radioButton.type='radio';
+    radioButton.id = 'task-0';
+    radioButton.checked = true;
+    radioButton.name='appliedToTask';
+    radioButton.value=0;
+    allTasks.forEach(taskDiv => {
+        let radioLabel = addElement('label', taskDiv.innerHTML,form);
+        radioLabel.setAttribute('for',taskDiv.id);
+        let radioButton = addElement('input','',form);
+        radioButton.type='radio';
+        radioButton.id = taskDiv.id;
+        radioButton.name='appliedToTask';
+        radioButton.value=parseOutId(taskDiv.id);
     });
+
+    let submit = addElement('button','Apply',form);
+    submit.type='submit';
+    submit.addEventListener('click',(event) => {
+        event.preventDefault();
+        let taskValue =document.querySelector('input[type=radio]:checked').value;
+        let taskId = parseInt(taskValue, 10);
+
+        stopProjectTimer(prId, taskId, date).then(data => {
+            let trg=document.querySelector("[id^='detail']").querySelector('.totalTime');
+            
+            trg.innerHTML += ' + '+formatTimeSpan(data);
+            document.getElementById('projectTimers').removeChild(form);
+        });
+    }); 
 }
 
 // ********************************************************************************/
@@ -408,14 +439,14 @@ export function createEditForm(dataID, type) {
         textarea.setAttribute('rows','3');
 
         createStatusRadioButtons(form);
-
+        let element = addElement('p','Click to remove',form);
+        element.classList.add('span2');
         if (type=='project') {
-            
-            addElement('label','Tasks: (click to remove)',form);
+            addElement('label','Tasks:',form);
             let delTaskDiv = addElement('div','',form);
             delTaskDiv.id='editProjectTasks';
         }
-        label = addElement('label','Current tags:',form);
+        label = addElement('label','Tags:',form);
         let delTagsDiv = addElement('div','All Tags Go Here',form);
         delTagsDiv.name='tagCloud';
         
