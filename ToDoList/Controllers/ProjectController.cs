@@ -40,6 +40,7 @@ public class ProjectController : ControllerBase
     [HttpGet("getSingleProject/{projectId}")]
     public Project? GetProject(int projectId)
     {
+        _projectService.UpdateProjectTimerTotal(projectId);
         return _context
             .Projects
             .Include(p => p.Tags)
@@ -234,10 +235,10 @@ public class ProjectController : ControllerBase
         }
     }
 
-    [HttpGet("getProjecTimers")]
-    public List<ProjectTimer> GetProjectTimers()
+    [HttpGet("getProjectTimers/{projectId}")]
+    public List<ProjectTimer> GetProjectTimers(int projectId)
     {
-        return _context.ProjectTimers.ToList();
+        return _context.ProjectTimers.Where(pt=> pt.ProjectId == projectId).OrderByDescending(pt => pt.StartDate).ToList();
     }
 
     [HttpPost("startTimer/{projectId}")]
@@ -261,15 +262,8 @@ public class ProjectController : ControllerBase
         try
         {
             DateTime endTime = DateTimeOffset.FromUnixTimeMilliseconds(request.Timestamp).UtcDateTime;
-            TimeSpan duration;
-            if (request.TaskId < 0)
-            {
-                duration =_projectService.StopTaskTimer(request.ProjectID, endTime);
-            }
-            else
-            {
-                duration = _projectService.StopTaskTimer(request.ProjectID, request.TaskId, endTime);
-            }
+            TimeSpan duration = _projectService.StopTaskTimer(request.ProjectID, request.TaskId, endTime);
+
             if (duration > TimeSpan.Zero)
             {
                 return Ok(duration);

@@ -59,6 +59,22 @@ export async function getSingleItem(itemID, dataType) {
         return null;
     }
 }
+
+export async function getAllTimers(projectId) {
+    try {
+        const response = await fetch(`${config.apiBaseUrl}/Project/getProjectTimers/${projectId}`);
+        if (!response.ok) {
+            console.error('Failed to fetch item:', response.statusText);
+            return null;
+        }
+        const itemData = await response.json();
+        return itemData;
+    } catch (error) {
+        console.error('Error fetching item:', error);
+        return null;
+    }
+}
+
 // ********************************************************************************/
 //           REMOVING DATA
 // ********************************************************************************/

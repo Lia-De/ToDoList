@@ -293,6 +293,9 @@ p.noDeadline {
     min-height: 20px;
     color: var(--greySelected);
 }
+p.noDeadline:hover {
+    cursor: pointer;
+}
 .detailTask {
     padding: 0.5em;
     margin-bottom: 0.5em;
@@ -352,6 +355,9 @@ p.totalTime.runningTimer {
     color: transparent;
     border-radius: 10px;
     animation: pulseBorder 3s infinite ease-in-out;
+}
+div.header > p.totalTime {
+    cursor: pointer;
 }
 ul.tagsList  {
     display: flex;

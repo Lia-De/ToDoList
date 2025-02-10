@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Data.SqlTypes;
+using System.Threading.Tasks;
 using ToDoList.Models;
 
 namespace ToDoList.Services;
@@ -12,22 +13,46 @@ public class ProjectService
         _context = context;
     }
 
-    // Method to give us the total working time of a Project, calculated from it's Tasks and unassigned working hours. Including soft-deleted tasks.
-    public TimeSpan TotalActiveTime(int projectId)
+    TimeSpan? GetDuration(ProjectTimer timer)
     {
-        Project? project = _context.Projects.Include(t => t.Tasks).IgnoreQueryFilters().FirstOrDefault(ti => ti.ProjectId == projectId);
-        if (project!=null) { 
-            TimeSpan result = project.TotalWorkingTime;
+        return timer.EndDate.HasValue ? timer.EndDate - timer.StartDate : null;
+    }
+    ProjectTimer? GetActiveProjectTimer(int projectId)
+    {
+        return _context.ProjectTimers.FirstOrDefault(pt => pt.ProjectId == projectId && pt.EndDate == null);
+    }
+
+    // Method to give us the total working time of a Project, calculated from it's Tasks and unassigned working hours.
+    // Including soft-deleted tasks.
+    public TimeSpan UpdateProjectTimerTotal(int projectId)
+    {
+        Project? project = _context.Projects
+                        .Include(t => t.Tasks)
+                        .Include(p=> p.Timers)
+                        .IgnoreQueryFilters().FirstOrDefault(ti => ti.ProjectId == projectId);
+        if (project!=null) {
+            TimeSpan result = TimeSpan.Zero;
             List<Models.Task> tasks = project.Tasks;
-            if (tasks.Count == 0)
+            List<ProjectTimer> oldTimers = project.Timers.Where(pt => pt.EndDate.HasValue).ToList();
+
+            foreach (var timer in oldTimers)
             {
-                return result;
+                var duration = GetDuration(timer);
+                if (duration!= null)
+                {
+                    result += duration.Value;
+                }
             }
-            foreach (var task in tasks)
+            // Also update the status of the project if we find a lost timer.
+            var activeTimer = GetActiveProjectTimer(projectId);
+            if (activeTimer != null)
             {
-                    result += (TimeSpan)task.TimeSpent;
+                project.HasTimerRunning = true;
             }
+            project.TotalWorkingTime = result;
+            _context.SaveChanges();
             return result;
+            
         } else
         {
             throw new Exception("Could not find the project");
@@ -35,58 +60,26 @@ public class ProjectService
     }
     public DateTime StartTaskTimer(int projectId, DateTime date)
     {
-        //DateTime startTime = DateTime.Now;
         DateTime startTime = date;
         // is there a running timer for the project already?
-        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti=> ti.ProjectId==projectId && ti.EndDate==null);
+        ProjectTimer? timer = GetActiveProjectTimer(projectId);
+        Project? project = _context.Projects.FirstOrDefault(ti => ti.ProjectId == projectId);
         if (timer != null) 
         {
+            if (project!=null) project.HasTimerRunning = true;
             throw new Exception("This project already has a timer running");
         }
-        Project? project = _context.Projects.FirstOrDefault(ti => ti.ProjectId==projectId);
+        
         if (project != null) project.HasTimerRunning = true;
         _context.ProjectTimers.Add(new ProjectTimer() { ProjectId= projectId, StartDate = startTime, TaskId= null });
         _context.SaveChanges();
         return startTime;
     }
-    public TimeSpan StopTaskTimer(int projectId, DateTime stopTime)
-    {
-        TimeSpan result = TimeSpan.Zero;
-        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti => ti.ProjectId == projectId && ti.EndDate == null); 
-        if (timer == null)
-        {
-            throw new Exception($"No timers found for project {projectId}");
-        }
-        else
-        {
-            result = stopTime - timer.StartDate;
-            if (result > TimeSpan.Zero)
-            {
-                Project? project = _context.Projects.Find(projectId);
-                if (project != null)
-                {
-                    project.TotalWorkingTime += result;
-                    project.HasTimerRunning = false;
-                    timer.EndDate = stopTime;
-                    project.Timers.Add(timer);
-                    _context.SaveChanges();
-                }
-                
-            }
-
-            return result;
-        }
-    }
     public TimeSpan StopTaskTimer(int projectId, int taskId, DateTime stopTime)
     {
-
         TimeSpan result = TimeSpan.Zero;
-        ProjectTimer? timer = _context.ProjectTimers.FirstOrDefault(ti => ti.ProjectId == projectId && ti.EndDate == null);
-        if (timer == null)
-        {
-            throw new Exception($"No timers found for project {projectId}");
-        }
-        else
+        ProjectTimer? timer = GetActiveProjectTimer(projectId);
+        if (timer != null)
         {
             result = stopTime - timer.StartDate;
             if (result > TimeSpan.Zero)
@@ -98,19 +91,15 @@ public class ProjectService
                     if (task != null)
                     {
                         timer.TaskId = task.TaskId;
-                        task.TimeSpent += result;
-                        timer.EndDate = stopTime;
-                    } else
-                    {
-                        // IF for some reason the task id is incorrect, still add this duration to the Project overall time
-                        project.TotalWorkingTime += result;
+                        task.TimeSpent += result;   
                     }
+                    project.TotalWorkingTime += result;
                     project.HasTimerRunning = false;
-                    project.Timers.Add(timer);
+                    timer.EndDate = stopTime;
+                    _context.SaveChanges();
                 }
-                _context.SaveChanges();
             }
-            return result;
         }
+        return result;
     }
 }

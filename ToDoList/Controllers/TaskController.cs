@@ -32,25 +32,7 @@ public class TaskController : Controller
             .Include(p => p.Tags)
             .FirstOrDefault(t => t.TaskId == taskId);
     }
-    [HttpGet("setStatus/{taskId}/{status}")]
-    public IActionResult SetStatus(int taskId, int status)
-    {
-        Models.Task? task = _context.Tasks.FirstOrDefault(p => p.TaskId == taskId);
-        if (task == null)
-        {
-            return NotFound();
-        }
-        else
-        {
-            ToDoStatus? taskStatus = task.Status;
-            if (taskStatus == null || taskStatus != (ToDoStatus)status)
-            {
-                task.Status = (ToDoStatus)status;
-                _context.SaveChanges();
-            }
-                return Ok();
-        }
-    }
+    
     // Create
     [HttpPost("addTask")]
     public IActionResult AddTask(TaskDto newTask)
@@ -128,9 +110,7 @@ public class TaskController : Controller
             }
             else
             {
-                // remove the tag from the task, and the task from the tag.
-                task.Tags.Remove(tag);
-                
+                task.Tags.Remove(tag);   
                 _context.SaveChanges();
                 return Ok();
             }

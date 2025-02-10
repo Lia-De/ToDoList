@@ -9,6 +9,7 @@ public class Project
     public List<Task> Tasks { get; set; } = new List<Task>();
     public List<Tag> Tags { get; set; } = new List<Tag>();
     public ToDoStatus Status { get; set; }
+    public DateTime ProjectCreated { get; private set; } = DateTime.Now;
     public TimeSpan TotalWorkingTime { get; set; } = TimeSpan.Zero;
     public bool HasTimerRunning { get; set; } = false;
     public string Description { get; set; } = string.Empty;

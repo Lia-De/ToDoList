@@ -1,6 +1,6 @@
 
 import { statusTexts, InfoText } from '../Data/hardcoded.js';
-import { fetchAllProjects, fetchAllTags, getSingleItem, 
+import { fetchAllProjects, fetchAllTags, getSingleItem, getAllTimers,
         startProjectTimer, stopProjectTimer,
         addTagToItem, sendAddRequest, 
         sendEditRequest, removeTagFromProject, removeTagFromTask} from '../API_Access/apiCalls.js';
@@ -180,13 +180,15 @@ export function showThisItem(itemID, dataType){
             let statusElement = addElement('p',statusTexts[status], header);
             statusElement.classList=`status${status}`;                        
             let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
-            // time.setAttribute('data',data.totalWorkingTime);
             time.classList = 'totalTime';
+
+            // Set an event listener to show 
+            time.addEventListener('click', printTotalTimeBreakdown);
+
             //        Print timer only if we are not Status = Completed          //
             if (data.status != 3) {
                 printTimerStartAndStop(data);
             }
-
             addElement('p',data.description,detailDiv);
             
             let tagBox = addElement('div','',detailDiv);
@@ -439,9 +441,10 @@ export function createEditForm(dataID, type) {
         textarea.setAttribute('rows','3');
 
         createStatusRadioButtons(form);
-        let element = addElement('p','Click to remove',form);
+        let element = addElement('p','Click to remove Tags',form);
         element.classList.add('span2');
         if (type=='project') {
+            element.innerHTML = 'Click to remove Tasks or Tags';
             addElement('label','Tasks:',form);
             let delTaskDiv = addElement('div','',form);
             delTaskDiv.id='editProjectTasks';
@@ -475,6 +478,7 @@ export function createEditForm(dataID, type) {
     }
     form.appendChild(inputHidden);
     form.appendChild(button);
+
         // Place it in the right spot on the page
     let divTarget = document.createElement('div');
     divTarget.appendChild(form);
@@ -825,6 +829,36 @@ function printTaskDeadlinePicker(event){
 
         form.addEventListener('submit', editTaskRequest);
     }
+}
+
+// ********************************************************************************/
+//              Helper function to show a list of all times
+//              the project has been worked on
+//      Toggle functionality
+// ********************************************************************************/
+function printTotalTimeBreakdown(event){
+    let reportDiv = document.getElementById('timeReport');
+    if (reportDiv) {
+        reportDiv.parentNode.removeChild(reportDiv);
+    } else {
+        let projectId = GetDetailId();
+        getAllTimers(projectId).then(data => {
+            let trg = event.target.parentNode;
+            let timeReportDiv = document.createElement('div');
+            timeReportDiv.id='timeReport';
+            timeReportDiv.classList.add('shadowbox');
+            trg.insertAdjacentElement('afterend',timeReportDiv);
+            data.forEach(timer => {
+                addElement('p', 
+                    formatDateTime(timer.startDate)
+                    +' until '
+                    +formatDateTime(timer.endDate)                     
+                    , timeReportDiv);
+            });
+
+        });
+    }
+
 }
 // ********************************************************************************/
 //          Edit functions - Project

@@ -11,7 +11,7 @@ string dbVariable = Environment.GetEnvironmentVariable("SQLite_SRC");
 // Add services to the container.
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console() // Still logs to the console
+    //.WriteTo.Console() // Still logs to the console
     .WriteTo.File("Logs/app.log", rollingInterval: RollingInterval.Day) // Logs to a file daily
     .CreateLogger();
 builder.Host.UseSerilog(); // Use Serilog instead of default logging
