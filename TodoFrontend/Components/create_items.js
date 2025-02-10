@@ -847,6 +847,7 @@ function printTotalTimeBreakdown(event){
             let timeReportDiv = document.createElement('div');
             timeReportDiv.id='timeReport';
             timeReportDiv.classList.add('shadowbox');
+            addElement('h4','Report of all the times worked on this project',timeReportDiv);
             trg.insertAdjacentElement('afterend',timeReportDiv);
             data.forEach(timer => {
                 addElement('p', 

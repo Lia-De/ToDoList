@@ -432,7 +432,7 @@ p.deleteTask, p.deleteTag {
 p.deleteTag {
     background-image: url('./img/tag-remove-outline.png');
 }
-/* Styling for form for choosing which task */
+/* Styling for form for choosing which task to apply a timer to */
 form#chooseTaskForm {
     grid-template-columns: auto 40px;
 }
@@ -443,6 +443,15 @@ form#chooseTaskForm >p {
 form#chooseTaskForm >button {
     grid-column: 1/3;
 }
+
+div#timeReport {
+    padding: 0.5em;
+    margin-top: 0.5em;
+}
+div#timeReport > h4{
+    margin-top: 0.5em;
+}
+
 /* Start styling for Tags page */
 #contents.listAllTags {
     display: flex;
