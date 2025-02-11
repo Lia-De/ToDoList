@@ -2,7 +2,7 @@
 import { createProjectList, createTagList, createEditForm,
         unhideDisclaimer, editProjectRequest, editTagRequest, editTaskRequest,
         printAddingForm, addRequest} from "../Components/create_items.js";
-import { sendDeleteData } from "../API_Access/apiCalls.js";
+import { sendDeleteData, login, logout, isLoggedIn } from "../API_Access/apiCalls.js";
 
 document.getElementById("navigate").addEventListener("click",navigationEventListener);
 document.getElementById('disclaimer').addEventListener('click', unhideDisclaimer);
@@ -122,3 +122,7 @@ export function deleteTask(id, desc){
     }
 }
 // ********************************************************************************/
+
+document.getElementById('authorize').addEventListener("click", () => {
+    isLoggedIn ? logout() : login();
+});

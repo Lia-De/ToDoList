@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ToDoList.DTOs;
 using ToDoList.Models;
 namespace ToDoList.Controllers;
 
@@ -16,11 +17,11 @@ public class TagController : ControllerBase
     }
     // Read
     [HttpGet]
-    public List<TagDto> Index()
+    public List<TagDTO> Index()
     {
         return _context
               .Tags
-              .Select(t => new TagDto
+              .Select(t => new TagDTO
               {
                   TagId = t.TagId,
                   Name = t.Name,
@@ -41,7 +42,7 @@ public class TagController : ControllerBase
     }
     //Create 
     [HttpPost("addTag")]
-    public IActionResult AddTag(TagDto newTag)
+    public IActionResult AddTag(TagDTO newTag)
     {
         if (_context.Tags.Any(t => t.Name == newTag.Name))
         {
@@ -68,7 +69,7 @@ public class TagController : ControllerBase
     }
     // Delete
     [HttpDelete("deleteTag")]
-    public IActionResult DeleteTag(TagDto frontendTag)
+    public IActionResult DeleteTag(TagDTO frontendTag)
     {
         var tag = _context.Tags.Find(frontendTag.TagId);
         if (tag == null)

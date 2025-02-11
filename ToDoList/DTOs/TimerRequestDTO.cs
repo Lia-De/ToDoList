@@ -1,6 +1,6 @@
-﻿namespace ToDoList.Models;
+﻿namespace ToDoList.DTOs;
 
-public class TimerRequest
+public class TimerRequestDTO
 {
     public int ProjectID { get; set; }
     public long Timestamp { get; set; }

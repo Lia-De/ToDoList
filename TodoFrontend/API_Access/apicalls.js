@@ -280,3 +280,36 @@ export async function addTagToItem(event, inputTags, fetchUrl){
 
     }
 }
+
+let authButton=document.getElementById('authorize');
+export let isLoggedIn=false;
+export function login() {
+    fetch(config.apiBaseUrl+"/session/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Accept" : "application/json"
+        },
+        body: JSON.stringify ({
+            email: "greg@mail.com",
+            password: "1234",
+        })
+    })
+        .then(response => response.json())
+        .then(data => console.log(data));
+        isLoggedIn = true;
+        authButton.innerText = "Logout";
+}
+
+export function logout() {
+    fetch(config.apiBaseUrl+"/session/logout", {
+        headers: {
+            "Accept": "application/json"
+    }})
+        .then(response => response.json())
+        .then(data => console.log(data));
+        isLoggedIn = false;
+        
+        authButton.innerText = "Login";
+
+}

@@ -850,13 +850,12 @@ function printTotalTimeBreakdown(event){
             addElement('h4','Report of all the times worked on this project',timeReportDiv);
             trg.insertAdjacentElement('afterend',timeReportDiv);
             data.forEach(timer => {
-                addElement('p', 
-                    formatDateTime(timer.startDate)
-                    +' until '
-                    +formatDateTime(timer.endDate)                     
-                    , timeReportDiv);
+                let rep=addElement('p',formatDateTime(timer.startDate)+' until '+formatDateTime(timer.endDate), timeReportDiv);
+                if (timer.taskId!=null) {
+                    let taskName=document.querySelector(`[id^='task-${timer.taskId}']`).innerHTML;
+                    rep.innerHTML += ' ('+taskName+')';
+                }
             });
-
         });
     }
 

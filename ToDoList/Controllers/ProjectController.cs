@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics.Eventing.Reader;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Intrinsics.X86;
+using ToDoList.DTOs;
 using ToDoList.Models;
 using ToDoList.Services;
 
@@ -69,7 +70,7 @@ public class ProjectController : ControllerBase
 
     // Create
     [HttpPost("addProject")]
-    public IActionResult AddProject(ProjectDto frontendProject)
+    public IActionResult AddProject(ProjectDTO frontendProject)
     {
         string? newName = frontendProject.Name;
         if (string.IsNullOrEmpty(newName))
@@ -91,7 +92,7 @@ public class ProjectController : ControllerBase
   
     // Update
     [HttpPost("updateProject")]
-    public IActionResult UpdateProject(ProjectDto frontendProject)
+    public IActionResult UpdateProject(ProjectDTO frontendProject)
     {
         
         
@@ -126,7 +127,7 @@ public class ProjectController : ControllerBase
 
     // Delete
     [HttpDelete("deleteProject")]
-    public IActionResult DeleteProject(Project frontendProject)
+    public IActionResult DeleteProject(ProjectDTO frontendProject)
     {
         var project = _context.Projects.Include(t => t.Tasks).FirstOrDefault(proj => proj.ProjectId==frontendProject.ProjectId);
         
@@ -242,7 +243,7 @@ public class ProjectController : ControllerBase
     }
 
     [HttpPost("startTimer/{projectId}")]
-    public IActionResult StartTimer(TimerRequest request)
+    public IActionResult StartTimer(TimerRequestDTO request)
     {
         try
         {
@@ -257,7 +258,7 @@ public class ProjectController : ControllerBase
         }
     }
     [HttpPost("stopTimer/{projectId}/{taskId}")]
-    public IActionResult StopTimer(TimerRequest request)
+    public IActionResult StopTimer(TimerRequestDTO request)
     {
         try
         {

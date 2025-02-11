@@ -1,6 +1,8 @@
-﻿namespace ToDoList.Models;
+﻿using ToDoList.Models;
 
-public class TaskDto
+namespace ToDoList.DTOs;
+
+public class TaskDTO
 {
     public int TaskId { get; set; }
     public string Name { get; set; } = string.Empty;

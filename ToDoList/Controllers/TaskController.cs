@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ToDoList.DTOs;
 using ToDoList.Models;
 namespace ToDoList.Controllers;
 [ApiController]
@@ -35,7 +36,7 @@ public class TaskController : Controller
     
     // Create
     [HttpPost("addTask")]
-    public IActionResult AddTask(TaskDto newTask)
+    public IActionResult AddTask(TaskDTO newTask)
     {
         
         Project? project = _context.Projects.Find(newTask.ProjectId);
@@ -60,7 +61,7 @@ public class TaskController : Controller
     }
     // Update
     [HttpPost("updateTask")]
-    public IActionResult UpdateTask(ToDoList.Models.TaskDto frontendTask)
+    public IActionResult UpdateTask(TaskDTO frontendTask)
     {
         var task = _context.Tasks.FirstOrDefault(t => t.TaskId == frontendTask.TaskId);
         if (task == null)
@@ -119,7 +120,7 @@ public class TaskController : Controller
 
     // Delete
     [HttpDelete("deleteTask")]
-    public IActionResult DeleteTask(TaskDto task)
+    public IActionResult DeleteTask(TaskDTO task)
     {
         var taskToDelete = _context.Tasks.Find(task.TaskId);
         if (taskToDelete == null)

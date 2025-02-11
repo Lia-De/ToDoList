@@ -1,6 +1,8 @@
-﻿namespace ToDoList.Models;
+﻿using ToDoList.Models;
 
-public class ProjectDto
+namespace ToDoList.DTOs;
+
+public class ProjectDTO
 {
     public int ProjectId { get; set; }
     public string? Name { get; set; }

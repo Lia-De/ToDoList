@@ -15,3 +15,4 @@ if ( window.location.href.includes("index.html")) {
     let projectId = getQueryParam("id");
     showThisItem(projectId, 'project');
 }
+

@@ -565,6 +565,15 @@ p.usage {
         height: 100%;
         align-items:center;
     }
+    #container > .header {
+        margin-left: 0.3em;
+    }
+    .header > div.edit {
+        margin: auto 0.1em;
+    }
+    .header>h4, .header>h2 {
+        margin-left: 0.2em;
+    }
     p[class^="status"] {
         float:left;
         margin-right: 0.5em;
@@ -572,10 +581,7 @@ p.usage {
     div#taskDetail>#edits {
         margin-top: 0.2em;
          margin-left: -0.5em;
-        margin-right: -0.5em;
-        
-        /* clear: both; */
-        
+        margin-right: -0.5em;      
         padding: 0;
     }
     div[id^="detail"] {

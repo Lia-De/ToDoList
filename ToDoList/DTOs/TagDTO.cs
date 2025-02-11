@@ -1,6 +1,6 @@
-﻿namespace ToDoList.Models;
+﻿namespace ToDoList.DTOs;
 
-public class TagDto
+public class TagDTO
 {
     public int TagId { get; set; }
     public required string Name { get; set; }
