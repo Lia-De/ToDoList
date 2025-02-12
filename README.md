@@ -7,13 +7,14 @@ Created 2025-01-08 as part of Lexicon course, fullstack C# developer.
 ## Next version Going forward (5 Feb, 2025) - Version 0.5
 Adding timers for tasks, reworking deadline, and working on adding the possible features:
 - [ ] Login for users
-- [ ] Ability to start timer on the each task
+- [x] Ability to start timer on the each task
+      - Timers can get assigned to a task when you stop them. Not at creation
 - [ ] Sorting projects by: Name, Status, Hours Worked, Tag
     - [x] Sort by status
-- [ ] Keeping time per Task as well as for whole Project
-- [ ] Keep a history of DateTime stamps for each time you worked on a Task
+- [x] Keeping time per Task as well as for whole Project
+- [x] Keep a history of DateTime stamps for each time you worked on a Task
 - [ ] Manually add time spent
-- [ ] Fields for StartDate and CompleteDate For total time of project.
+- [ ] Fields for - [x] StartDate and - [ ] CompleteDate For total time of project.
    - Maybe a list of all changes of status { Status, DateTime } to keep track of that.
 
 --------------------------------------------------
