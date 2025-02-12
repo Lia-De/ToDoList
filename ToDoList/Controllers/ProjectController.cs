@@ -28,14 +28,14 @@ public class ProjectController : ControllerBase
     [HttpGet]
     public List<Project> Index()
     {
-        return _context
-            .Projects
-            .OrderByDescending(p => p.HasTimerRunning)          // First, sort by HasTimerRunning (true first)
-            .ThenBy(p => p.Status != ToDoStatus.Active)         // Then, sort by Status (Active)
-            .ThenBy(p => p.Status)
-            .ThenBy(p => p.Name)                                // Finally, sort alphabetically by Name
-            .ToList();
-
+        
+            return _context
+                .Projects
+                .OrderByDescending(p => p.HasTimerRunning)          // First, sort by HasTimerRunning (true first)
+                .ThenBy(p => p.Status != ToDoStatus.Active)         // Then, sort by Status (Active)
+                .ThenBy(p => p.Status)
+                .ThenBy(p => p.Name)                                // Finally, sort alphabetically by Name
+                .ToList();
     }
 
     [HttpGet("getSingleProject/{projectId}")]
@@ -77,7 +77,7 @@ public class ProjectController : ControllerBase
         {
             return BadRequest();
         }
-        var project = new Project { Name = newName };
+        var project = new Project { Name = newName, UserId =1 };
         if (frontendProject.Description != null)
         {
             project.Description = frontendProject.Description;

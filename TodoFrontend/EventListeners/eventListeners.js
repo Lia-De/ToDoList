@@ -122,7 +122,7 @@ export function deleteTask(id, desc){
     }
 }
 // ********************************************************************************/
-
-document.getElementById('authorize').addEventListener("click", () => {
-    isLoggedIn ? logout() : login();
+let authButton = document.getElementById('authorize');
+if (authButton)
+    authButton.addEventListener("click", () => { isLoggedIn ? logout() : login();
 });

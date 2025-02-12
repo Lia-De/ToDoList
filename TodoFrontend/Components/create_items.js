@@ -352,7 +352,8 @@ function stopTimer(prId){
             let trg=document.querySelector("[id^='detail']").querySelector('.totalTime');
             
             trg.innerHTML += ' + '+formatTimeSpan(data);
-            document.getElementById('projectTimers').removeChild(form);
+            // document.getElementById('projectTimers').removeChild(form);
+            form.remove();
         });
     }); 
 }

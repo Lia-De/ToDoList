@@ -8,7 +8,6 @@ public class Project
     [Key] public int ProjectId { get; set; }
     [MaxLength(50)] public required string Name { get; set; }
     [ForeignKey("UserId")] public int UserId { get; set; }
-
     public List<Task> Tasks { get; set; } = new List<Task>();
     public List<Tag> Tags { get; set; } = new List<Tag>();
     public ToDoStatus Status { get; set; }

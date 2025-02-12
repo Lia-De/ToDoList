@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ToDoList.DTOs;
+using ToDoList.Models;
 using ToDoList.Services;
 namespace ToDoList.Controllers;
 
@@ -19,9 +20,14 @@ public class SessionController : ControllerBase
     public IActionResult Login(LoginDTO login)
     {
         CookieOptions options = new CookieOptions();
-        options.Expires = DateTime.Now.AddMinutes(1);
-        Response.Cookies.Append("CraftInTime", "66", options);
-        return Ok("Logged in");
+        options.Expires = DateTime.Now.AddHours(1);
+        User? user = _context.Users.FirstOrDefault(user => user.Email == login.Email && user.Password == login.Password);
+        if (user!=null)
+        {
+            Response.Cookies.Append("CraftInTime", user.UserId.ToString(), options);
+            return Ok("Logged in " + user.UserId);
+        }
+        return BadRequest();
     }
 
     [HttpGet]

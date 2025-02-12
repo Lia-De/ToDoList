@@ -11,6 +11,7 @@ public class TodoContext : DbContext
     public DbSet<Models.Project> Projects { get; set; }
     public DbSet<Models.Tag> Tags { get; set; }
     public DbSet<Models.ProjectTimer> ProjectTimers { get; set; }
+    public DbSet<Models.User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

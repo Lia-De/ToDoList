@@ -282,8 +282,10 @@ export async function addTagToItem(event, inputTags, fetchUrl){
 }
 
 let authButton=document.getElementById('authorize');
+
 export let isLoggedIn=false;
 export function login() {
+    
     fetch(config.apiBaseUrl+"/session/login", {
         method: "POST",
         headers: {
@@ -291,7 +293,7 @@ export function login() {
             "Accept" : "application/json"
         },
         body: JSON.stringify ({
-            email: "greg@mail.com",
+            email: "jentap@gmail.com",
             password: "1234",
         })
     })
@@ -299,6 +301,7 @@ export function login() {
         .then(data => console.log(data));
         isLoggedIn = true;
         authButton.innerText = "Logout";
+        
 }
 
 export function logout() {
@@ -313,3 +316,4 @@ export function logout() {
         authButton.innerText = "Login";
 
 }
+
