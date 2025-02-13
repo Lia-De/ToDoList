@@ -1,8 +1,9 @@
 import {config } from '../config.js';
+export let isLoggedIn;
 // ********************************************************************************/
 //           FETCHING DB INFO
 // ********************************************************************************/
-export async function fetchAllProjects() {
+export async function fetchAllProjects() {   
     try {
         const response = await fetch(`${config.apiBaseUrl}/Project`);
         if (!response.ok) {
@@ -283,7 +284,6 @@ export async function addTagToItem(event, inputTags, fetchUrl){
 
 let authButton=document.getElementById('authorize');
 
-export let isLoggedIn=false;
 export function login() {
     
     fetch(config.apiBaseUrl+"/session/login", {

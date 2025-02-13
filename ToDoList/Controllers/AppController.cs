@@ -9,7 +9,7 @@ public class AppController : ControllerBase
     [HttpGet]
     public IActionResult Index()
     {
-        string sessionValue = Request.Cookies["CraftInTime"];
+        string? sessionValue = Request.Cookies["CraftInTime"];
         bool successful = int.TryParse(sessionValue, out int userId);
         
         if (sessionValue == null || !successful) return Unauthorized();

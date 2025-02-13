@@ -41,8 +41,11 @@ public class SessionController : ControllerBase
     [Route("createUser")]
     public IActionResult CreateUser(LoginDTO login)
     {
-        var newUSer = new Models.User() { Email= login.Email, Password = login.Password };
-        
+        if (login.Email == null || login.Password == null) {
+            return BadRequest();
+        } else { 
+            var newUSer = new Models.User() { Email = login.Email, Password = login.Password };
+        }
         return Ok();
     }
 }

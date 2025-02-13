@@ -44,7 +44,6 @@ export function createProjectList() {
     fetchAllProjects().then(data => {
     document.getElementById("nowShowing").innerHTML = `${data.length} Projects`;
     let timerCount = 0;
-    const target = document.getElementById('contents');
 
     data.forEach(dataPoint => {
         if (dataPoint.hasTimerRunning) {
