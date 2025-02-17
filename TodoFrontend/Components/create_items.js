@@ -212,39 +212,51 @@ export function showThisItem(itemID, dataType){
                 taskDiv.classList='detailTask shadowbox';
                 header = addElement('div','',taskDiv);
                 header.classList = 'header';
+                if (task.isDeleted){
+                    let status = task.status;
+                    let statusValue=statusTexts[status];
+                    let statusElement = addElement('p',statusValue, header);
+                    statusElement.classList=`status${status}`;
+                    let taskname=addElement('h4','(Deleted Task) '+task.name, header);
+                    taskname.id=`task-${task.taskId}`;
+                    let element = addElement('p',formatTimeSpan(task.timeSpent),taskDiv);
+                    element.classList.add('totalTime')
+                    addElement('p', task.description, taskDiv)
 
-                // inserting edit button
-                let editButton = listHelperCreateEditButton(header);
-                editButton.addEventListener('click',()=> editListener(task.taskId,'task'));
-
-                let status = task.status;
-                let statusValue=statusTexts[status];
-                let statusElement = addElement('p',statusValue, header);
-                statusElement.classList=`status${status}`;
-                let taskname=addElement('h4',task.name, header);
-                taskname.id=`task-${task.taskId}`;
-                let deadline = addElement('p','', header);
-                if (task.deadline) {
-                deadline.innerHTML = formatDateTime(task.deadline);
-                deadline.classList = 'deadline';
                 } else {
-                    deadline.classList='noDeadline';
-                    deadline.addEventListener('click',printTaskDeadlinePicker);
+                    // inserting edit button
+                    let editButton = listHelperCreateEditButton(header);
+                    editButton.addEventListener('click',()=> editListener(task.taskId,'task'));
+
+                    let status = task.status;
+                    let statusValue=statusTexts[status];
+                    let statusElement = addElement('p',statusValue, header);
+                    statusElement.classList=`status${status}`;
+                    let taskname=addElement('h4',task.name, header);
+                    taskname.id=`task-${task.taskId}`;
+                    let deadline = addElement('p','', header);
+                    if (task.deadline) {
+                    deadline.innerHTML = formatDateTime(task.deadline);
+                    deadline.classList = 'deadline';
+                    } else {
+                        deadline.classList='noDeadline';
+                        deadline.addEventListener('click',printTaskDeadlinePicker);
+                    }
+                    let element = addElement('p',formatTimeSpan(task.timeSpent),taskDiv);
+                    element.classList.add('totalTime')
+                    addElement('p', task.description, taskDiv)
+                    
+                    let taskTagDiv = addElement('div','',taskDiv);
+                    taskTagDiv.classList='tagsList';
+                    let form = printAllTagsAndForm(task.tags, taskTagDiv, 'task');
+                    let hiddenId = addElement('input','',form);
+                    hiddenId.type="hidden";
+                    hiddenId.name='taskId';
+                    hiddenId.value = task.taskId;
+                    form.elements["taskTagCloud"].id=`taskTagCloud${task.taskId}`;
+                    //                 set event listener to Add new Tags to the Task             //
+                    form.addEventListener('submit', (event) => { addTagToTask(event); });
                 }
-                let element = addElement('p',formatTimeSpan(task.timeSpent),taskDiv);
-                element.classList.add('totalTime')
-                addElement('p', task.description, taskDiv)
-                
-                let taskTagDiv = addElement('div','',taskDiv);
-                taskTagDiv.classList='tagsList';
-                let form = printAllTagsAndForm(task.tags, taskTagDiv, 'task');
-                let hiddenId = addElement('input','',form);
-                hiddenId.type="hidden";
-                hiddenId.name='taskId';
-                hiddenId.value = task.taskId;
-                form.elements["taskTagCloud"].id=`taskTagCloud${task.taskId}`;
-                //                 set event listener to Add new Tags to the Task             //
-                form.addEventListener('submit', (event) => { addTagToTask(event); });
             }); //      END Each Task                                       //
         }       //      if type = project                                   //
     });         //     END FETCH SINGLE ITEM                                //

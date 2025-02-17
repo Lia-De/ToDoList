@@ -286,15 +286,16 @@ let authButton=document.getElementById('authorize');
 
 export function login() {
     
-    fetch(config.apiBaseUrl+"/session/login", {
+    fetch(config.apiBaseUrl+"/login", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "Accept" : "application/json"
         },
         body: JSON.stringify ({
+            useCookies: true,
             email: "jentap@gmail.com",
-            password: "1234",
+            password: "1234+Abc",
         })
     })
         .then(response => response.json())
@@ -305,7 +306,7 @@ export function login() {
 }
 
 export function logout() {
-    fetch(config.apiBaseUrl+"/session/logout", {
+    fetch(config.apiBaseUrl+"/logout", {
         headers: {
             "Accept": "application/json"
     }})

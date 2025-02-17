@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,6 +11,7 @@ using ToDoList.Models;
 using ToDoList.Services;
 
 namespace ToDoList.Controllers;
+//[Authorize]
 [ApiController]
 [Route("[controller]")]
 public class ProjectController : ControllerBase
@@ -45,7 +47,7 @@ public class ProjectController : ControllerBase
         return _context
             .Projects
             .Include(p => p.Tags)
-            .Include(t => t.Tasks)
+            .Include(p => p.Tasks)
             .ThenInclude(tag => tag.Tags)
             .FirstOrDefault(p => p.ProjectId == projectId);
     }

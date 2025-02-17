@@ -7,3 +7,9 @@ export const InfoText =[
     "Tasks do not need to have a status, but if you set one, it will assume to always have a status set.",
     "Sorting order for projects is: Active timers first, then by Status of project, then by name. Tags are sorted alphabetically."
 ];
+
+
+let firstUser=    {
+        "email": "jentap@gmail.com",
+        "password": "1234+Abc"
+      }
