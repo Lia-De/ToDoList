@@ -77,7 +77,7 @@ public class ProjectController : ControllerBase
         {
             return BadRequest();
         }
-        var project = new Project { Name = newName, UserId =1 };
+        var project = new Project { Name = newName };
         if (frontendProject.Description != null)
         {
             project.Description = frontendProject.Description;

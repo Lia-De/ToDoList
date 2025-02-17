@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace ToDoList;
 
-public class TodoContext : DbContext
+public class TodoContext : IdentityDbContext<IdentityUser>
 {
     public TodoContext(DbContextOptions<TodoContext> options) : base(options)
     {
@@ -11,11 +13,11 @@ public class TodoContext : DbContext
     public DbSet<Models.Project> Projects { get; set; }
     public DbSet<Models.Tag> Tags { get; set; }
     public DbSet<Models.ProjectTimer> ProjectTimers { get; set; }
-    public DbSet<Models.User> Users { get; set; }
+    //public DbSet<Models.User> Users { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Models.Task>().HasQueryFilter(t => !t.IsDeleted);
-    }
+    //protected override void OnModelCreating(ModelBuilder modelBuilder)
+    //{
+    //    modelBuilder.Entity<Models.Task>().HasQueryFilter(t => !t.IsDeleted);
+    //}
 }
 

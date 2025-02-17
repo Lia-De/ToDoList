@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using ToDoList;
 using ToDoList.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 DotNetEnv.Env.Load();
@@ -27,6 +28,11 @@ builder.Services.AddScoped<ProjectService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Identity
+builder.Services.AddAuthorization();
+builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+    .AddEntityFrameworkStores<TodoContext>();
+
 var sitePolicy = "site-policy";
 builder.Services.AddCors(options =>
 {
@@ -41,6 +47,9 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors(sitePolicy);
+
+// Identity services
+app.MapIdentityApi<IdentityUser>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
