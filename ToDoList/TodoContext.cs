@@ -17,6 +17,7 @@ public class TodoContext : IdentityDbContext<IdentityUser>
 
     //protected override void OnModelCreating(ModelBuilder modelBuilder)
     //{
+    //    base.OnModelCreating(modelBuilder); // Supposedly should work - does not.
     //    modelBuilder.Entity<Models.Task>().HasQueryFilter(t => !t.IsDeleted);
     //}
 }
