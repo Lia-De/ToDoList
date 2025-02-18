@@ -14,6 +14,8 @@ using ToDoList.Services;
 
 namespace ToDoList.Controllers;
 
+
+
 //[Authorize]
 
 
@@ -88,8 +90,8 @@ public class ProjectController : ControllerBase
         {
             return BadRequest();
         }
-        var currentUser = _userManager.Users.FirstOrDefault(x => x.Email == 'jentap@gmail.com');
-        var project = new Project { Name = newName, UserProfileId = currentUserId };
+        
+        var project = new Project { Name = newName, UserProfileId = 1 };
         if (frontendProject.Description != null)
         {
             project.Description = frontendProject.Description;
