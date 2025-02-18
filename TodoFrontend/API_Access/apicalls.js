@@ -294,7 +294,7 @@ export function login(e) {
     e.preventDefault();
     fetch(config.apiBaseUrl+"/login?useCookies=true", {
         method: "POST",
-        credentials: "include",
+        // credentials: "include",
         headers: {
             "Content-Type": "application/json",
             "Accept" : "application/json",
@@ -305,10 +305,10 @@ export function login(e) {
             "password": "1234+Abc",
         })
     })
-        .then(response => {
-            console.log(response.status);
-            response.text()})
-        .then(data => console.log(data));
+        .then(response => 
+            console.log(response.status));
+        //     response.text()})
+        // .then(data => console.log(data) );
 
         isLoggedIn = true;
         authButton.innerText = "Logout";
