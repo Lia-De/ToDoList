@@ -7,13 +7,16 @@ export let isLoggedIn;
 export async function fetchAllProjects() {   
     try {
         const response = await fetch(`${config.apiBaseUrl}/Project`, {
-            method: "GET"
+            method: "GET",
+            credentials: "include"
     });
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            console.log(response);
+            return null;
+        } else {
+            const data = await response.json();
+            return data;
         }
-        const data = await response.json();
-        return data;
     } catch (error) {
         console.error('Error:', error);
         document.getElementById("nowShowing").innerHTML =`Database is unreachable`;
@@ -291,10 +294,12 @@ export function login(e) {
     e.preventDefault();
     fetch(config.apiBaseUrl+"/login?useCookies=true", {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
             "Accept" : "application/json",
         },
+        // credentials: "include",
         body: JSON.stringify ({
             "email": "jentap@gmail.com",
             "password": "1234+Abc",
@@ -312,12 +317,12 @@ export function login(e) {
 }
 
 export function logout() {
-    fetch(config.apiBaseUrl+"/logout", {
-        headers: {
-            "Accept": "application/json"
-    }})
-        .then(response => response.json())
-        .then(data => console.log(data));
+    // fetch(config.apiBaseUrl+"/logout", {
+    //     headers: {
+    //         "Accept": "application/json"
+    // }})
+    //     .then(response => response.json())
+    //     .then(data => console.log(data));
         isLoggedIn = false;
         
         authButton.innerText = "Login";

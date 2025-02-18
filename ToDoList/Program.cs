@@ -6,6 +6,7 @@ using ToDoList.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using ToDoList.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 DotNetEnv.Env.Load();
@@ -39,11 +40,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(sitePolicy, builder =>
     {
-        builder.AllowAnyOrigin()
+        //builder.AllowAnyOrigin()
+        builder.WithOrigins("http://127.0.0.1:5500")
+        .AllowCredentials()
                .AllowAnyHeader()
                .AllowAnyMethod();
     });
 });
+
 
 var app = builder.Build();
 
@@ -61,6 +65,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

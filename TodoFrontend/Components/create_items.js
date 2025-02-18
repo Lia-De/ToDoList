@@ -42,34 +42,37 @@ function listHelperCreateEditButton(trg){
 export function createProjectList() {
     clearData();
     fetchAllProjects().then(data => {
-    document.getElementById("nowShowing").innerHTML = `${data.length} Projects`;
-    let timerCount = 0;
+    if (data!=null){
+        document.getElementById("nowShowing").innerHTML = `${data.length} Projects`;
+        let timerCount = 0;
 
-    data.forEach(dataPoint => {
-        if (dataPoint.hasTimerRunning) {
-            timerCount +=1;
-        }
-        let itemdiv = listHelperSetupCard(dataPoint.projectId);
-        itemdiv.addEventListener('click', (event) => {
-            goToPage(`project.html?id=${parseOutId(event.currentTarget.id)}`);
-        }); 
+        data.forEach(dataPoint => {
+            if (dataPoint.hasTimerRunning) {
+                timerCount +=1;
+            }
+            let itemdiv = listHelperSetupCard(dataPoint.projectId);
+            itemdiv.addEventListener('click', (event) => {
+                goToPage(`project.html?id=${parseOutId(event.currentTarget.id)}`);
+            }); 
 
-        let statuselement = addElement('p',statusTexts[dataPoint.status], itemdiv);
-        statuselement.classList.add(`status${dataPoint.status}`);
-        let element= addElement('h3',dataPoint.name, itemdiv);
-        element = addElement('p',formatTimeSpan(dataPoint.totalWorkingTime), itemdiv);
-        element.classList = 'totalTime';
-        if (dataPoint.hasTimerRunning) {
-            element.classList.add('runningTimer');
-        }
-        let deleteButton = listHelperDeleteButton(itemdiv.parentNode);            
-        deleteButton.addEventListener('click', () => {
-            deleteProject(dataPoint.projectId, dataPoint.name)
-            .then(()=> createProjectList());
+            let statuselement = addElement('p',statusTexts[dataPoint.status], itemdiv);
+            statuselement.classList.add(`status${dataPoint.status}`);
+            let element= addElement('h3',dataPoint.name, itemdiv);
+            element = addElement('p',formatTimeSpan(dataPoint.totalWorkingTime), itemdiv);
+            element.classList = 'totalTime';
+            if (dataPoint.hasTimerRunning) {
+                element.classList.add('runningTimer');
+            }
+            let deleteButton = listHelperDeleteButton(itemdiv.parentNode);            
+            deleteButton.addEventListener('click', () => {
+                deleteProject(dataPoint.projectId, dataPoint.name)
+                .then(()=> createProjectList());
+            });
         });
-    });
-    document.getElementById("nowShowing").innerHTML += ((timerCount>0)? ` ${timerCount} timer(s) running`: '');
-    
+        document.getElementById("nowShowing").innerHTML += ((timerCount>0)? ` ${timerCount} timer(s) running`: '');
+    } else {
+        document.getElementById("nowShowing").innerHTML += "-Not Authorized";
+    }
     });
 }
 
