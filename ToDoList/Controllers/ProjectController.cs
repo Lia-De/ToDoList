@@ -16,7 +16,7 @@ namespace ToDoList.Controllers;
 
 
 
-[Authorize]
+//[Authorize]
 
 
 
@@ -90,8 +90,10 @@ public class ProjectController : ControllerBase
         {
             return BadRequest();
         }
-        
-        var project = new Project { Name = newName, UserProfileId = 1 };
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);  //  Get logged-in user ID
+
+
+        var project = new Project { Name = newName };
         if (frontendProject.Description != null)
         {
             project.Description = frontendProject.Description;

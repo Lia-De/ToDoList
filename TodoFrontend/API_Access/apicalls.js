@@ -1,4 +1,3 @@
-import { createProjectList } from '../Components/create_items.js';
 import {config } from '../config.js';
 export let isLoggedIn;
 // ********************************************************************************/
@@ -8,7 +7,7 @@ export async function fetchAllProjects() {
     try {
         const response = await fetch(`${config.apiBaseUrl}/Project`, {
             method: "GET",
-            credentials: "include"
+            // credentials: "include"
     });
         if (!response.ok) {
             console.log(response);
@@ -299,7 +298,6 @@ export function login(e) {
             "Content-Type": "application/json",
             "Accept" : "application/json",
         },
-        // credentials: "include",
         body: JSON.stringify ({
             "email": "jentap@gmail.com",
             "password": "1234+Abc",
