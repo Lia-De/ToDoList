@@ -16,7 +16,7 @@ namespace ToDoList.Controllers;
 
 
 
-//[Authorize]
+[Authorize]
 
 
 

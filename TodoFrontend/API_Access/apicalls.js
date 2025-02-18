@@ -7,7 +7,7 @@ export let isLoggedIn;
 export async function fetchAllProjects() {   
     try {
         const response = await fetch(`${config.apiBaseUrl}/Project`, {
-            method: "GET",
+            method: "GET"
     });
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -300,11 +300,10 @@ export function login(e) {
             "password": "1234+Abc",
         })
     })
-        .then(response => response.text())
-        .then(data => { 
-            console.log(data);
-            // const token = data.accessToken;
-});
+        .then(response => {
+            console.log(response.status);
+            response.text()})
+        .then(data => console.log(data));
 
         isLoggedIn = true;
         authButton.innerText = "Logout";
