@@ -124,5 +124,5 @@ export function deleteTask(id, desc){
 // ********************************************************************************/
 let authButton = document.getElementById('authorize');
 if (authButton)
-    authButton.addEventListener("click", () => { isLoggedIn ? logout() : login();
+    authButton.addEventListener("click", (e) => { isLoggedIn ? logout(e) : login(e);
 });

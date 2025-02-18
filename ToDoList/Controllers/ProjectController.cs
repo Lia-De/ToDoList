@@ -1,28 +1,37 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Diagnostics.Eventing.Reader;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.Intrinsics.X86;
+using System.Security.Claims;
 using ToDoList.DTOs;
 using ToDoList.Models;
 using ToDoList.Services;
 
 namespace ToDoList.Controllers;
+
 //[Authorize]
+
+
+
+
 [ApiController]
 [Route("[controller]")]
 public class ProjectController : ControllerBase
 {
     private TodoContext _context;
     private readonly ProjectService _projectService;
+    private readonly UserManager<AppUser> _userManager;
 
-    public ProjectController(TodoContext context, ProjectService service)
+    public ProjectController(TodoContext context, ProjectService service, UserManager<AppUser> userManager)
     {
         _context = context;
         _projectService = service;
+        _userManager = userManager;
     }
 
     // Adding CRUD methods
@@ -79,7 +88,8 @@ public class ProjectController : ControllerBase
         {
             return BadRequest();
         }
-        var project = new Project { Name = newName };
+        var currentUser = _userManager.Users.FirstOrDefault(x => x.Email == 'jentap@gmail.com');
+        var project = new Project { Name = newName, UserProfileId = currentUserId };
         if (frontendProject.Description != null)
         {
             project.Description = frontendProject.Description;

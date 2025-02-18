@@ -1,3 +1,4 @@
+import { createProjectList } from '../Components/create_items.js';
 import {config } from '../config.js';
 export let isLoggedIn;
 // ********************************************************************************/
@@ -5,7 +6,9 @@ export let isLoggedIn;
 // ********************************************************************************/
 export async function fetchAllProjects() {   
     try {
-        const response = await fetch(`${config.apiBaseUrl}/Project`);
+        const response = await fetch(`${config.apiBaseUrl}/Project`, {
+            method: "GET",
+    });
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -284,24 +287,28 @@ export async function addTagToItem(event, inputTags, fetchUrl){
 
 let authButton=document.getElementById('authorize');
 
-export function login() {
-    
-    fetch(config.apiBaseUrl+"/login", {
+export function login(e) {
+    e.preventDefault();
+    fetch(config.apiBaseUrl+"/login?useCookies=true", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Accept" : "application/json"
+            "Accept" : "application/json",
         },
         body: JSON.stringify ({
-            useCookies: true,
-            email: "jentap@gmail.com",
-            password: "1234+Abc",
+            "email": "jentap@gmail.com",
+            "password": "1234+Abc",
         })
     })
-        .then(response => response.json())
-        .then(data => console.log(data));
+        .then(response => response.text())
+        .then(data => { 
+            console.log(data);
+            // const token = data.accessToken;
+});
+
         isLoggedIn = true;
         authButton.innerText = "Logout";
+        
         
 }
 

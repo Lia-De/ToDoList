@@ -1,10 +1,11 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System.Text.Json.Serialization;
 using ToDoList;
 using ToDoList.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
+using ToDoList.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 DotNetEnv.Env.Load();
@@ -30,7 +31,7 @@ builder.Services.AddSwaggerGen();
 
 // Identity
 builder.Services.AddAuthorization();
-builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+builder.Services.AddIdentityApiEndpoints<AppUser>()
     .AddEntityFrameworkStores<TodoContext>();
 
 var sitePolicy = "site-policy";
@@ -49,7 +50,7 @@ var app = builder.Build();
 app.UseCors(sitePolicy);
 
 // Identity services
-app.MapIdentityApi<IdentityUser>();
+app.MapIdentityApi<AppUser>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
