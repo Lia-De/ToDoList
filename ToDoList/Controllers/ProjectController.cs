@@ -14,12 +14,7 @@ using ToDoList.Services;
 
 namespace ToDoList.Controllers;
 
-
-
 //[Authorize]
-
-
-
 
 [ApiController]
 [Route("[controller]")]
@@ -90,7 +85,7 @@ public class ProjectController : ControllerBase
         {
             return BadRequest();
         }
-        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);  //  Get logged-in user ID
+        //var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);  //  Get logged-in user ID
 
 
         var project = new Project { Name = newName };

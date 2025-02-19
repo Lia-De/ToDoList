@@ -2,12 +2,13 @@
 using Microsoft.AspNetCore.Mvc;
 using SQLitePCL;
 using System.Security.Claims;
+using ToDoList.DTOs;
 using ToDoList.Models;
 
 namespace ToDoList.Controllers;
 
 [ApiController]
-[Route("myProfile")]
+[Route("profile")]
 public class ProfileController : ControllerBase
 {
     private UserManager<AppUser> _userManager;
@@ -22,9 +23,43 @@ public class ProfileController : ControllerBase
     [HttpGet]
     public IActionResult Index()
     {
-        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier); // From HTTP context
-        var userProfile = _userManager.Users.First(x => x.Id == currentUserId);
-        //var contextUser = _context.Users.FirstOrDefault(x => x.Id == currentUserId);
-        return Ok(userProfile);
+        try
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier); // From HTTP context
+            var userProfile = _userManager.Users.First(x => x.Id == currentUserId);
+
+            if (userProfile == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(userProfile);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+    [HttpPost]
+    [Route("register")]
+    public async Task<IActionResult> Register(LoginDTO newUser)
+    {
+        var user = new AppUser
+        {
+            Email = newUser.Email,
+            UserName = newUser.Email
+        };
+        var result = await _userManager.CreateAsync(user, newUser.Password);
+        if (!result.Succeeded)
+        {
+            return BadRequest();
+        }
+        UserProfile newProfile = new UserProfile{ AppUserId = user.Id };
+        
+        _context.UserProfiles.Add(newProfile);
+        await _context.SaveChangesAsync();
+
+        return Ok(user);
+
     }
 }
