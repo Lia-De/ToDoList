@@ -1,6 +1,6 @@
-// config.js
+// config.js port 5000 for exe file, port 7217 for dev
 export const config = {
-    apiBaseUrl: "https://localhost:7217",
+    apiBaseUrl: "http://localhost:5000",
 };
 
 
