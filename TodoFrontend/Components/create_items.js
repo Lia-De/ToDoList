@@ -210,7 +210,8 @@ export function showThisItem(itemID, dataType){
             addButton.addEventListener('click', (event) => addTaskListener(event) );
 
             //            Display info for each task of the project          //
-            data.tasks.forEach(task => {
+            const result = data.tasks.filter((task)=> !task.isDeleted); // Show only the non soft-deleted tasks
+            result.forEach(task => {
                 let taskDiv = addElement('div','',detailDiv);
                 taskDiv.classList='detailTask shadowbox';
                 header = addElement('div','',taskDiv);
