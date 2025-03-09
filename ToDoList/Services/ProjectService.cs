@@ -31,16 +31,17 @@ public class ProjectService
                         .Include(p=> p.Timers)
                         .IgnoreQueryFilters().FirstOrDefault(ti => ti.ProjectId == projectId);
         if (project!=null) {
-            TimeSpan result = TimeSpan.Zero;
+            //TimeSpan result = TimeSpan.Zero;
+            long result = 0;
             List<Models.Task> tasks = project.Tasks;
             List<ProjectTimer> oldTimers = project.Timers.Where(pt => pt.EndDate.HasValue).ToList();
-
+            
             foreach (var timer in oldTimers)
             {
                 var duration = GetDuration(timer);
                 if (duration!= null)
                 {
-                    result += duration.Value;
+                    result += (long)duration.Value.TotalSeconds;
                 }
             }
             // Also update the status of the project if we find a lost timer.
@@ -49,9 +50,11 @@ public class ProjectService
             {
                 project.HasTimerRunning = true;
             }
-            project.TotalWorkingTime = result;
+            //project.TotalWorkingTime = result;
+            project.TotalWorkingTimeSeconds = result;
+            
             _context.SaveChanges();
-            return result;
+            return TimeSpan.FromSeconds(result);
             
         } else
         {
@@ -81,7 +84,7 @@ public class ProjectService
         ProjectTimer? timer = GetActiveProjectTimer(projectId);
         if (timer != null)
         {
-            result = stopTime - timer.StartDate;
+            result = TimeSpan.FromSeconds((stopTime - timer.StartDate).TotalSeconds);
             if (result > TimeSpan.Zero)
             {
               Project? project =  _context.Projects.Include(t => t.Tasks).FirstOrDefault(p => p.ProjectId == projectId);
@@ -94,6 +97,7 @@ public class ProjectService
                         task.TimeSpent += result;   
                     }
                     project.TotalWorkingTime += result;
+                    project.TotalWorkingTimeSeconds += (long)result.TotalSeconds;
                     project.HasTimerRunning = false;
                     timer.EndDate = stopTime;
                     _context.SaveChanges();

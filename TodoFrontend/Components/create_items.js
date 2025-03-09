@@ -182,6 +182,7 @@ export function showThisItem(itemID, dataType){
             let statusElement = addElement('p',statusTexts[status], header);
             statusElement.classList=`status${status}`;                        
             let time = addElement('p',formatTimeSpan(data.totalWorkingTime), header);
+        
             time.classList = 'totalTime';
 
             // Set an event listener to show 
@@ -1022,25 +1023,40 @@ export function addElement(elementType, data, target){
 }
 // ********************************************************************************/
 //              Helper functions - formats TimeSpan to human readable form
+//                 Extract dd:hh:mm:ss from "dd.hh:mm:ss.ffffff"
 // ********************************************************************************/
 function formatTimeSpan(timeSpanString) {
-    // Extract hh:mm:ss from "hh:mm:ss.ffffff"
-    if (timeSpanString === "00:00:00") {
+    if (!timeSpanString || timeSpanString === "00:00:00") {
         return 'No time recorded';
     }
-    let [hours, minutes, seconds] = timeSpanString.split(":").map(Number);
+
+    let days = 0, hours = 0, minutes = 0, seconds = 0;
+
+    // Split on "." to separate days from hh:mm:ss
+    let parts = timeSpanString.split(".");
+    if (parts.length === 2) {
+        let secondparts = parts[1].split(":");
+        if (secondparts.length===1) {
+            [hours, minutes, seconds] = parts[0].split(":").map(Number);
+        } else {
+            days = parseInt(parts[0], 10); // Days before the dot
+            [hours, minutes, seconds] = parts[1].split(":").map(Number);
+        }
+    } else {
+        [hours, minutes, seconds] = parts[0].split(":").map(Number);
+    }
+
     // Round seconds to remove microseconds
     seconds = Math.floor(seconds);
-    // Convert hours to days and get remaining hours
-    let days = Math.floor(hours / 24);
-    hours = hours % 24;
+
     // Build the output dynamically
-    let parts = [];   
-    if (days > 0) parts.push(`${days}d`);
-    if (hours > 0) parts.push(`${hours}h`);
-    if (minutes > 0) parts.push(`${minutes}m`);
-    if (seconds > 0) parts.push(`${seconds}s`);
-    return parts.length > 0 ? parts.join(" ") : 'No time recorded';
+    let formattedParts = [];
+    if (days > 0) formattedParts.push(`${days}d`);
+    if (hours > 0) formattedParts.push(`${hours}h`);
+    if (minutes > 0) formattedParts.push(`${minutes}m`);
+    if (seconds > 0) formattedParts.push(`${seconds}s`);
+
+    return formattedParts.length > 0 ? formattedParts.join(" ") : 'No time recorded';
 }
 // ********************************************************************************/
 //              Helper functions - formats DateTime Deadline to human readable form

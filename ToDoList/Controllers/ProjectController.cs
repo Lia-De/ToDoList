@@ -49,13 +49,18 @@ public class ProjectController : ControllerBase
     [HttpGet("getSingleProject/{projectId}")]
     public Project? GetProject(int projectId)
     {
-        _projectService.UpdateProjectTimerTotal(projectId);
-        return _context
+        var projectTotalTime = _projectService.UpdateProjectTimerTotal(projectId);
+        Project? project = _context
             .Projects
             .Include(p => p.Tags)
             .Include(p => p.Tasks)
             .ThenInclude(tag => tag.Tags)
             .FirstOrDefault(p => p.ProjectId == projectId);
+        if(project != null)
+        {
+            project.TotalWorkingTime = projectTotalTime;
+        }
+        return project;
     }
     [HttpGet("setStatus/{projectId}/{status}")]
     public IActionResult SetStatus(int projectId, int status)

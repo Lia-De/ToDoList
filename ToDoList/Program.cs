@@ -14,7 +14,7 @@ string dbVariable = Environment.GetEnvironmentVariable("SQLite_SRC");
 // Add services to the container.
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console() // Still logs to the console
+    //.WriteTo.Console() // Still logs to the console
     .WriteTo.File("Logs/app.log", rollingInterval: RollingInterval.Day) // Logs to a file daily
     .CreateLogger();
 builder.Host.UseSerilog(); // Use Serilog instead of default logging
@@ -30,6 +30,8 @@ builder.Services.AddScoped<ProjectService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+
 // Identity
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<AppUser>()
@@ -41,9 +43,10 @@ builder.Services.AddCors(options =>
     options.AddPolicy(sitePolicy, builder =>
     {
         //builder.AllowAnyOrigin()
-        builder.WithOrigins("http://127.0.0.1:5500").AllowCredentials()
+        builder.WithOrigins("http://127.0.0.1:5500", "http://localhost:5500").AllowCredentials()
                .AllowAnyHeader()
-               .AllowAnyMethod();
+               .AllowAnyMethod()
+               .SetIsOriginAllowed(origin => true);
     });
 });
 
@@ -62,7 +65,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Ensure the database is created
+using var scope = app.Services.CreateScope();
+var dbContext = scope.ServiceProvider.GetRequiredService<TodoContext>();
+dbContext.Database.EnsureCreated();
+
+
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

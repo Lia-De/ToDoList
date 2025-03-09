@@ -13,8 +13,20 @@ public class Project
     public List<Tag> Tags { get; set; } = new List<Tag>();
     public ToDoStatus Status { get; set; }
     public DateTime ProjectCreated { get; private set; } = DateTime.Now;
-    public TimeSpan TotalWorkingTime { get; set; } = TimeSpan.Zero;
+    //public TimeSpan TotalWorkingTime { get; set; } = TimeSpan.Zero;
     public bool HasTimerRunning { get; set; } = false;
     public string Description { get; set; } = string.Empty;
     public List<ProjectTimer> Timers { get; set; } = new List<ProjectTimer> { };
+
+    [Column("TotalWorkingTime")]
+    public long TotalWorkingTimeSeconds
+    {
+        get => (long)TotalWorkingTime.TotalSeconds;  // Convert TimeSpan to seconds
+        set => TotalWorkingTime = TimeSpan.FromSeconds(value); // Convert back to TimeSpan
+    }
+
+    [NotMapped]
+    public TimeSpan TotalWorkingTime { get; set; } = TimeSpan.Zero;
+
+
 }
