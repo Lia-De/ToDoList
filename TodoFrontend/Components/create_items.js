@@ -348,13 +348,15 @@ function stopTimer(prId){
     radioButton.name='appliedToTask';
     radioButton.value=0;
     allTasks.forEach(taskDiv => {
-        let radioLabel = addElement('label', taskDiv.innerHTML,form);
-        radioLabel.setAttribute('for',taskDiv.id);
-        let radioButton = addElement('input','',form);
-        radioButton.type='radio';
-        radioButton.id = taskDiv.id;
-        radioButton.name='appliedToTask';
-        radioButton.value=parseOutId(taskDiv.id);
+        if (taskDiv.previousSibling.classList!="status3") {
+            let radioLabel = addElement('label', taskDiv.innerHTML,form);
+            radioLabel.setAttribute('for',taskDiv.id);
+            let radioButton = addElement('input','',form);
+            radioButton.type='radio';
+            radioButton.id = taskDiv.id;
+            radioButton.name='appliedToTask';
+            radioButton.value=parseOutId(taskDiv.id);
+        }
     });
 
     let submit = addElement('button','Apply',form);
