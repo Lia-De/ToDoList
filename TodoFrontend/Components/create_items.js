@@ -855,6 +855,7 @@ function printTaskDeadlinePicker(event){
 //              the project has been worked on
 //      Toggle functionality
 // ********************************************************************************/
+import {calculateTotalTimePerDay} from '../Data/calendar-report.js'
 function printTotalTimeBreakdown(event){
     let reportDiv = document.getElementById('timeReport');
     if (reportDiv) {
@@ -868,8 +869,31 @@ function printTotalTimeBreakdown(event){
             timeReportDiv.classList.add('shadowbox');
             addElement('h4','Report of all the times worked on this project',timeReportDiv);
             trg.insertAdjacentElement('afterend',timeReportDiv);
+            let allDetails = false;
+            let btn=addElement('button','Toggle Dates vs All Reported',timeReportDiv);
+            btn.addEventListener('click', () => {
+                console.log(allDetails);
+                if (allDetails) {
+                    document.getElementById('dateDetails').classList='';
+                    document.getElementById('totalDetails').classList='hide';
+                } else {    
+                    document.getElementById('dateDetails').classList='hide';
+                    document.getElementById('totalDetails').classList='';
+                }
+                allDetails = !allDetails;
+            })
+
+            let tmp = calculateTotalTimePerDay(data);
+            let dateDetails=addElement('div','',timeReportDiv);
+            dateDetails.id="dateDetails";
+            tmp.forEach(({date, totalTime}) => {
+                addElement('p',`${date} : ${totalTime}`, dateDetails);
+            });
+            let totalDetails=addElement('div','',timeReportDiv);
+            totalDetails.classList='hide';
+            totalDetails.id="totalDetails";
             data.forEach(timer => {
-                let rep=addElement('p',formatDateTime(timer.startDate)+' until '+formatDateTime(timer.endDate), timeReportDiv);
+                let rep=addElement('p',formatDateTime(timer.startDate)+' until '+formatDateTime(timer.endDate), totalDetails);
                 if (timer.taskId!=null) {
                     let taskName=document.querySelector(`[id^='task-${timer.taskId}']`).innerHTML;
                     rep.innerHTML += ' ('+taskName+')';
