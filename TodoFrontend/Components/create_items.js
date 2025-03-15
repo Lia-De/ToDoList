@@ -870,9 +870,8 @@ function printTotalTimeBreakdown(event){
             addElement('h4','Report of all the times worked on this project',timeReportDiv);
             trg.insertAdjacentElement('afterend',timeReportDiv);
             let allDetails = false;
-            let btn=addElement('button','Toggle Dates vs All Reported',timeReportDiv);
+            let btn=addElement('button','Toggle Dates vs All Timers',timeReportDiv);
             btn.addEventListener('click', () => {
-                console.log(allDetails);
                 if (allDetails) {
                     document.getElementById('dateDetails').classList='';
                     document.getElementById('totalDetails').classList='hide';
