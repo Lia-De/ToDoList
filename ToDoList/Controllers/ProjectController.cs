@@ -283,7 +283,8 @@ public class ProjectController : ControllerBase
 
             if (duration > TimeSpan.Zero)
             {
-                return Ok(duration);
+                Project? project = GetProject(request.ProjectID);
+                return Ok(project.TotalWorkingTime);
             }
             else
             {
