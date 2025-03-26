@@ -57,7 +57,7 @@ public class TaskController : Controller
         }
             _context.Tasks.Add(task);
         _context.SaveChanges();
-        return Ok($"Task {newTask.Name} added");
+        return Ok(task);
     }
     // Update
     [HttpPost("updateTask")]
