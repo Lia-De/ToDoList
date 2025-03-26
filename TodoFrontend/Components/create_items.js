@@ -3,7 +3,7 @@ import { statusTexts, InfoText } from '../Data/hardcoded.js';
 import { fetchAllProjects, fetchAllTags, getSingleItem, getAllTimers,
         startProjectTimer, stopProjectTimer,
         addTagToItem, sendAddRequest, 
-        sendEditRequest, removeTagFromProject, removeTagFromTask} from '../API_Access/apiCalls.js';
+        sendEditRequest, removeTagFromProject, removeTagFromTask} from '../API_Access/apicalls.js';
 import {deleteProject, deleteTag, deleteTask, goToPage, addTaskListener, editListener } from '../EventListeners/eventListeners.js';
 
 function listHelperSetupCard(id){
