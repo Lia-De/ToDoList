@@ -113,7 +113,7 @@ public class TaskController : Controller
             {
                 task.Tags.Remove(tag);   
                 _context.SaveChanges();
-                return Ok();
+                return Ok(task);
             }
         }
     }

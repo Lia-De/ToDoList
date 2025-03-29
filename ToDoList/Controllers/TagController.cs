@@ -65,7 +65,7 @@ public class TagController : ControllerBase
         string oldName = tag.Name;
         tag.Name = frontendTag.Name;
         _context.SaveChanges();
-        return Ok($"Tag {frontendTag.Name} updated from {oldName}");
+        return Ok(tag);
     }
     // Delete
     [HttpDelete("deleteTag")]

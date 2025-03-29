@@ -255,7 +255,7 @@ public class ProjectController : ControllerBase
     [HttpGet("getProjectTimers/{projectId}")]
     public List<ProjectTimer> GetProjectTimers(int projectId)
     {
-        return _context.ProjectTimers.Where(pt=> pt.ProjectId == projectId).OrderByDescending(pt => pt.StartDate).ToList();
+        return _context.ProjectTimers.Where(pt=> pt.ProjectId == projectId).OrderBy(pt => pt.StartDate).ToList();
     }
 
     [HttpPost("startTimer/{projectId}")]
