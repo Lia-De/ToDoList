@@ -34,17 +34,6 @@ builder.Services.AddControllers();
 builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 
-// Use Azure AD authentication
-//var tokenCredential = new DefaultAzureCredential();
-//var sqlConnection = new Microsoft.Data.SqlClient.SqlConnection(connectionString);
-//sqlConnection.AccessToken = tokenCredential.GetToken(
-//    new Azure.Core.TokenRequestContext(new[] { "https://database.windows.net/.default" })
-//).Token;
-
-//builder.Services.AddDbContext<TodoContext>(options =>
-//    options.UseSqlServer(sqlConnection));
-
-// Configure DbContext
 builder.Services.AddDbContext<TodoContext>(options =>
     options.UseSqlServer(connectionString));
 
@@ -53,23 +42,8 @@ builder.Services.AddScoped<ProjectService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//var sitePolicy = "site-policy";
-//builder.Services.AddCors(options =>
-//{
-//    options.AddPolicy(sitePolicy, builder =>
-//    {
-//        //builder.AllowAnyOrigin()
-//        builder.WithOrigins("http://127.0.0.1:5500", "http://localhost:5500").AllowCredentials()
-//               .AllowAnyHeader()
-//               .AllowAnyMethod()
-//               .SetIsOriginAllowed(origin => true);
-//    });
-//});
-
-
 var app = builder.Build();
 
-//app.UseCors(sitePolicy);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
