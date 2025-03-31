@@ -1,6 +1,11 @@
 # To Do List app
 Created 2025-01-08 as part of Lexicon course, fullstack C# developer.
 
+## Refactor for React
+* 23 March 2025 - Started refactoring the code from pure js to React
+* 31 March 2025 - Published [working React demo](https://github.com/Lia-De/craftintime-react) using GitHub Pages, API and SQL Server hosted on Azure.
+
+
 ## New Figma prototype for Craft in Time
 [Figma To Do v5](https://www.figma.com/proto/CZhjlhFft9ezpkyJNBcyUX/Crafting-To-Do?node-id=60-821&t=eeJg3f9Wd046Ypaz-1&scaling=scale-down&content-scaling=fixed&page-id=59%3A141&starting-point-node-id=60%3A821)
 
