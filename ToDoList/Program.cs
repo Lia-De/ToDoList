@@ -4,23 +4,13 @@ using System.Text.Json.Serialization;
 using ToDoList;
 using ToDoList.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
 using ToDoList.Models;
-using Microsoft.Extensions.Configuration;
-using System;
-using DotNetEnv;
-using Microsoft.EntityFrameworkCore.SqlServer;
-using Microsoft.Data.SqlClient;
-using Azure.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 DotNetEnv.Env.Load();
-
-string connectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING")!;
-
-if (string.IsNullOrEmpty(connectionString))
-{
-    throw new Exception("Database connection string is missing. Check your .env file.");
-}
+string dbVariable = Environment.GetEnvironmentVariable("SQLite_SRC");
 // Add services to the container.
 
 Log.Logger = new LoggerConfiguration()
@@ -32,25 +22,44 @@ builder.Host.UseSerilog(); // Use Serilog instead of default logging
 builder.Services.AddControllers();
 // Enadle us to load database nested opjects, without going into infinite loops.
 builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-
-
-
-builder.Services.AddDbContext<TodoContext>(options =>
-    options.UseSqlServer(connectionString));
-
-
+// set to SplitQuery as opposed to SingleQuery which is the default
+builder.Services.AddDbContext<TodoContext>(opt => opt.UseSqlite(dbVariable, sqliteOptions => {
+                                sqliteOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                            }));
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+
+// Identity
+builder.Services.AddAuthorization();
+builder.Services.AddIdentityApiEndpoints<AppUser>()
+    .AddEntityFrameworkStores<TodoContext>();
+
+var sitePolicy = "site-policy";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(sitePolicy, builder =>
+    {
+        //builder.AllowAnyOrigin()
+        builder.WithOrigins("http://127.0.0.1:5500", "http://localhost:5500").AllowCredentials()
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .SetIsOriginAllowed(origin => true);
+    });
+});
+
+
 var app = builder.Build();
-app.UseCors(policy =>
-    policy.AllowAnyOrigin()
-          .AllowAnyMethod()
-          .AllowAnyHeader());
+
+app.UseCors(sitePolicy);
+
+// Identity services
+app.MapIdentityApi<AppUser>();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -62,7 +71,7 @@ var dbContext = scope.ServiceProvider.GetRequiredService<TodoContext>();
 dbContext.Database.EnsureCreated();
 
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
