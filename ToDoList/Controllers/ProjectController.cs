@@ -14,17 +14,21 @@ using ToDoList.Services;
 
 namespace ToDoList.Controllers;
 
+//[Authorize]
+
 [ApiController]
 [Route("[controller]")]
 public class ProjectController : ControllerBase
 {
     private TodoContext _context;
     private readonly ProjectService _projectService;
+    private readonly UserManager<AppUser> _userManager;
 
-    public ProjectController(TodoContext context, ProjectService service)
+    public ProjectController(TodoContext context, ProjectService service, UserManager<AppUser> userManager)
     {
         _context = context;
         _projectService = service;
+        _userManager = userManager;
     }
 
     // Adding CRUD methods
@@ -58,7 +62,25 @@ public class ProjectController : ControllerBase
         }
         return project;
     }
-   
+    [HttpGet("setStatus/{projectId}/{status}")]
+    public IActionResult SetStatus(int projectId, int status)
+    {
+        Project? project = _context.Projects.FirstOrDefault(p => p.ProjectId == projectId);
+        if (project == null)
+        {
+            return NotFound();
+        }
+        else 
+        {
+            if (project.Status != (ToDoStatus)status)
+            {
+                project.Status = (ToDoStatus)status;
+                _context.SaveChanges();
+            }
+                return Ok();
+        }
+    }
+
     // Create
     [HttpPost("addProject")]
     public IActionResult AddProject(ProjectDTO frontendProject)
@@ -68,6 +90,7 @@ public class ProjectController : ControllerBase
         {
             return BadRequest();
         }
+        //var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);  //  Get logged-in user ID
 
 
         var project = new Project { Name = newName };
@@ -86,7 +109,9 @@ public class ProjectController : ControllerBase
     // Update
     [HttpPost("updateProject")]
     public IActionResult UpdateProject(ProjectDTO frontendProject)
-    {        
+    {
+        
+        
         var project = GetProject(frontendProject.ProjectId);
         if (project == null)
         {
@@ -230,7 +255,7 @@ public class ProjectController : ControllerBase
     [HttpGet("getProjectTimers/{projectId}")]
     public List<ProjectTimer> GetProjectTimers(int projectId)
     {
-        return _context.ProjectTimers.Where(pt=> pt.ProjectId == projectId).OrderBy(pt => pt.EndDate).ToList();
+        return _context.ProjectTimers.Where(pt=> pt.ProjectId == projectId).OrderBy(pt => pt.StartDate).ToList();
     }
 
     [HttpPost("startTimer/{projectId}")]
